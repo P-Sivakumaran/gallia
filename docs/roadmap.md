@@ -11,22 +11,21 @@ Rumour trackers grade sources but never show whether their grades were right. Sm
 claim is the opposite: forecasts with a public scorecard, misses included, and denials never
 paywalled. Everything below serves that claim.
 
-## Milestone 0 — Repo hygiene (needs owner decision)
+## Milestone 0 — Repo hygiene (approved 2026-11-23)
 
-The git repository root is the owner's home directory, and GitHub stores the app under
-`Projects/transfer-rumour-hub/`. That nests every path, makes `git add -A` in `~` dangerous on a
-public repo, and blocks normal clones, CI paths and deployment.
+The git repository root was the owner's home directory, and GitHub stored the app under
+`Projects/transfer-rumour-hub/`. That nested every path, made `git add -A` in `~` dangerous on a
+public repo, and blocked normal clones, CI paths and deployment.
 
-1. Merge a commit that moves `Projects/transfer-rumour-hub/*` to the repo root (`git mv`, history kept).
-2. Clone fresh to `~/Projects/<name>`; copy `.env` files across; check `.gitignore` covers them.
-3. Bring the untracked `packages/design-kit` (135 MB on disk, mostly build output) in deliberately:
-   commit `src/`, config and `.design-sync/` notes, gitignore `dist/`, `ds-bundle/_*` and caches.
-4. Push the local-only `ml-scoring-service` branch (commit `b91890a`, an early ml-service scaffold,
-   likely superseded by `ml-service/` on main) as an archive branch — it exists nowhere else.
-5. Retire `~/.git` after confirming nothing else in `~` is tracked (230 files, all under the app path)
-   and `git stash list` is empty (it was on 2026-11-23).
-6. Update the Claude Code `autoMode` trust scope to the new path.
-7. Optionally rename the GitHub repo to the chosen name (GitHub redirects old URLs).
+- [x] Move `Projects/transfer-rumour-hub/*` to the repo root (`git mv`, history kept).
+- [x] Point `.mcp.json` (CHAP server) at the new checkout, `~/Projects/smoke-and-fire`.
+- [x] Commit `packages/design-kit` source (36 files; its own `.gitignore` already excludes build output).
+- [x] Push the local-only `ml-scoring-service` branch as `archive/ml-scoring-service`.
+- [ ] Fresh clone at `~/Projects/smoke-and-fire` with `.env` files, `.chap/` audit log, trained
+      ml-service models and the design-kit build state copied across.
+- [ ] Retire `~/.git` (moved aside to `~/Archive`, not deleted) once this lands on `main`.
+- [ ] Update the Claude Code `autoMode` trust scope to the new repo name.
+- [ ] Rename the GitHub repo to `smoke-and-fire` (GitHub redirects old URLs).
 
 ## Milestone 1 — Identity and the scorecard (this PR)
 

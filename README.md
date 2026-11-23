@@ -1,6 +1,6 @@
 # Smoke & Fire
 
-*Working name, proposed — the repo is still `transfer-rumour-hub`. The name lives in one place: `frontend/src/lib/brand.ts`.*
+*Formerly Transfer Rumour Hub. The product name lives in one place: `frontend/src/lib/brand.ts`.*
 
 **No smoke without fire? We check.** Football transfer rumours with a likelihood forecast on every
 claim, the source trail behind it, and a public [scorecard](frontend/src/app/scorecard/page.tsx) that
