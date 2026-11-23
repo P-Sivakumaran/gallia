@@ -67,7 +67,7 @@ describe('StatusBadge', () => {
 })
 
 describe('feedReducer: live updates', () => {
-  const start: FeedState = { rumours: [rumour()], live: {} }
+  const start: FeedState = { rumours: [rumour()], live: {}, latest: null }
 
   it('records the delta and bumps the sequence on a score change', () => {
     const s1 = feedReducer(start, { type: 'UPDATE', payload: { id: 1, computedLikelihood: 52, status: 'PENDING' } })
@@ -75,6 +75,7 @@ describe('feedReducer: live updates', () => {
     expect(s1.live[1]).toEqual({ seq: 1, delta: 7, statusChanged: false })
     const s2 = feedReducer(s1, { type: 'UPDATE', payload: { id: 1, computedLikelihood: 74, status: 'HOT' } })
     expect(s2.live[1]).toEqual({ seq: 2, delta: 22, statusChanged: true })
+    expect(s2.latest).toEqual({ id: 1, seq: 2 })
   })
 
   it('ignores updates that change nothing visible, and unknown rumours', () => {

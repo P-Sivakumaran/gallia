@@ -28,7 +28,7 @@ function CardShell({ children, testId }: { children: React.ReactNode; testId: st
   return (
     <div
       data-testid={testId}
-      className="rounded-xl border border-line-subtle bg-surface-panel/40 p-5"
+      className="rounded-xl border border-line/60 bg-card shadow-card p-5"
     >
       {children}
     </div>

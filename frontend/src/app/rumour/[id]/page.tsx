@@ -31,7 +31,7 @@ export default async function RumourDetailPage({ params }: { params: Promise<{ i
           size="lg"
         />
         <div className="flex-1">
-          <h1 className="text-2xl font-bold">
+          <h1 className="text-4xl font-black tracking-display sm:text-5xl">
             <Link href={`/player/${rumour.player.id}`} className="hover:text-pitch-500">
               {rumour.player.name}
             </Link>
@@ -62,7 +62,7 @@ export default async function RumourDetailPage({ params }: { params: Promise<{ i
       </div>
 
       {/* Source */}
-      <div className="rounded-xl border border-line-subtle bg-surface-panel/40 p-4">
+      <div className="rounded-xl border border-line/60 bg-card shadow-card p-4">
         <p className="text-xs font-semibold uppercase tracking-widest text-ink-muted mb-2">Source</p>
         <div className="flex items-center gap-3">
           <span className="font-medium text-ink-primary">{rumour.source.name}</span>
@@ -74,7 +74,7 @@ export default async function RumourDetailPage({ params }: { params: Promise<{ i
       </div>
 
       {/* Likelihood timeline */}
-      <div className="rounded-xl border border-line-subtle bg-surface-panel/40 p-4">
+      <div className="rounded-xl border border-line/60 bg-card shadow-card p-4">
         <SectionKicker className="mb-4">
           Likelihood over time
         </SectionKicker>
@@ -82,14 +82,14 @@ export default async function RumourDetailPage({ params }: { params: Promise<{ i
       </div>
 
       {rumour.notes && (
-        <div className="rounded-xl border border-line-subtle bg-surface-panel/40 p-4">
+        <div className="rounded-xl border border-line/60 bg-card shadow-card p-4">
           <SectionKicker className="mb-2">Notes</SectionKicker>
           <p className="text-ink-soft text-sm leading-relaxed">{rumour.notes}</p>
         </div>
       )}
 
       {/* Evidence — the articles this rumour and its status are actually based on */}
-      <div className="rounded-xl border border-line-subtle bg-surface-panel/40 p-4">
+      <div className="rounded-xl border border-line/60 bg-card shadow-card p-4">
         <SectionKicker className="mb-2">Evidence</SectionKicker>
         {rumour.evidence.length === 0 ? (
           <p className="text-sm text-ink-muted">No source articles linked to this rumour yet.</p>

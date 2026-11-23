@@ -7,6 +7,8 @@ import TruthMeter from './TruthMeter'
 import { resolveDisplayOrigin } from '@/lib/rumourOrigin'
 import { clsx } from 'clsx'
 import StatusBadge from './StatusBadge'
+import ReliabilityBar from './ReliabilityBar'
+import { feeLabel } from '@/lib/format'
 import type { LiveChange } from '@/lib/useRumourFeed'
 
 interface Props {
@@ -23,29 +25,6 @@ const SOURCE_TYPE_COLORS: Record<string, string> = {
   AGENT: 'bg-kind-agent/20 text-kind-agent-fg',
   SOCIAL_MEDIA: 'bg-kind-social/20 text-kind-social-fg',
   AGGREGATOR: 'bg-kind-aggregator/20 text-kind-aggregator-fg',
-}
-
-function ReliabilityDots({ score }: { score: number }) {
-  const filled = Math.round(score * 5)
-  return (
-    <span className="flex gap-0.5">
-      {Array.from({ length: 5 }).map((_, i) => (
-        <span
-          key={i}
-          className={clsx('h-1.5 w-1.5 rounded-full', i < filled ? 'bg-credibility' : 'bg-surface-subtle')}
-        />
-      ))}
-    </span>
-  )
-}
-
-const CURRENCY_SYMBOLS: Record<string, string> = { EUR: '€', GBP: '£', USD: '$' }
-
-function feeLabel(min: number | null, max: number | null, currency: string): string {
-  const symbol = CURRENCY_SYMBOLS[currency] ?? `${currency} `
-  if (min == null && max == null) return 'Undisclosed'
-  if (min != null && max != null) return `${symbol}${min}–${max}M`
-  return `${symbol}${min ?? max}M`
 }
 
 /** ▲/▼ chip from the raea hero loop: reads for 1.8 s after a live score change, then leaves. */
@@ -69,6 +48,22 @@ function DeltaChip({ change }: { change: LiveChange }) {
   )
 }
 
+/** Settled and hot rumours carry their status on the card edge, as in the raea hero loop. */
+const EDGE: Record<string, string> = {
+  HOT: 'border-hot/40',
+  PENDING: 'border-line/60',
+  COMPLETED: 'border-completed/45',
+  FAILED: 'border-failed/45',
+  DENIED: 'border-denied-line/60',
+}
+const STRIPE: Record<string, string> = {
+  HOT: 'bg-hot',
+  PENDING: 'bg-pending/60',
+  COMPLETED: 'bg-completed',
+  FAILED: 'bg-failed',
+  DENIED: 'bg-denied',
+}
+
 export default function RumourCard({ rumour, compact = false, live }: Props) {
   const router = useRouter()
   const origin = resolveDisplayOrigin(rumour)
@@ -82,11 +77,13 @@ export default function RumourCard({ rumour, compact = false, live }: Props) {
         if (e.key === 'Enter') router.push(`/rumour/${rumour.id}`)
       }}
       className={clsx(
-        'group relative flex cursor-pointer gap-4 rounded-xl border border-line/60 bg-card p-4 shadow-card',
-        'transition-colors duration-200 hover:border-line-emphasis',
-        compact ? 'items-center' : 'flex-col sm:flex-row sm:items-start',
+        'group relative flex cursor-pointer gap-4 overflow-hidden rounded-xl border bg-card p-4 pt-5 shadow-card',
+        EDGE[rumour.status],
+        'transition-colors duration-200 hover:border-pitch-500/60',
+        compact ? 'items-center' : 'items-start',
       )}
     >
+      <span aria-hidden className={clsx('absolute inset-x-0 top-0 h-1', STRIPE[rumour.status])} />
       {/* Truth meter */}
       <div className="flex-shrink-0">
         <TruthMeter
@@ -132,7 +129,8 @@ export default function RumourCard({ rumour, compact = false, live }: Props) {
               unconfirmed origin
             </span>
           )}
-          <span className="text-ink-muted">→</span>
+          <span aria-hidden className="font-bold text-pitch-500">→</span>
+          <span className="sr-only">to</span>
           <Link
             href={`/club/${rumour.toClub.id}`}
             className="font-medium text-ink-soft hover:text-ink-primary"
@@ -158,9 +156,11 @@ export default function RumourCard({ rumour, compact = false, live }: Props) {
             >
               {rumour.source.name}
             </span>
-            <ReliabilityDots score={rumour.source.reliabilityScore} />
+            <ReliabilityBar score={rumour.source.reliabilityScore} />
             {rumour.distinctSourceCount > 1 && (
-              <span className="text-xs text-ink-muted">+{rumour.distinctSourceCount - 1} more source{rumour.distinctSourceCount > 2 ? 's' : ''}</span>
+              <span className="font-mono text-xs font-bold uppercase text-ink-muted">
+                {rumour.distinctSourceCount} src<span className="sr-only">: {rumour.distinctSourceCount} independent sources</span>
+              </span>
             )}
           </div>
         )}

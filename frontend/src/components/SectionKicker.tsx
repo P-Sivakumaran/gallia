@@ -2,7 +2,7 @@ import { clsx } from 'clsx'
 import type { ReactNode } from 'react'
 
 interface Props {
-  as?: 'p' | 'h2' | 'h3' | 'span'
+  as?: 'p' | 'h2' | 'h3' | 'span' | 'dt'
   /** `md` (12px) labels a block; `lg` (14px) heads a dashboard section. */
   size?: 'md' | 'lg'
   children: ReactNode
@@ -14,7 +14,8 @@ export default function SectionKicker({ as: Component = 'p', size = 'md', childr
     <Component
       className={clsx(
         size === 'lg' ? 'text-sm' : 'text-xs',
-        'font-semibold uppercase tracking-widest text-ink-secondary',
+        // raea kicker: JetBrains Mono, uppercase, wide tracking ("RUMOUR OF THE DAY", "FEE", "SOURCES")
+        'font-mono font-bold uppercase tracking-kicker text-ink-secondary',
         className,
       )}
     >

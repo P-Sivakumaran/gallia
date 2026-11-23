@@ -42,7 +42,7 @@ export default function ForecastHistoryChart({
 
   if (isLoading) {
     return (
-      <div className="rounded-xl border border-line-subtle bg-surface-panel/40 p-5" data-testid="history-loading">
+      <div className="rounded-xl border border-line/60 bg-card shadow-card p-5" data-testid="history-loading">
         <div className="h-chart-history animate-pulse rounded-lg bg-surface-raised/60" />
       </div>
     )
@@ -63,7 +63,7 @@ export default function ForecastHistoryChart({
 
   if (error) {
     return (
-      <div className="rounded-xl border border-line-subtle bg-surface-panel/40 p-5" data-testid="history-error">
+      <div className="rounded-xl border border-line/60 bg-card shadow-card p-5" data-testid="history-error">
         <p className="text-sm text-ink-muted">Couldn&apos;t load forecast history: {error}</p>
       </div>
     )
@@ -73,7 +73,7 @@ export default function ForecastHistoryChart({
 
   if (!history || precise.length === 0) {
     return (
-      <div className="rounded-xl border border-line-subtle bg-surface-panel/40 p-5" data-testid="history-empty">
+      <div className="rounded-xl border border-line/60 bg-card shadow-card p-5" data-testid="history-empty">
         <p className="text-xs font-semibold uppercase tracking-widest text-ink-muted">Forecast history</p>
         <p className="mt-2 text-sm text-ink-muted">
           This claim doesn&apos;t have any historical forecasts yet — a calibrated probability hasn&apos;t been
@@ -99,7 +99,7 @@ export default function ForecastHistoryChart({
   const denialRow = denialTs != null ? nearestRow(data, denialTs) : null
 
   return (
-    <div className="rounded-xl border border-line-subtle bg-surface-panel/40 p-5" data-testid="forecast-history-chart">
+    <div className="rounded-xl border border-line/60 bg-card shadow-card p-5" data-testid="forecast-history-chart">
       <SectionKicker>Forecast history</SectionKicker>
 
       {!mounted ? (

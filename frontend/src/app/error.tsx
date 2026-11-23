@@ -5,7 +5,7 @@ import Link from 'next/link'
 /** Route error boundary: a failed API call shows a way forward instead of a blank page. */
 export default function RouteError({ reset }: { error: Error & { digest?: string }; reset: () => void }) {
   return (
-    <div role="alert" className="mx-auto max-w-md rounded-xl border border-line-subtle bg-surface-panel/40 p-8 text-center">
+    <div role="alert" className="mx-auto max-w-md rounded-xl border border-line/60 bg-card shadow-card p-8 text-center">
       <p className="font-semibold text-ink-primary">This page couldn&apos;t load.</p>
       <p className="mt-1 text-sm text-ink-muted">The rumour data didn&apos;t come back. It&apos;s usually brief.</p>
       <div className="mt-5 flex justify-center gap-3 text-sm">

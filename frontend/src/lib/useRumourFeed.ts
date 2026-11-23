@@ -22,6 +22,8 @@ export interface LiveChange {
 export interface FeedState {
   rumours: Rumour[]
   live: Record<number, LiveChange>
+  /** The most recent update across the feed, for the LIVE ticker (`seq` counts all updates) */
+  latest: { id: number; seq: number } | null
 }
 
 type Action =
@@ -31,7 +33,7 @@ type Action =
 export function feedReducer(state: FeedState, action: Action): FeedState {
   switch (action.type) {
     case 'INIT':
-      return { rumours: action.rumours, live: {} }
+      return { rumours: action.rumours, live: {}, latest: null }
     case 'UPDATE': {
       const { id, computedLikelihood, status } = action.payload
       const current = state.rumours.find((r) => r.id === id)
@@ -42,6 +44,7 @@ export function feedReducer(state: FeedState, action: Action): FeedState {
       return {
         rumours: state.rumours.map((r) => (r.id === id ? { ...r, computedLikelihood, status } : r)),
         live: { ...state.live, [id]: { seq: (state.live[id]?.seq ?? 0) + 1, delta, statusChanged } },
+        latest: { id, seq: (state.latest?.seq ?? 0) + 1 },
       }
     }
     default:
@@ -50,7 +53,7 @@ export function feedReducer(state: FeedState, action: Action): FeedState {
 }
 
 export function useRumourFeed(initialRumours: Rumour[]): FeedState {
-  const [state, dispatch] = useReducer(feedReducer, { rumours: initialRumours, live: {} })
+  const [state, dispatch] = useReducer(feedReducer, { rumours: initialRumours, live: {}, latest: null })
 
   useEffect(() => {
     dispatch({ type: 'INIT', rumours: initialRumours })

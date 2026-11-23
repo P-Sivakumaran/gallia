@@ -48,7 +48,7 @@ export default function ModelCalibrationChart({ definition, isLoading = false, e
 
   if (isLoading) {
     return (
-      <div className="rounded-xl border border-line-subtle bg-surface-panel/40 p-5" data-testid="calibration-loading">
+      <div className="rounded-xl border border-line/60 bg-card shadow-card p-5" data-testid="calibration-loading">
         <div className="h-chart-calibration animate-pulse rounded-lg bg-surface-raised/60" />
       </div>
     )
@@ -56,7 +56,7 @@ export default function ModelCalibrationChart({ definition, isLoading = false, e
 
   if (error) {
     return (
-      <div className="rounded-xl border border-line-subtle bg-surface-panel/40 p-5" data-testid="calibration-error">
+      <div className="rounded-xl border border-line/60 bg-card shadow-card p-5" data-testid="calibration-error">
         <p className="text-sm text-ink-muted">Couldn&apos;t load model calibration: {error}</p>
       </div>
     )
@@ -68,7 +68,7 @@ export default function ModelCalibrationChart({ definition, isLoading = false, e
 
   if (!model || !hasCurve) {
     return (
-      <div className="rounded-xl border border-line-subtle bg-surface-panel/40 p-5" data-testid="calibration-empty">
+      <div className="rounded-xl border border-line/60 bg-card shadow-card p-5" data-testid="calibration-empty">
         <p className="text-xs font-semibold uppercase tracking-widest text-ink-muted">Model calibration</p>
         <p className="mt-2 text-sm text-ink-muted">
           No calibration curve yet: not enough resolved real outcomes exist to evaluate the model against.
@@ -91,7 +91,7 @@ export default function ModelCalibrationChart({ definition, isLoading = false, e
   const isSynthetic = model.trainingDataSource !== 'db'
 
   return (
-    <div className="rounded-xl border border-line-subtle bg-surface-panel/40 p-5" data-testid="calibration-chart">
+    <div className="rounded-xl border border-line/60 bg-card shadow-card p-5" data-testid="calibration-chart">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="text-xs font-semibold uppercase tracking-widest text-ink-muted">Model calibration</p>
         {isSynthetic && (

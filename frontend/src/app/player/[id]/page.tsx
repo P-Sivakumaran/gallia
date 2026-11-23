@@ -44,7 +44,7 @@ export default async function PlayerPage({ params }: { params: Promise<{ id: str
           {player.name.charAt(0)}
         </div>
         <div className="flex-1">
-          <h1 className="text-3xl font-bold">{player.name}</h1>
+          <h1 className="text-4xl font-black tracking-display">{player.name}</h1>
           <div className="mt-1 flex flex-wrap gap-3 text-sm text-ink-secondary">
             <span>{player.position}</span>
             {player.nationality && <span>· {player.nationality}</span>}

@@ -184,7 +184,7 @@ export default function TransferGraph() {
 
   if (loading) {
     return (
-      <div className="flex h-canvas-md items-center justify-center rounded-xl border border-line-subtle bg-surface-panel/40">
+      <div className="flex h-canvas-md items-center justify-center rounded-xl border border-line/60 bg-card shadow-card">
         <div className="text-center">
           <div className="mx-auto mb-3 h-8 w-8 animate-spin rounded-full border-2 border-pitch-500 border-t-transparent" />
           <p className="text-sm text-ink-muted">Building transfer network...</p>

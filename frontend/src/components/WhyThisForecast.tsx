@@ -53,7 +53,7 @@ function FactorRow({ claim, factor }: { claim: ClaimDetail; factor: ReturnType<t
 export default function WhyThisForecast({ claim, isLoading = false, error = null }: Props) {
   if (isLoading) {
     return (
-      <div className="rounded-xl border border-line-subtle bg-surface-panel/40 p-5" data-testid="why-loading">
+      <div className="rounded-xl border border-line/60 bg-card shadow-card p-5" data-testid="why-loading">
         <div className="animate-pulse space-y-2">
           <div className="h-3 w-40 rounded bg-surface-raised" />
           <div className="h-3 w-full rounded bg-surface-raised" />
@@ -65,7 +65,7 @@ export default function WhyThisForecast({ claim, isLoading = false, error = null
 
   if (error) {
     return (
-      <div className="rounded-xl border border-line-subtle bg-surface-panel/40 p-5" data-testid="why-error">
+      <div className="rounded-xl border border-line/60 bg-card shadow-card p-5" data-testid="why-error">
         <p className="text-sm text-ink-muted">Couldn&apos;t load forecast factors: {error}</p>
       </div>
     )
@@ -73,7 +73,7 @@ export default function WhyThisForecast({ claim, isLoading = false, error = null
 
   if (!claim) {
     return (
-      <div className="rounded-xl border border-line-subtle bg-surface-panel/40 p-5" data-testid="why-empty">
+      <div className="rounded-xl border border-line/60 bg-card shadow-card p-5" data-testid="why-empty">
         <p className="text-sm text-ink-muted">No claim data available.</p>
       </div>
     )
@@ -86,7 +86,7 @@ export default function WhyThisForecast({ claim, isLoading = false, error = null
 
   if (factors.length === 0) {
     return (
-      <div className="rounded-xl border border-line-subtle bg-surface-panel/40 p-5" data-testid="why-no-factors">
+      <div className="rounded-xl border border-line/60 bg-card shadow-card p-5" data-testid="why-no-factors">
         <div className="flex items-start gap-2.5">
           <HelpCircleIcon className="mt-0.5 h-5 w-5 flex-shrink-0 text-ink-muted" />
           <p className="text-sm text-ink-muted">Not enough evidence yet to explain this forecast.</p>
@@ -96,7 +96,7 @@ export default function WhyThisForecast({ claim, isLoading = false, error = null
   }
 
   return (
-    <div className="rounded-xl border border-line-subtle bg-surface-panel/40 p-5" data-testid="why-this-forecast">
+    <div className="rounded-xl border border-line/60 bg-card shadow-card p-5" data-testid="why-this-forecast">
       <SectionKicker>Why this forecast</SectionKicker>
 
       <div className="mt-3 grid gap-6 sm:grid-cols-2">

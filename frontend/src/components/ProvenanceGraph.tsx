@@ -194,7 +194,7 @@ export default function ProvenanceGraph({ claim, isLoading = false, error = null
 
   if (isLoading) {
     return (
-      <div className="rounded-xl border border-line-subtle bg-surface-panel/40 p-5" data-testid="provenance-loading">
+      <div className="rounded-xl border border-line/60 bg-card shadow-card p-5" data-testid="provenance-loading">
         <div className="h-6 w-56 animate-pulse rounded bg-surface-raised" />
       </div>
     )
@@ -202,7 +202,7 @@ export default function ProvenanceGraph({ claim, isLoading = false, error = null
 
   if (error) {
     return (
-      <div className="rounded-xl border border-line-subtle bg-surface-panel/40 p-5" data-testid="provenance-error">
+      <div className="rounded-xl border border-line/60 bg-card shadow-card p-5" data-testid="provenance-error">
         <p className="text-sm text-ink-muted">Couldn&apos;t load the provenance graph: {error}</p>
       </div>
     )
@@ -210,7 +210,7 @@ export default function ProvenanceGraph({ claim, isLoading = false, error = null
 
   if (!claim) {
     return (
-      <div className="rounded-xl border border-line-subtle bg-surface-panel/40 p-5" data-testid="provenance-empty">
+      <div className="rounded-xl border border-line/60 bg-card shadow-card p-5" data-testid="provenance-empty">
         <p className="text-sm text-ink-muted">No claim data available.</p>
       </div>
     )
@@ -218,7 +218,7 @@ export default function ProvenanceGraph({ claim, isLoading = false, error = null
 
   if (!expanded) {
     return (
-      <div className="rounded-xl border border-line-subtle bg-surface-panel/40 p-5" data-testid="provenance-collapsed">
+      <div className="rounded-xl border border-line/60 bg-card shadow-card p-5" data-testid="provenance-collapsed">
         <button
           type="button"
           onClick={() => {
@@ -243,7 +243,7 @@ export default function ProvenanceGraph({ claim, isLoading = false, error = null
   }
 
   return (
-    <div className="rounded-xl border border-line-subtle bg-surface-panel/40 p-5" data-testid="provenance-expanded">
+    <div className="rounded-xl border border-line/60 bg-card shadow-card p-5" data-testid="provenance-expanded">
       <div className="mb-3 flex items-center justify-between">
         <button type="button" onClick={() => setExpanded(false)} className="text-xs font-semibold uppercase tracking-widest text-ink-muted hover:text-ink-soft">
           ▾ Provenance graph

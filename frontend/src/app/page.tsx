@@ -5,6 +5,9 @@ import { api } from '@/lib/api'
 import FilterBar from '@/components/FilterBar'
 import LiveRumourFeed from '@/components/LiveRumourFeed'
 import RemoveAdsBanner from '@/components/RemoveAdsBanner'
+import SectionKicker from '@/components/SectionKicker'
+import HomeHero from '@/components/live/HomeHero'
+import { RumourFeedProvider } from '@/components/live/RumourFeedProvider'
 import type { RumourStatus, TransferWindow } from '@/types'
 
 interface SearchParams {
@@ -38,44 +41,59 @@ export default async function HomePage({
   const adsEnabled = !cookieStore.get('ads_removed')
 
   return (
-    <div className="space-y-8">
-      {adsEnabled && <RemoveAdsBanner />}
-      {/* Hero stats */}
-      <div className="grid grid-cols-3 gap-4">
+    <RumourFeedProvider initialRumours={rumours}>
+    <div className="space-y-12">
+      <HomeHero />
+
+      {/* Desk strip: the totals, in the raea stat-cell style */}
+      <dl className="grid grid-cols-3 divide-x divide-line/60 overflow-hidden rounded-2xl border border-line/60 bg-card shadow-card">
         {[
-          { label: 'Total Rumours', value: stats.totalRumours },
-          { label: 'Hot Rumours', value: stats.hotRumours, accent: 'text-hot-fg' },
-          { label: 'Completed', value: stats.completedRumours, accent: 'text-pitch-500' },
+          { label: 'Rumours tracked', value: stats.totalRumours, accent: 'text-ink-primary' },
+          { label: 'Hot now', value: stats.hotRumours, accent: 'text-hot-fg' },
+          { label: 'Signed', value: stats.completedRumours, accent: 'text-completed-fg' },
         ].map(({ label, value, accent }) => (
-          <div key={label} className="rounded-xl border border-line-subtle bg-surface-panel/60 p-4">
-            <p className="text-xs font-semibold uppercase tracking-widest text-ink-muted">{label}</p>
-            <p className={`mt-1 text-3xl font-bold ${accent ?? 'text-ink-primary'}`}>{value}</p>
+          <div key={label} className="px-4 py-4 sm:px-6 sm:py-5">
+            <SectionKicker as="dt">{label}</SectionKicker>
+            <dd className={`mt-1 font-mono text-3xl font-extrabold tabular-nums sm:text-4xl ${accent}`}>{value}</dd>
           </div>
         ))}
-      </div>
+      </dl>
+
+      {adsEnabled && <RemoveAdsBanner />}
 
       {/* Network CTA */}
       <Link
         href="/network"
-        className="flex items-center gap-3 rounded-xl border border-line/60 bg-surface-raised/40 px-5 py-3 text-sm text-ink-soft transition-colors duration-150 hover:border-pitch-500/40 hover:bg-surface-raised hover:text-ink-primary group"
+        className="group flex items-center gap-4 rounded-xl border border-line/60 bg-card px-5 py-4 text-ink-soft shadow-card transition-colors duration-150 hover:border-pitch-500/50 hover:text-ink-primary"
       >
-        <span className="text-lg">🕸</span>
-        <span>View transfer network graph</span>
-        <span className="ml-auto text-ink-muted group-hover:text-pitch-500">→</span>
+        <svg aria-hidden viewBox="0 0 32 32" className="h-8 w-8 text-pitch-500">
+          <g fill="none" stroke="currentColor" strokeWidth="1.5">
+            <circle cx="16" cy="16" r="14" strokeOpacity="0.5" />
+            <circle cx="16" cy="16" r="8" strokeOpacity="0.35" />
+            <path d="M16 16 L27 9" strokeOpacity="0.9" />
+          </g>
+          <circle cx="22" cy="20" r="2.2" fill="currentColor" />
+          <circle cx="10" cy="11" r="2.2" fill="currentColor" />
+        </svg>
+        <span>
+          <span className="block font-bold text-ink-primary">Transfer network</span>
+          <span className="text-sm text-ink-muted">Every live rumour as a map of players and clubs</span>
+        </span>
+        <span aria-hidden className="ml-auto text-xl text-ink-muted transition-colors group-hover:text-pitch-500">→</span>
       </Link>
 
       {/* Filters */}
-      <section>
-        <h2 className="mb-3 text-xs font-semibold uppercase tracking-widest text-ink-muted">
-          Filter rumours
-        </h2>
+      <section aria-labelledby="filters-title">
+        <SectionKicker as="h2" className="mb-3">
+          <span id="filters-title">Filter rumours</span>
+        </SectionKicker>
         <Suspense>
           <FilterBar />
         </Suspense>
       </section>
 
       {/* Live feed */}
-      <LiveRumourFeed initialRumours={rumours} total={total} adsEnabled={adsEnabled} />
+      <LiveRumourFeed total={total} adsEnabled={adsEnabled} />
 
       {/* Pagination */}
       {totalPages > 1 && (
@@ -96,5 +114,6 @@ export default async function HomePage({
         </div>
       )}
     </div>
+    </RumourFeedProvider>
   )
 }

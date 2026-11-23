@@ -27,7 +27,7 @@ export default async function WatchlistPage() {
           <RumourCard key={r.id} rumour={r} />
         ))}
         {rumours.length === 0 && (
-          <div className="rounded-xl border border-line-subtle bg-surface-panel/40 p-12 text-center">
+          <div className="rounded-xl border border-line/60 bg-card shadow-card p-12 text-center">
             <p className="text-ink-muted">No rumours for watched players yet.</p>
             <Link href="/" className="mt-2 inline-block text-pitch-500 hover:underline">
               Browse rumours →

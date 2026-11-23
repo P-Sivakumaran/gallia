@@ -64,7 +64,7 @@ function ClaimHeader({ claim }: { claim: ClaimDetail }) {
   return (
     <div className="flex flex-wrap items-start justify-between gap-4">
       <div>
-        <h1 className="text-2xl font-bold text-ink-primary">
+        <h1 className="text-4xl font-black tracking-display text-ink-primary">
           {claim.player ? (
             <Link href={`/player/${claim.player.id}`} className="hover:text-pitch-500">
               {claim.player.name}

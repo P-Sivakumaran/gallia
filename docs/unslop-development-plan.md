@@ -153,3 +153,48 @@ The raea brand assets (`raea/treewizard/projects/rumour-hub-brand`) are the sour
 ### Open
 - **Power-on replays** whenever the feed remounts, for example on a filter change. It takes about 1.8 s in total. Consider `intro={false}` after the first page.
 - **The OG image and radar field are not wired in yet.** The raea `Wordmark` says "Transfer Rumour Hub" while `BRAND.name` is "Smoke & Fire", so this waits on the rename decision.
+
+---
+
+## 7. Iteration 4 (2026-11-24): the raea look, not just its motion
+
+The unslop passes had left the app looking like generic slate SaaS. This pass rebuilds the app's surfaces from the raea brand stills, using them as the comps: rumour-of-the-day, the OG card, meter-states and the hero loop.
+
+### Atmosphere and type
+- **The pitch field** from raea `PitchBackground`. A pitch-900 radial gradient with a 90px data grid and faint grass stripes, as a fixed layer so it doesn't scroll-jank on iOS. The video's frame border was left out: on a scrolling page it reads as a stray line.
+- **Fonts actually load now.** Tailwind's `sans` named "Inter", but `next/font` registers a hashed family, so Inter only rendered where it was installed locally, and JetBrains Mono was never loaded at all. Both now go through `next/font` CSS variables.
+- **Display type:** Inter 900 with `tracking-display` (−0.035em) and a two-tone highlight. Kickers are JetBrains Mono uppercase with `tracking-kicker`.
+- **`Wordmark`** is built from `BRAND.name` (the last word in pitch green), so the rename stays a one-line change.
+
+### Contrast on the green field
+These were measured, not eyeballed:
+- `ink-muted` fell to 3.1:1 on the field, and was already failing at 4.2:1 on the old base. It's re-tuned to `#8897ac`: ≥4.9:1 on the field, card faces and raised surfaces.
+- `ink-faint` is now `#6e7c90` (≥3.4:1). It's for separators and large text only.
+- This closes the open faint-text AA item from iteration 2.
+
+### Home
+- **Hero:** two-tone headline; LIVE ticker; Rumour of the Day card (route box, FEE / SOURCES / RELIABILITY cells); a 240px meter on the radar; verdict bar.
+  - **Featured rule:** the most likely HOT rumour on the page, else the most likely PENDING one (`pickFeatured`).
+  - **The ticker** changes only on real SSE updates, never on a timer.
+  - **The radar** sweeps once and holds, with one blip per distinct source. Nothing loops (WCAG 2.2.2).
+- **One live connection:** `RumourFeedProvider` gives one SSE connection to the hero, the ticker and the feed.
+- **Desk strip:** the totals in raea stat cells.
+- **Feed:**
+  - A 2-column card grid on large screens, with a status stripe and status-tinted edge on each card.
+  - The meter sits beside the text even on phone.
+  - Green route arrow, reliability squares with an sr-only percentage, and mono source counts.
+  - The hero-loop LIVE FEED counts pill.
+
+### Elsewhere
+- **Scorecard:** a "How to read the meter" block, the meter-states still as page content (four example readings plus the pinned 0–100 axis).
+- **Panels:** 36 translucent panels moved onto the raea card face (`bg-card shadow-card`). Detail page titles use display type.
+
+### Verified
+- **Screenshots** of `/`, `/claim/1`, `/claim/2` and `/scorecard` at 1280 and 390px. A Playwright check confirms nothing overflows at 390px; the first try overflowed to 499px from the hero grid's implicit column, which is now fixed.
+- **raea floor:** 12 s of the live home page was captured as frames, encoded with `raea media encode`, and run through `raea check`: 0 errors, 0 warnings, with no flashing past the limit, no freezes and clean darks. Its text checks need a render manifest, which a browser capture doesn't have; contrast was measured separately (above).
+- **Gates:** frontend 105/105, backend 166/166, tsc, eslint, detector at 0 red.
+
+### Open
+- **"Transfer Hub" copy** in the remove-ads banner, the ad slot and billing still waits on the rename.
+- **Network page:** the canvas and the pricing and admin pages got the panel surface but no bespoke raea treatment.
+- **The meter's power-on replays** on remount, for example on a filter change.

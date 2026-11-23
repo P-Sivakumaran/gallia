@@ -16,7 +16,7 @@ import { meter, status as statusTokens, surface } from '@/lib/tokens'
 interface Props {
   score: number // 0–100
   status: RumourStatus
-  size?: 'sm' | 'md' | 'lg'
+  size?: 'sm' | 'md' | 'lg' | 'xl'
   /** Increment to send one ring out from the meter (a status change) */
   pulseKey?: number
   /** Play the power-on build and sweep on first paint */
@@ -44,6 +44,7 @@ const SIZES = {
   sm: { size: 56, strokeRatio: 0.14, scoreSize: 15, ticks: false, label: false },
   md: { size: 112, strokeRatio: 0.09, scoreSize: 24, ticks: true, label: true },
   lg: { size: 168, strokeRatio: 0.1, scoreSize: 42, ticks: true, label: true },
+  xl: { size: 240, strokeRatio: 0.12, scoreSize: 76, ticks: true, label: true },
 } as const
 
 export default function TruthMeter({ score, status, size = 'md', pulseKey = 0, intro = true }: Props) {
@@ -66,10 +67,11 @@ export default function TruthMeter({ score, status, size = 'md', pulseKey = 0, i
     return [c0 + r * Math.cos(a), c0 + r * Math.sin(a)] as const
   }
 
-  // Graduated scale: a mark every 5 units, majors at 0/25/50/75.
+  // Graduated scale: a mark every 5 units (every 2 on the 240px dial), majors at 0/25/50/75.
+  const step = d >= 240 ? 2 : 5
   const ticks = spec.ticks
-    ? Array.from({ length: 20 }, (_, i) => {
-        const pct = i * 5
+    ? Array.from({ length: 100 / step }, (_, i) => {
+        const pct = i * step
         const major = pct % 25 === 0
         const outer = d / 2 - 1
         const inner = outer - (major ? tickBand : tickBand * 0.5)
@@ -194,10 +196,14 @@ export default function TruthMeter({ score, status, size = 'md', pulseKey = 0, i
         {spec.label && (
           <span
             className={clsx(
-              'mt-1 text-label font-bold uppercase text-ink-secondary',
+              'mt-1 font-bold uppercase',
+              size === 'xl' ? 'text-base' : 'text-label',
               // md's well is 66px: normal tracking keeps PENDING clear of the ring
-              size === 'lg' ? 'tracking-wide' : 'tracking-normal',
+              size === 'md' ? 'tracking-normal' : 'tracking-wide',
+              // the big dials label in the status colour, as on the raea stills
+              size === 'md' && 'text-ink-secondary',
             )}
+            style={size === 'md' ? undefined : { color }}
           >
             {label}
           </span>

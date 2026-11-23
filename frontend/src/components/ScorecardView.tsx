@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import ModelCalibrationChart from '@/components/ModelCalibrationChart'
 import type { ModelHealthDefinition, ModelHealthResponse } from '@/types'
+import MeterScale from './MeterScale'
 
 interface Props {
   health: ModelHealthResponse | null
@@ -68,7 +69,7 @@ function DefinitionSection({ def }: { def: ModelHealthDefinition }) {
       </p>
 
       {m && (
-        <div className="grid grid-cols-2 gap-4 rounded-xl border border-line-subtle bg-surface-panel/40 p-5 sm:grid-cols-4">
+        <div className="grid grid-cols-2 gap-4 rounded-xl border border-line/60 bg-card shadow-card p-5 sm:grid-cols-4">
           <Stat label="Trained" value={formatDate(m.trainedAt)} />
           <Stat label="Training rumours" value={String(m.nTrainSamples)} />
           <Stat label="Test rumours" value={String(m.nTestSamples)} />
@@ -85,9 +86,9 @@ export default function ScorecardView({ health, error = null }: Props) {
   return (
     <div className="mx-auto max-w-3xl space-y-10">
       <header className="space-y-3">
-        <p className="text-xs font-semibold uppercase tracking-widest text-pitch-500">Scorecard</p>
-        <h1 className="text-3xl font-bold">How often are we right?</h1>
-        <p className="text-ink-secondary">
+        <p className="font-mono text-xs font-bold uppercase tracking-kicker text-pitch-500">Scorecard</p>
+        <h1 className="text-4xl font-black tracking-display sm:text-5xl">How often are we right?</h1>
+        <p className="text-lg text-ink-soft">
           Every rumour here gets a likelihood. This page checks those likelihoods against what actually
           happens as transfers resolve. If we say 70%, roughly 7 in 10 of those transfers should go through.
           Until enough real outcomes are in, we say so plainly — the numbers below show exactly where things
@@ -95,15 +96,17 @@ export default function ScorecardView({ health, error = null }: Props) {
         </p>
       </header>
 
+      <MeterScale />
+
       <section className="grid gap-4 text-sm sm:grid-cols-2">
-        <div className="rounded-xl border border-line-subtle bg-surface-panel/40 p-4">
+        <div className="rounded-xl border border-line/60 bg-card shadow-card p-4">
           <p className="font-semibold text-ink-primary">Brier score</p>
           <p className="mt-1 text-ink-secondary">
             Average squared gap between our forecast and the outcome. 0 is perfect; always guessing 50% scores 0.25.
             Lower is better.
           </p>
         </div>
-        <div className="rounded-xl border border-line-subtle bg-surface-panel/40 p-4">
+        <div className="rounded-xl border border-line/60 bg-card shadow-card p-4">
           <p className="font-semibold text-ink-primary">Calibration chart</p>
           <p className="mt-1 text-ink-secondary">
             Dots on the dashed line mean our percentages match reality. Dots below it mean we were too confident.

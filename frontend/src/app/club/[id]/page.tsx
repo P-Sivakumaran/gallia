@@ -12,7 +12,7 @@ export default async function ClubPage({ params }: { params: Promise<{ id: strin
     <div className="space-y-8">
       <div>
         <p className="text-sm text-ink-muted">{club.league} · {club.country}</p>
-        <h1 className="text-3xl font-bold">{club.name}</h1>
+        <h1 className="text-4xl font-black tracking-display">{club.name}</h1>
       </div>
       <ClubDashboard club={club} />
     </div>

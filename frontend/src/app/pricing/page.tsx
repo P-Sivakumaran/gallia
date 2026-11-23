@@ -54,7 +54,7 @@ export default function PricingPage() {
 
       <div className="grid gap-4 sm:grid-cols-3">
         {TIERS.map((tier) => (
-          <div key={tier.name} className="flex flex-col rounded-xl border border-line-subtle bg-surface-panel/40 p-5">
+          <div key={tier.name} className="flex flex-col rounded-xl border border-line/60 bg-card shadow-card p-5">
             <h2 className="text-lg font-semibold text-ink-primary">{tier.name}</h2>
             <p className="mt-1 text-xs text-ink-muted">{tier.tagline}</p>
             <ul className="mt-4 flex-1 space-y-2 text-sm text-ink-secondary">
@@ -71,7 +71,7 @@ export default function PricingPage() {
         ))}
       </div>
 
-      <p className="rounded-xl border border-line-subtle bg-surface-panel/40 p-4 text-xs text-ink-muted">
+      <p className="rounded-xl border border-line/60 bg-card shadow-card p-4 text-xs text-ink-muted">
         Payment isn&apos;t live yet — plans are granted manually while this packaging is being validated. See{' '}
         <span className="font-mono">docs/monetisation-proposal.md</span> for the full reasoning, including why
         contradicting evidence and official denials are never restricted by tier.

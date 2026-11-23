@@ -119,7 +119,7 @@ export default function EvidenceTimeline({ claim, isLoading = false, error = nul
 
   if (isLoading) {
     return (
-      <div className="rounded-xl border border-line-subtle bg-surface-panel/40 p-5" data-testid="timeline-loading">
+      <div className="rounded-xl border border-line/60 bg-card shadow-card p-5" data-testid="timeline-loading">
         <div className="animate-pulse space-y-2">
           {[0, 1, 2].map((i) => (
             <div key={i} className="h-14 rounded-lg bg-surface-raised/60" />
@@ -131,7 +131,7 @@ export default function EvidenceTimeline({ claim, isLoading = false, error = nul
 
   if (error) {
     return (
-      <div className="rounded-xl border border-line-subtle bg-surface-panel/40 p-5" data-testid="timeline-error">
+      <div className="rounded-xl border border-line/60 bg-card shadow-card p-5" data-testid="timeline-error">
         <p className="text-sm text-ink-muted">Couldn&apos;t load the evidence timeline: {error}</p>
       </div>
     )
@@ -139,14 +139,14 @@ export default function EvidenceTimeline({ claim, isLoading = false, error = nul
 
   if (!claim || items.length === 0) {
     return (
-      <div className="rounded-xl border border-line-subtle bg-surface-panel/40 p-5" data-testid="timeline-empty">
+      <div className="rounded-xl border border-line/60 bg-card shadow-card p-5" data-testid="timeline-empty">
         <p className="text-sm text-ink-muted">No evidence captured for this claim yet.</p>
       </div>
     )
   }
 
   return (
-    <div className="rounded-xl border border-line-subtle bg-surface-panel/40 p-5" data-testid="evidence-timeline">
+    <div className="rounded-xl border border-line/60 bg-card shadow-card p-5" data-testid="evidence-timeline">
       <SectionKicker>Evidence timeline</SectionKicker>
 
       <div className="mt-3 flex flex-wrap gap-2" role="group" aria-label="Filter evidence by category">

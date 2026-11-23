@@ -25,8 +25,18 @@ export const ink = {
   body: '#e2e8f0',
   soft: '#cbd5e1',
   secondary: '#94a3b8',
-  muted: '#64748b',
-  faint: '#475569',
+  // Re-tuned for the pitch field (2026-11-24): muted clears 4.5:1 on the field and on card faces;
+  // faint (≥3.4:1) is for separators and large text only.
+  muted: '#8897ac',
+  faint: '#6e7c90',
+} as const
+
+/** The pitch field behind everything (raea PitchBackground): a lit centre falling off to the edges. */
+export const field = {
+  glow: '#073d1e',
+  base: '#052e16',
+  deep: '#02180c',
+  /** Grid and pitch lines are pitch-500 at low alpha; see tailwind backgroundImage */
 } as const
 
 /** Background layers, back to front. */
