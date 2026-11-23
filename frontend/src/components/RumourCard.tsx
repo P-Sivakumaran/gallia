@@ -110,7 +110,7 @@ export default function RumourCard({ rumour, compact = false }: Props) {
           </Link>
           {origin.unconfirmed && (
             <span
-              className="rounded-full border border-amber-500/40 bg-amber-500/10 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-amber-400"
+              className="rounded-full border border-amber-500/40 bg-amber-500/10 px-1.5 py-0.5 text-micro font-medium uppercase tracking-wide text-amber-400"
               title="Origin club couldn't be confirmed from the source text — showing the player's actual current club instead"
             >
               unconfirmed origin

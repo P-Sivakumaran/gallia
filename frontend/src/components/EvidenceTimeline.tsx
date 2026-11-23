@@ -11,6 +11,7 @@ import {
   isRoot,
 } from '@/lib/evidenceCategories'
 import { CheckCircleIcon, XCircleIcon, OriginalIcon, CopyIcon, HelpCircleIcon } from './icons'
+import SectionKicker from './SectionKicker'
 import { clsx } from 'clsx'
 
 interface Props {
@@ -70,21 +71,21 @@ function EvidenceRow({ item, claim }: { item: EvidenceItemData; claim: ClaimDeta
               {item.title}
             </a>
             {primary && (
-              <span className="rounded-full border border-amber-500/40 bg-amber-500/10 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-amber-400">
+              <span className="rounded-full border border-amber-500/40 bg-amber-500/10 px-1.5 py-0.5 text-micro font-medium uppercase tracking-wide text-amber-400">
                 Original
               </span>
             )}
             {!primary && (
-              <span className="rounded-full border border-slate-700 bg-slate-800/60 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-slate-500">
+              <span className="rounded-full border border-slate-700 bg-slate-800/60 px-1.5 py-0.5 text-micro font-medium uppercase tracking-wide text-slate-500">
                 Copy
               </span>
             )}
           </div>
-          <p className={clsx('mt-0.5', primary ? 'text-xs text-slate-400' : 'text-[11px] text-slate-600')}>
+          <p className={clsx('mt-0.5', primary ? 'text-xs text-slate-400' : 'text-label text-slate-600')}>
             {item.sourceName ?? 'Unknown source'} · {formatDate(item.publishedAt)}
           </p>
           {root && (
-            <a href={`#evidence-${root.id}`} className="mt-1 inline-block text-[11px] text-slate-600 hover:text-slate-400 hover:underline">
+            <a href={`#evidence-${root.id}`} className="mt-1 inline-block text-label text-slate-600 hover:text-slate-400 hover:underline">
               Same story as: {root.title}
             </a>
           )}
@@ -146,7 +147,7 @@ export default function EvidenceTimeline({ claim, isLoading = false, error = nul
 
   return (
     <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-5" data-testid="evidence-timeline">
-      <p className="text-xs font-semibold uppercase tracking-widest text-slate-500">Evidence timeline</p>
+      <SectionKicker>Evidence timeline</SectionKicker>
 
       <div className="mt-3 flex flex-wrap gap-2" role="group" aria-label="Filter evidence by category">
         {EVIDENCE_CATEGORIES.map(({ key, label }) => {

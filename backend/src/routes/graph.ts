@@ -18,6 +18,11 @@ const STATUS_COLORS: Record<RumourStatus, string> = {
   DENIED: '#6b7280',
 }
 
+const NODE_COLORS = {
+  player: '#60a5fa',
+  club: '#8b5cf6',
+} as const
+
 router.get('/', async (_req: Request, res: Response) => {
   const rumours = await prisma.rumour.findMany({
     where: { status: { in: [RumourStatus.PENDING, RumourStatus.HOT, RumourStatus.COMPLETED] } },
@@ -42,7 +47,7 @@ router.get('/', async (_req: Request, res: Response) => {
         position: r.player.position,
         marketValue: r.player.marketValue,
         size: Math.max(6, Math.min(18, (r.player.marketValue ?? 20) / 8)),
-        color: '#60a5fa',
+        color: NODE_COLORS.player,
         x: Math.random() * 800,
         y: Math.random() * 600,
       })
@@ -57,7 +62,7 @@ router.get('/', async (_req: Request, res: Response) => {
         league: r.fromClub.league,
         country: r.fromClub.country,
         size: 14,
-        color: '#8b5cf6',
+        color: NODE_COLORS.club,
         x: Math.random() * 800,
         y: Math.random() * 600,
       })
@@ -72,7 +77,7 @@ router.get('/', async (_req: Request, res: Response) => {
         league: r.toClub.league,
         country: r.toClub.country,
         size: 14,
-        color: '#8b5cf6',
+        color: NODE_COLORS.club,
         x: Math.random() * 800,
         y: Math.random() * 600,
       })

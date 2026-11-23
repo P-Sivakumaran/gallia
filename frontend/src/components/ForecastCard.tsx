@@ -2,6 +2,7 @@
 
 import type { ForecastDisplayData } from '@/types'
 import { CheckCircleIcon, AlertTriangleIcon, HelpCircleIcon, XCircleIcon } from './icons'
+import SectionKicker from './SectionKicker'
 import { clsx } from 'clsx'
 
 interface Props {
@@ -67,14 +68,14 @@ export default function ForecastCard({ forecast, isLoading = false, error = null
         <div className="flex items-start gap-3">
           <HelpCircleIcon className="mt-0.5 h-6 w-6 flex-shrink-0 text-slate-500" />
           <div className="min-w-0">
-            <p className="text-sm font-semibold uppercase tracking-wide text-slate-300">
+            <p className="text-sm font-semibold text-slate-300">
               Insufficient historical data
             </p>
             <p className="mt-1 text-xs leading-relaxed text-slate-500">
               {forecast?.insufficientDataReason ??
                 'Not enough resolved outcomes exist yet to show a calibrated probability.'}
             </p>
-            <p className="mt-3 text-[11px] font-medium uppercase tracking-widest text-slate-600">
+            <p className="mt-3 text-label text-slate-500">
               {DISCLAIMER}
             </p>
           </div>
@@ -97,9 +98,9 @@ export default function ForecastCard({ forecast, isLoading = false, error = null
           <CheckCircleIcon className="mt-1 h-6 w-6 flex-shrink-0 text-pitch-500" />
         )}
         <div className="min-w-0 flex-1">
-          <p className="text-xs font-semibold uppercase tracking-widest text-slate-500">
+          <SectionKicker>
             {isInterval ? 'Wide-uncertainty forecast' : 'Completion likelihood'}
-          </p>
+          </SectionKicker>
 
           {isInterval ? (
             <p className="mt-1 text-3xl font-bold tabular-nums text-white">
@@ -124,7 +125,7 @@ export default function ForecastCard({ forecast, isLoading = false, error = null
               : 'Chance of an official club confirmation within the forecast window.'}
           </p>
 
-          <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-slate-600">
+          <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-label text-slate-600">
             <span>As of {formatAsOf(forecast.predictionTimestamp)}</span>
             {forecast.modelVersion && (
               <>
@@ -134,7 +135,7 @@ export default function ForecastCard({ forecast, isLoading = false, error = null
             )}
           </div>
 
-          <p className="mt-3 text-[11px] font-medium uppercase tracking-widest text-slate-600">
+          <p className="mt-3 text-label text-slate-500">
             {DISCLAIMER}
           </p>
         </div>

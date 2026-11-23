@@ -73,7 +73,7 @@ function GraphAsList({ claim }: { claim: ClaimDetail }) {
           <li key={node.id} className={clsx('rounded-lg border p-2.5', NODE_COLORS[node.type])}>
             <p className="text-xs font-semibold text-slate-200">{accessibleNodeLabel(node)}</p>
             {edgesOut.length > 0 && (
-              <ul className="mt-1 space-y-0.5 pl-3 text-[11px] text-slate-500">
+              <ul className="mt-1 space-y-0.5 pl-3 text-label text-slate-500">
                 {edgesOut.map((e) => {
                   const target = graph.nodes.find((n) => n.id === e.target)
                   return (
@@ -117,7 +117,7 @@ function SvgGraph({ claim }: { claim: ClaimDetail }) {
   return (
     <div>
       <div className="mb-2 flex items-center justify-between">
-        <p className="text-[11px] text-slate-600">Arrow keys move between connected nodes · Enter selects</p>
+        <p className="text-label text-slate-600">Arrow keys move between connected nodes · Enter selects</p>
         <ZoomControls zoom={zoom} onZoom={(d) => setZoom((z) => Math.min(2, Math.max(0.5, z + d)))} onReset={() => setZoom(1)} />
       </div>
       <div

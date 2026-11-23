@@ -3,7 +3,9 @@
 import { useEffect, useState } from 'react'
 import type { ClubDetail } from '@/types'
 import RumourCard from './RumourCard'
+import SectionKicker from './SectionKicker'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts'
+import { axisProps, tooltipStyle, chartColors } from '@/lib/chartTheme'
 
 interface Props {
   club: ClubDetail
@@ -53,21 +55,21 @@ export default function ClubDashboard({ club }: Props) {
       {/* Spend by position chart */}
       {mounted && chartData.length > 0 && (
         <div>
-          <h3 className="mb-3 text-sm font-semibold uppercase tracking-widest text-slate-400">
+          <SectionKicker as="h3" className="mb-3">
             Expected spend by position (€M)
-          </h3>
+          </SectionKicker>
           <ResponsiveContainer width="100%" height={140}>
             <BarChart data={chartData} margin={{ top: 0, right: 0, bottom: 0, left: -20 }}>
-              <XAxis dataKey="position" tick={{ fill: '#64748b', fontSize: 11 }} tickLine={false} axisLine={false} />
-              <YAxis tick={{ fill: '#64748b', fontSize: 11 }} tickLine={false} axisLine={false} />
+              <XAxis dataKey="position" {...axisProps} />
+              <YAxis {...axisProps} />
               <Tooltip
-                contentStyle={{ background: '#0f172a', border: '1px solid #334155', borderRadius: 8, fontSize: 12 }}
-                itemStyle={{ color: '#22c55e' }}
+                contentStyle={tooltipStyle.contentStyle}
+                itemStyle={tooltipStyle.itemStyle}
                 formatter={(v: number) => [`€${v}M`]}
               />
               <Bar dataKey="value" radius={[4, 4, 0, 0]}>
                 {chartData.map(({ position }) => (
-                  <Cell key={position} fill={POSITION_COLORS[position] ?? '#64748b'} />
+                  <Cell key={position} fill={POSITION_COLORS[position] ?? chartColors.axis} />
                 ))}
               </Bar>
             </BarChart>
@@ -77,9 +79,9 @@ export default function ClubDashboard({ club }: Props) {
 
       {/* Incoming rumours */}
       <div>
-        <h3 className="mb-3 text-sm font-semibold uppercase tracking-widest text-slate-400">
+        <SectionKicker as="h3" className="mb-3">
           Incoming ({club.activeIn.length})
-        </h3>
+        </SectionKicker>
         <div className="space-y-2">
           {club.activeIn.map((r) => (
             <RumourCard key={r.id} rumour={r} compact />
@@ -92,9 +94,9 @@ export default function ClubDashboard({ club }: Props) {
 
       {/* Outgoing rumours */}
       <div>
-        <h3 className="mb-3 text-sm font-semibold uppercase tracking-widest text-slate-400">
+        <SectionKicker as="h3" className="mb-3">
           Outgoing ({club.activeOut.length})
-        </h3>
+        </SectionKicker>
         <div className="space-y-2">
           {club.activeOut.map((r) => (
             <RumourCard key={r.id} rumour={r} compact />

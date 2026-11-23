@@ -4,9 +4,11 @@ import { useEffect, useState } from 'react'
 import {
   ComposedChart, Line, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceDot,
 } from 'recharts'
+import { axisProps, tooltipStyle, chartColors } from '@/lib/chartTheme'
 import type { ClaimDetail, ForecastHistoryPoint, EntitlementDenial } from '@/types'
 import { CheckCircleIcon, XCircleIcon } from './icons'
 import UpgradePrompt from './UpgradePrompt'
+import SectionKicker from './SectionKicker'
 
 interface Props {
   history: ForecastHistoryPoint[] | null
@@ -41,7 +43,7 @@ export default function ForecastHistoryChart({
   if (isLoading) {
     return (
       <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-5" data-testid="history-loading">
-        <div className="h-[180px] animate-pulse rounded-lg bg-slate-800/60" />
+        <div className="h-44 animate-pulse rounded-lg bg-slate-800/60" />
       </div>
     )
   }
@@ -49,7 +51,7 @@ export default function ForecastHistoryChart({
   if (entitlementDenied) {
     return (
       <div className="space-y-2" data-testid="history-entitlement-denied">
-        <p className="text-xs font-semibold uppercase tracking-widest text-slate-500">Forecast history</p>
+        <SectionKicker>Forecast history</SectionKicker>
         <UpgradePrompt
           description="Full forecast history and the probability-change timeline are part of Supporter/Pro."
           requiredTier={entitlementDenied.requiredTier}
@@ -98,18 +100,18 @@ export default function ForecastHistoryChart({
 
   return (
     <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-5" data-testid="forecast-history-chart">
-      <p className="text-xs font-semibold uppercase tracking-widest text-slate-500">Forecast history</p>
+      <SectionKicker>Forecast history</SectionKicker>
 
       {!mounted ? (
-        <div className="h-[180px] animate-pulse rounded-lg bg-slate-800/60" />
+        <div className="h-44 animate-pulse rounded-lg bg-slate-800/60" />
       ) : (
         <ResponsiveContainer width="100%" height={200}>
           <ComposedChart data={data} margin={{ top: 12, right: 8, bottom: 0, left: -20 }}>
-            <XAxis dataKey="date" tick={{ fill: '#64748b', fontSize: 11 }} tickLine={false} axisLine={false} />
-            <YAxis domain={[0, 100]} tick={{ fill: '#64748b', fontSize: 11 }} tickLine={false} axisLine={false} />
+            <XAxis dataKey="date" {...axisProps} />
+            <YAxis domain={[0, 100]} {...axisProps} />
             <Tooltip
-              contentStyle={{ background: '#0f172a', border: '1px solid #334155', borderRadius: 8, fontSize: 12 }}
-              labelStyle={{ color: '#94a3b8' }}
+              contentStyle={tooltipStyle.contentStyle}
+              labelStyle={tooltipStyle.labelStyle}
               formatter={(v: number, name: string) => [`${v}%`, name === 'probability' ? 'Probability' : name]}
             />
             {hasBand && (
@@ -117,7 +119,7 @@ export default function ForecastHistoryChart({
                 type="monotone"
                 dataKey="high"
                 stroke="none"
-                fill="#22c55e"
+                fill={chartColors.success}
                 fillOpacity={0.12}
                 isAnimationActive={false}
               />
@@ -127,19 +129,19 @@ export default function ForecastHistoryChart({
                 type="monotone"
                 dataKey="low"
                 stroke="none"
-                fill="#0f172a"
+                fill={chartColors.tooltipBg}
                 fillOpacity={1}
                 isAnimationActive={false}
               />
             )}
-            <Line type="monotone" dataKey="probability" stroke="#22c55e" strokeWidth={2} dot={{ r: 3 }} />
+            <Line type="monotone" dataKey="probability" stroke={chartColors.success} strokeWidth={2} dot={{ r: 3 }} />
             {confirmationRow && (
               <ReferenceDot
                 x={confirmationRow.date}
                 y={confirmationRow.probability ?? 0}
                 r={6}
-                fill="#22c55e"
-                stroke="#0f172a"
+                fill={chartColors.success}
+                stroke={chartColors.tooltipBg}
                 strokeWidth={2}
               />
             )}
@@ -148,8 +150,8 @@ export default function ForecastHistoryChart({
                 x={denialRow.date}
                 y={denialRow.probability ?? 0}
                 r={6}
-                fill="#ef4444"
-                stroke="#0f172a"
+                fill={chartColors.danger}
+                stroke={chartColors.tooltipBg}
                 strokeWidth={2}
               />
             )}
@@ -171,7 +173,7 @@ export default function ForecastHistoryChart({
           )}
         </div>
       )}
-      {hasBand && <p className="mt-1 text-[11px] text-slate-600">Shaded band = uncertainty range</p>}
+      {hasBand && <p className="mt-1 text-label text-slate-600">Shaded band = uncertainty range</p>}
     </div>
   )
 }

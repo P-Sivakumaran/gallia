@@ -41,7 +41,7 @@ export default function UpgradePrompt({ description, requiredTier, featureKey, c
     >
       <p className="text-sm text-slate-400">{description}</p>
       <div className="flex items-center gap-3">
-        <span className="rounded-full border border-slate-700 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+        <span className="rounded-full border border-slate-700 px-2.5 py-0.5 text-label font-semibold uppercase tracking-wide text-slate-500">
           {TIER_LABEL[requiredTier]}
         </span>
         <Link
@@ -52,7 +52,7 @@ export default function UpgradePrompt({ description, requiredTier, featureKey, c
           See what&apos;s included →
         </Link>
       </div>
-      <p className="text-[11px] text-slate-600">
+      <p className="text-label text-slate-600">
         Forecasts are estimates, not confirmations — every tier sees the same calibrated probability. Upgrading
         changes access and speed, not the number itself.
       </p>

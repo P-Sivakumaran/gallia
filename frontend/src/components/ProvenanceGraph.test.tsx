@@ -44,7 +44,7 @@ describe('ProvenanceGraph — progressive disclosure', () => {
   })
 })
 
-describe('ProvenanceGraph — view modes and mobile fallback', () => {
+describe('ProvenanceGraph: view modes and mobile fallback', () => {
   it('shows both a spatial graph container (desktop) and a list container (compact fallback) by default', async () => {
     const user = userEvent.setup()
     render(<ProvenanceGraph claim={gyokeresClaimDetail} />)
@@ -63,7 +63,7 @@ describe('ProvenanceGraph — view modes and mobile fallback', () => {
   })
 })
 
-describe('ProvenanceGraph — accessibility', () => {
+describe('ProvenanceGraph: accessibility', () => {
   it('every node is a real, accessibly-labeled button', async () => {
     const user = userEvent.setup()
     render(<ProvenanceGraph claim={gyokeresClaimDetail} />)
@@ -74,11 +74,11 @@ describe('ProvenanceGraph — accessibility', () => {
     expect(sourceButton).toBeInTheDocument()
   })
 
-  it('does not encode credibility as a single opaque colour — tier is rendered as text', async () => {
+  it('does not encode credibility as a single opaque colour: tier is rendered as text', async () => {
     const user = userEvent.setup()
     render(<ProvenanceGraph claim={gyokeresClaimDetail} />)
     await user.click(screen.getByText('Investigate provenance graph'))
-    // Romano is Tier 1 in the fixture — his tier must be visible as text
+    // Romano is Tier 1 in the fixture: his tier must be visible as text
     // somewhere (list view), not just implied by node colour.
     const list = screen.getByTestId('provenance-list-view')
     expect(within(list).getByText('Source: Fabrizio Romano, Tier 1')).toBeInTheDocument()
@@ -99,7 +99,7 @@ describe('ProvenanceGraph — accessibility', () => {
   })
 })
 
-describe('ProvenanceGraph — keyboard navigation', () => {
+describe('ProvenanceGraph: keyboard navigation', () => {
   it('arrow keys move focus between connected nodes', async () => {
     const user = userEvent.setup()
     render(<ProvenanceGraph claim={gyokeresClaimDetail} />)

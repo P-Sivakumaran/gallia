@@ -47,7 +47,7 @@ describe('EvidenceTimeline — filtering', () => {
     await user.click(screen.getByRole('button', { name: 'Official' }))
 
     expect(screen.getByText('Manchester City completes the transfer of Viktor Gyökeres')).toBeInTheDocument()
-    // Exact match — a partial/regex match would also hit syndicated items'
+    // Exact match: a partial/regex match would also hit syndicated items'
     // "Same story as: <original title>" backlink text.
     expect(screen.queryByRole('link', { name: originalTitle })).not.toBeInTheDocument()
   })

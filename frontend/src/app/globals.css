@@ -5,6 +5,8 @@
 @layer base {
   :root {
     color-scheme: dark;
+    --scrollbar-thumb: theme(colors.slate.700);
+    --scrollbar-track: transparent;
   }
   html {
     @apply scroll-smooth;
@@ -17,6 +19,15 @@
 @layer utilities {
   .scrollbar-thin {
     scrollbar-width: thin;
-    scrollbar-color: #334155 transparent;
+    scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }

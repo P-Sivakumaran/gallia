@@ -3,6 +3,7 @@
 import type { ClaimDetail } from '@/types'
 import { deriveForecastFactors, topFactors, whatWouldChangeThis } from '@/lib/forecastFactors'
 import { ArrowUpIcon, ArrowDownIcon, LinkIcon, HelpCircleIcon } from './icons'
+import SectionKicker from './SectionKicker'
 
 interface Props {
   claim: ClaimDetail | null
@@ -96,11 +97,11 @@ export default function WhyThisForecast({ claim, isLoading = false, error = null
 
   return (
     <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-5" data-testid="why-this-forecast">
-      <p className="text-xs font-semibold uppercase tracking-widest text-slate-500">Why this forecast</p>
+      <SectionKicker>Why this forecast</SectionKicker>
 
       <div className="mt-3 grid gap-6 sm:grid-cols-2">
         <div>
-          <h3 className="text-xs font-semibold uppercase tracking-wide text-pitch-500">Strongest support</h3>
+          <SectionKicker as="h3" className="text-pitch-500">Strongest support</SectionKicker>
           {positives.length > 0 ? (
             <ul className="divide-y divide-slate-800/60">
               {positives.map((f, i) => (
@@ -113,7 +114,7 @@ export default function WhyThisForecast({ claim, isLoading = false, error = null
         </div>
 
         <div>
-          <h3 className="text-xs font-semibold uppercase tracking-wide text-red-400">Strongest doubt</h3>
+          <SectionKicker as="h3" className="text-red-400">Strongest doubt</SectionKicker>
           {negatives.length > 0 ? (
             <ul className="divide-y divide-slate-800/60">
               {negatives.map((f, i) => (
@@ -127,7 +128,7 @@ export default function WhyThisForecast({ claim, isLoading = false, error = null
       </div>
 
       <div className="mt-5 rounded-lg border border-slate-800 bg-slate-950/60 p-4">
-        <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-400">What would change this?</h3>
+        <SectionKicker as="h3">What would change this?</SectionKicker>
         <ul className="mt-2 space-y-1.5">
           {changes.map((c) => (
             <li key={c.kind} className="flex items-start gap-2 text-xs text-slate-500">

@@ -3,6 +3,7 @@
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useCallback } from 'react'
 import { clsx } from 'clsx'
+import SectionKicker from './SectionKicker'
 
 const LEAGUES = ['Premier League', 'La Liga', 'Bundesliga', 'Serie A', 'Ligue 1']
 const POSITIONS = ['GK', 'CB', 'LB', 'RB', 'CDM', 'CM', 'CAM', 'LW', 'RW', 'ST']
@@ -47,19 +48,19 @@ export default function FilterBar() {
   return (
     <div className="space-y-3">
       <div className="flex flex-wrap gap-2">
-        <span className="self-center text-xs font-semibold uppercase tracking-wider text-slate-500 w-16">Status</span>
+        <SectionKicker as="span" className="self-center w-16">Status</SectionKicker>
         {STATUSES.map((s) => <Chip key={s} label={s} filterKey="status" value={s} />)}
       </div>
       <div className="flex flex-wrap gap-2">
-        <span className="self-center text-xs font-semibold uppercase tracking-wider text-slate-500 w-16">League</span>
+        <SectionKicker as="span" className="self-center w-16">League</SectionKicker>
         {LEAGUES.map((l) => <Chip key={l} label={l} filterKey="league" value={l} />)}
       </div>
       <div className="flex flex-wrap gap-2">
-        <span className="self-center text-xs font-semibold uppercase tracking-wider text-slate-500 w-16">Pos</span>
+        <SectionKicker as="span" className="self-center w-16">Pos</SectionKicker>
         {POSITIONS.map((p) => <Chip key={p} label={p} filterKey="position" value={p} />)}
       </div>
       <div className="flex flex-wrap gap-2">
-        <span className="self-center text-xs font-semibold uppercase tracking-wider text-slate-500 w-16">Window</span>
+        <SectionKicker as="span" className="self-center w-16">Window</SectionKicker>
         {WINDOWS.map((w) => <Chip key={w} label={w} filterKey="window" value={w} />)}
       </div>
     </div>

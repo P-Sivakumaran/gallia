@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { RadialBarChart, RadialBar, PolarAngleAxis } from 'recharts'
 import type { RumourStatus } from '@/types'
+import { chartColors } from '@/lib/chartTheme'
 
 interface Props {
   score: number // 0–100
@@ -48,7 +49,7 @@ export default function TruthMeter({ score, status, size = 'md' }: Props) {
         <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center" style={{ fontSize }}>
           <span className="font-bold tabular-nums leading-none" style={{ color }}>{score}</span>
           {size !== 'sm' && (
-            <span className="mt-0.5 text-[9px] font-semibold uppercase tracking-widest text-slate-400">
+            <span className="mt-0.5 text-micro font-semibold uppercase tracking-widest text-slate-400">
               {STATUS_LABELS[status]}
             </span>
           )}
@@ -71,7 +72,7 @@ export default function TruthMeter({ score, status, size = 'md' }: Props) {
         endAngle={-270}
       >
         <PolarAngleAxis type="number" domain={[0, 100]} angleAxisId={0} tick={false} />
-        <RadialBar background={{ fill: '#1e293b' }} dataKey="value" angleAxisId={0} cornerRadius={4} />
+        <RadialBar background={{ fill: chartColors.track }} dataKey="value" angleAxisId={0} cornerRadius={4} />
       </RadialBarChart>
       {/* Center label */}
       <div
@@ -82,7 +83,7 @@ export default function TruthMeter({ score, status, size = 'md' }: Props) {
           {score}
         </span>
         {size !== 'sm' && (
-          <span className="mt-0.5 text-[9px] font-semibold uppercase tracking-widest text-slate-400">
+          <span className="mt-0.5 text-micro font-semibold uppercase tracking-widest text-slate-400">
             {STATUS_LABELS[status]}
           </span>
         )}

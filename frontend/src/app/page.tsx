@@ -57,7 +57,7 @@ export default async function HomePage({
       {/* Network CTA */}
       <Link
         href="/network"
-        className="flex items-center gap-3 rounded-xl border border-slate-700/60 bg-slate-800/40 px-5 py-3 text-sm text-slate-300 transition-all hover:border-pitch-500/40 hover:bg-slate-800 hover:text-white group"
+        className="flex items-center gap-3 rounded-xl border border-slate-700/60 bg-slate-800/40 px-5 py-3 text-sm text-slate-300 transition-colors duration-150 hover:border-pitch-500/40 hover:bg-slate-800 hover:text-white group"
       >
         <span className="text-lg">🕸</span>
         <span>View transfer network graph</span>

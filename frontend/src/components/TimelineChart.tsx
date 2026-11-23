@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts'
 import type { RumourHistoryPoint } from '@/types'
+import { axisProps, tooltipStyle, chartColors } from '@/lib/chartTheme'
 
 interface Props {
   history: RumourHistoryPoint[]
@@ -16,7 +17,7 @@ export default function TimelineChart({ history }: Props) {
   const [mounted, setMounted] = useState(false)
   useEffect(() => { setMounted(true) }, [])
 
-  if (!mounted) return <div className="h-[180px] animate-pulse rounded-lg bg-slate-800/60" />
+  if (!mounted) return <div className="h-44 animate-pulse rounded-lg bg-slate-800/60" />
 
   if (history.length < 2) {
     return <p className="text-sm text-slate-500 italic">Not enough data for timeline.</p>
@@ -32,36 +33,27 @@ export default function TimelineChart({ history }: Props) {
       <LineChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: -20 }}>
         <XAxis
           dataKey="date"
-          tick={{ fill: '#64748b', fontSize: 11 }}
-          tickLine={false}
-          axisLine={false}
+          {...axisProps}
         />
         <YAxis
           domain={[0, 100]}
-          tick={{ fill: '#64748b', fontSize: 11 }}
-          tickLine={false}
-          axisLine={false}
+          {...axisProps}
           tickFormatter={(v) => `${v}`}
         />
         <Tooltip
-          contentStyle={{
-            background: '#0f172a',
-            border: '1px solid #334155',
-            borderRadius: 8,
-            fontSize: 12,
-          }}
-          labelStyle={{ color: '#94a3b8' }}
-          itemStyle={{ color: '#22c55e' }}
+          contentStyle={tooltipStyle.contentStyle}
+          labelStyle={tooltipStyle.labelStyle}
+          itemStyle={tooltipStyle.itemStyle}
           formatter={(v: number) => [`${v}%`, 'Likelihood']}
         />
-        <ReferenceLine y={70} stroke="#f97316" strokeDasharray="4 2" strokeOpacity={0.5} />
+        <ReferenceLine y={70} stroke={chartColors.hot} strokeDasharray="4 2" strokeOpacity={0.5} />
         <Line
           type="monotone"
           dataKey="likelihood"
-          stroke="#22c55e"
+          stroke={chartColors.success}
           strokeWidth={2}
           dot={false}
-          activeDot={{ r: 4, fill: '#22c55e', strokeWidth: 0 }}
+          activeDot={{ r: 4, fill: chartColors.success, strokeWidth: 0 }}
         />
       </LineChart>
     </ResponsiveContainer>

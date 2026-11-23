@@ -5,6 +5,7 @@ import Graph from 'graphology'
 import Sigma from 'sigma'
 import forceAtlas2 from 'graphology-layout-forceatlas2'
 import { clsx } from 'clsx'
+import { chartColors } from '@/lib/chartTheme'
 
 interface GraphNode {
   id: string
@@ -48,10 +49,10 @@ interface HoveredNode {
 }
 
 const STATUS_LEGEND = [
-  { label: 'HOT (≥70%)', color: '#f97316' },
-  { label: 'PENDING', color: '#94a3b8' },
-  { label: 'COMPLETED', color: '#22c55e' },
-  { label: 'FAILED', color: '#ef4444' },
+  { label: 'HOT (≥70%)', color: chartColors.hot },
+  { label: 'PENDING', color: chartColors.pending },
+  { label: 'COMPLETED', color: chartColors.success },
+  { label: 'FAILED', color: chartColors.danger },
 ]
 
 export default function TransferGraph() {
@@ -101,7 +102,7 @@ export default function TransferGraph() {
     for (const edge of data.edges) {
       const visible = filter === 'all' || edge.status === filter
       graph.addEdgeWithKey(edge.id, edge.source, edge.target, {
-        color: visible ? edge.color : '#1e293b',
+        color: visible ? edge.color : chartColors.track,
         size: visible ? edge.size : 0.5,
         weight: edge.weight,
         status: edge.status,
@@ -131,7 +132,7 @@ export default function TransferGraph() {
       labelFont: 'Inter, sans-serif',
       labelSize: 11,
       labelWeight: '600',
-      labelColor: { color: '#94a3b8' },
+      labelColor: { color: chartColors.tooltipLabel },
       minCameraRatio: 0.1,
       maxCameraRatio: 10,
     })
@@ -183,7 +184,7 @@ export default function TransferGraph() {
 
   if (loading) {
     return (
-      <div className="flex h-[600px] items-center justify-center rounded-xl border border-slate-800 bg-slate-900/40">
+      <div className="flex h-canvas-md items-center justify-center rounded-xl border border-slate-800 bg-slate-900/40">
         <div className="text-center">
           <div className="mx-auto mb-3 h-8 w-8 animate-spin rounded-full border-2 border-pitch-500 border-t-transparent" />
           <p className="text-sm text-slate-500">Building transfer network...</p>
@@ -224,15 +225,15 @@ export default function TransferGraph() {
 
       {/* Graph canvas */}
       <div className="relative overflow-hidden rounded-xl border border-slate-800 bg-slate-950">
-        <div ref={containerRef} className="h-[640px] w-full" />
+        <div ref={containerRef} className="h-canvas-lg w-full" />
 
         {/* Node type legend */}
         <div className="absolute bottom-4 left-4 flex flex-col gap-1.5 rounded-lg border border-slate-700 bg-slate-900/90 px-3 py-2 text-xs backdrop-blur">
           <span className="flex items-center gap-2 text-slate-400">
-            <span className="h-3 w-3 rounded-full bg-[#60a5fa]" /> Player
+            <span className="h-3 w-3 rounded-full bg-blue-400" /> Player
           </span>
           <span className="flex items-center gap-2 text-slate-400">
-            <span className="h-3 w-3 rounded-sm bg-[#8b5cf6]" /> Club
+            <span className="h-3 w-3 rounded-sm bg-purple-500" /> Club
           </span>
         </div>
 

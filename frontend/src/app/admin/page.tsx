@@ -128,7 +128,7 @@ function RumoursPanel() {
                 </button>
                 <button
                   disabled={pendingId === r.id || r.evidence.length === 0}
-                  title={r.evidence.length === 0 ? 'No source evidence found for this rumour — cannot set outcome' : undefined}
+                  title={r.evidence.length === 0 ? 'No source evidence found for this rumour; cannot set outcome' : undefined}
                   onClick={() => setOutcome(r.id, 'FAILED')}
                   className="rounded-lg border border-red-500/40 bg-red-500/10 px-3 py-1.5 text-xs font-semibold text-red-400 transition-colors hover:bg-red-500/20 disabled:cursor-not-allowed disabled:opacity-30"
                 >
@@ -136,7 +136,7 @@ function RumoursPanel() {
                 </button>
                 <button
                   disabled={pendingId === r.id || r.evidence.length === 0}
-                  title={r.evidence.length === 0 ? 'No source evidence found for this rumour — cannot set outcome' : undefined}
+                  title={r.evidence.length === 0 ? 'No source evidence found for this rumour; cannot set outcome' : undefined}
                   onClick={() => setOutcome(r.id, 'DENIED')}
                   className="rounded-lg border border-gray-500/40 bg-gray-500/10 px-3 py-1.5 text-xs font-semibold text-gray-400 transition-colors hover:bg-gray-500/20 disabled:cursor-not-allowed disabled:opacity-30"
                 >
@@ -145,10 +145,10 @@ function RumoursPanel() {
               </div>
             </div>
 
-            {/* Evidence — every action above must be traceable to one of these */}
+            {/* Evidence: every action above must be traceable to one of these */}
             <div className="border-t border-slate-700/60 pt-2">
               {r.evidence.length === 0 ? (
-                <p className="text-xs text-slate-500">No source articles linked — outcome cannot be set manually.</p>
+                <p className="text-xs text-slate-500">No source articles linked; outcome cannot be set manually.</p>
               ) : (
                 <ul className="space-y-1">
                   {r.evidence.map((e, i) => (

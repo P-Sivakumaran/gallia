@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { api } from '@/lib/api'
 import TruthMeter from '@/components/TruthMeter'
 import TimelineChart from '@/components/TimelineChart'
+import SectionKicker from '@/components/SectionKicker'
 import { resolveDisplayOrigin } from '@/lib/rumourOrigin'
 
 export default async function RumourDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -74,22 +75,22 @@ export default async function RumourDetailPage({ params }: { params: Promise<{ i
 
       {/* Likelihood timeline */}
       <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-4">
-        <p className="text-xs font-semibold uppercase tracking-widest text-slate-500 mb-4">
+        <SectionKicker className="mb-4">
           Likelihood over time
-        </p>
+        </SectionKicker>
         <TimelineChart history={rumour.history} />
       </div>
 
       {rumour.notes && (
         <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-4">
-          <p className="text-xs font-semibold uppercase tracking-widest text-slate-500 mb-2">Notes</p>
+          <SectionKicker className="mb-2">Notes</SectionKicker>
           <p className="text-slate-300 text-sm leading-relaxed">{rumour.notes}</p>
         </div>
       )}
 
       {/* Evidence — the articles this rumour and its status are actually based on */}
       <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-4">
-        <p className="text-xs font-semibold uppercase tracking-widest text-slate-500 mb-2">Evidence</p>
+        <SectionKicker className="mb-2">Evidence</SectionKicker>
         {rumour.evidence.length === 0 ? (
           <p className="text-sm text-slate-500">No source articles linked to this rumour yet.</p>
         ) : (

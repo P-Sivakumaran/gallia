@@ -63,7 +63,7 @@ describe('ForecastCard — metadata and disclaimer', () => {
   })
 })
 
-describe('ForecastCard — colour is never the only encoding', () => {
+describe('ForecastCard: colour is never the only encoding', () => {
   it('pairs an icon (svg) with text for every display mode, not colour alone', () => {
     const { container: precise, unmount: unmountPrecise } = render(<ForecastCard forecast={gyokeresForecastPrecise} />)
     expect(precise.querySelector('svg')).toBeTruthy()
