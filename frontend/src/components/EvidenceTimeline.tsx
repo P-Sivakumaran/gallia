@@ -71,12 +71,12 @@ function EvidenceRow({ item, claim }: { item: EvidenceItemData; claim: ClaimDeta
               {item.title}
             </a>
             {primary && (
-              <span className="rounded-full border border-caution/40 bg-caution/10 px-1.5 py-0.5 text-micro font-medium uppercase tracking-wide text-caution-fg">
+              <span className="rounded-full border border-caution/40 bg-caution/10 px-1.5 py-0.5 text-label font-medium uppercase tracking-wide text-caution-fg">
                 Original
               </span>
             )}
             {!primary && (
-              <span className="rounded-full border border-line bg-surface-raised/60 px-1.5 py-0.5 text-micro font-medium uppercase tracking-wide text-ink-muted">
+              <span className="rounded-full border border-line bg-surface-raised/60 px-1.5 py-0.5 text-label font-medium uppercase tracking-wide text-ink-muted">
                 Copy
               </span>
             )}

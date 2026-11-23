@@ -29,8 +29,8 @@ const STATUS_LABELS: Record<RumourStatus, string> = {
 }
 
 const SIZES = {
-  sm: { outer: 56, inner: 60, fontSize: 11 },
-  md: { outer: 90, inner: 65, fontSize: 18 },
+  sm: { outer: 56, inner: 60, fontSize: 12 },
+  md: { outer: 100, inner: 76, fontSize: 18 },
   lg: { outer: 130, inner: 70, fontSize: 26 },
 }
 
@@ -50,7 +50,7 @@ export default function TruthMeter({ score, status, size = 'md' }: Props) {
         <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center" style={{ fontSize }}>
           <span className="font-bold tabular-nums leading-none" style={{ color }}>{score}</span>
           {size !== 'sm' && (
-            <span className="mt-0.5 text-micro font-semibold uppercase tracking-widest text-ink-secondary">
+            <span className="mt-0.5 text-label font-semibold uppercase tracking-wide text-ink-secondary">
               {STATUS_LABELS[status]}
             </span>
           )}
@@ -84,7 +84,7 @@ export default function TruthMeter({ score, status, size = 'md' }: Props) {
           {score}
         </span>
         {size !== 'sm' && (
-          <span className="mt-0.5 text-micro font-semibold uppercase tracking-widest text-ink-secondary">
+          <span className="mt-0.5 text-label font-semibold uppercase tracking-wide text-ink-secondary">
             {STATUS_LABELS[status]}
           </span>
         )}

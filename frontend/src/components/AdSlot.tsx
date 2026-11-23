@@ -26,7 +26,7 @@ export default function AdSlot({ index = 0 }: { index?: number }) {
         <p className="text-sm font-medium text-ink-body">{ad.title}</p>
         <p className="text-xs text-ink-muted">{ad.body}</p>
       </div>
-      <span className="flex-shrink-0 rounded border border-line px-1.5 py-0.5 text-micro font-semibold uppercase tracking-wide text-ink-muted">
+      <span className="flex-shrink-0 rounded border border-line px-1.5 py-0.5 text-label font-semibold uppercase tracking-wide text-ink-muted">
         Ad
       </span>
     </div>

@@ -137,7 +137,9 @@ export function radialLayout(graph: ProvenanceGraphData, radius = 200): Position
   if (claimNode) positioned.push({ ...claimNode, x: 0, y: 0 })
 
   inner.forEach((node, i) => {
-    const angle = (i / Math.max(inner.length, 1)) * 2 * Math.PI
+    // Start at 12 o'clock: the outer ring starts at 3 o'clock, so a shared 0° put the
+    // player node and the first evidence node on one ray, close enough to overlap.
+    const angle = (i / Math.max(inner.length, 1)) * 2 * Math.PI - Math.PI / 2
     positioned.push({ ...node, x: Math.cos(angle) * radius * 0.5, y: Math.sin(angle) * radius * 0.5 })
   })
   outer.forEach((node, i) => {

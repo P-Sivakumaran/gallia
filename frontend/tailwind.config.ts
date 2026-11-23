@@ -32,8 +32,8 @@ const config: Config = {
         node: networkNode,
       },
       fontSize: {
-        micro: ['10px', { lineHeight: '14px', letterSpacing: '0.02em' }],
-        label: ['11px', { lineHeight: '16px', letterSpacing: '0.01em' }],
+        // 12px is the floor for any text in the product. Smaller sizes were retired on 2026-11-24.
+        label: ['12px', { lineHeight: '16px', letterSpacing: '0.01em' }],
       },
       height: {
         'canvas-lg': '40rem',

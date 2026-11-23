@@ -99,4 +99,6 @@ export const chartHeight = {
   timeline: 180,
   history: 200,
   calibration: 220,
+  /** Fits radialLayout's default radius (200) plus node height at 100% zoom */
+  provenance: 460,
 } as const

@@ -113,7 +113,16 @@ Detector: **307 → 5 findings (302 red → 0)**. 95/95 tests, `tsc`, `eslint` a
   - The player page has a sibling `loading.tsx`.
   - AuthProvider, RemoveAdsBanner and WatchlistButton are mutations or session checks. They have no "empty" outcome, and they already handle loading and error.
 
+### 12px text floor (owner approved 2026-11-24)
+- `text-micro` is retired. `text-label` is now 12px, and the chart axis ticks, Sigma node labels and the provenance node labels (`text-[10px]`, which the detector missed) moved to 12px too.
+- **TruthMeter md:** the dial grew from 90 to 100px with a 76px hole, and its label tracking went from `widest` to `wide`, so "PENDING" fits inside the ring.
+- **Provenance graph:**
+  - The viewport is now `chartHeight.provenance` (460px). At 340px, the 200px layout radius clipped the outer nodes even before this pass.
+  - The inner ring now starts at 12 o'clock. The player node used to sit on the same ray as the first evidence node and overlapped it.
+- **Verified** with Playwright screenshots of `/`, `/claim/1`, `/claim/2` and `/scorecard` at 1280 and 390px wide, before and after, against a fixture-backed mock API. No database was used.
+
 ### Open (needs an owner decision)
-- **`text-micro` (10px) and `text-label` (11px)** pass the detector but are still small. Consider raising the floor to 12px.
+- **Faint helper text:** `text-ink-faint` (#475569 on #020617, about 2.6:1) fails WCAG AA at any size. Examples are "Shaded band = uncertainty range" and the graph's keyboard hint. Consider `ink-muted` or `ink-secondary`.
+- **Provenance graph source chips** ("Unknown Twitter", "Sky Sports") just touch evidence chips at the top and bottom of the ring.
 - **Alpha-tint status badges:** decide whether to consolidate `failed-fg` (#f87171) and similar onto the base status colours. That would be a visual change, so it was left out of this pass.
 - **"Transfer Hub" copy** remains in `RemoveAdsBanner`, `AdSlot` and `billing/success`, while `BRAND.name` is "Smoke & Fire". This waits on the rename decision in `lib/brand.ts`.

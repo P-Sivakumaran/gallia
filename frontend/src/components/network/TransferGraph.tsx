@@ -130,7 +130,7 @@ export default function TransferGraph() {
     sigma = new Sigma(graph, containerRef.current, {
       renderEdgeLabels: false,
       labelFont: 'Inter, sans-serif',
-      labelSize: 11,
+      labelSize: 12,
       labelWeight: '600',
       labelColor: { color: chartColors.canvasLabel },
       minCameraRatio: 0.1,

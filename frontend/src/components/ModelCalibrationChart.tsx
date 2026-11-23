@@ -131,14 +131,14 @@ export default function ModelCalibrationChart({ definition, isLoading = false, e
               tick={axisTick}
               tickLine={false}
               axisLine={false}
-              label={{ value: 'Predicted probability (%)', position: 'insideBottom', offset: -2, fill: chartColors.axis, fontSize: 11 }}
+              label={{ value: 'Predicted probability (%)', position: 'insideBottom', offset: -2, fill: chartColors.axis, fontSize: axisTick.fontSize }}
             />
             <YAxis
               domain={[0, 100]}
               tick={axisTick}
               tickLine={false}
               axisLine={false}
-              label={{ value: 'Actual outcome rate (%)', angle: -90, position: 'insideLeft', fill: chartColors.axis, fontSize: 11 }}
+              label={{ value: 'Actual outcome rate (%)', angle: -90, position: 'insideLeft', fill: chartColors.axis, fontSize: axisTick.fontSize }}
             />
             <Tooltip
               contentStyle={tooltipStyle.contentStyle}

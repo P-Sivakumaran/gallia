@@ -8,7 +8,7 @@ import {
 } from '@/lib/provenanceGraph'
 import { clsx } from 'clsx'
 import { api } from '@/lib/api'
-import { line as lineTokens, status as statusTokens } from '@/lib/tokens'
+import { chartHeight, line as lineTokens, status as statusTokens } from '@/lib/tokens'
 
 interface Props {
   claim: ClaimDetail | null
@@ -123,7 +123,7 @@ function SvgGraph({ claim }: { claim: ClaimDetail }) {
       </div>
       <div
         className="relative overflow-hidden rounded-lg border border-line-subtle bg-surface-base"
-        style={{ height: 340 }}
+        style={{ height: chartHeight.provenance }}
         data-testid="provenance-svg-view"
       >
         <div
@@ -165,7 +165,7 @@ function SvgGraph({ claim }: { claim: ClaimDetail }) {
                 if (e.key === 'Escape') { setSelectedId(null) }
               }}
               className={clsx(
-                'absolute -translate-x-1/2 -translate-y-1/2 rounded-full border px-2 py-1 text-[10px] font-medium text-ink-body shadow',
+                'absolute -translate-x-1/2 -translate-y-1/2 rounded-full border px-2 py-1 text-label font-medium text-ink-body shadow',
                 'max-w-[110px] truncate focus:outline-none focus:ring-2 focus:ring-pitch-500',
                 NODE_COLORS[node.type],
                 selectedId === node.id && 'ring-2 ring-pitch-500',
