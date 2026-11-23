@@ -126,3 +126,30 @@ Detector: **307 → 5 findings (302 red → 0)**. 95/95 tests, `tsc`, `eslint` a
 - **Provenance graph source chips** ("Unknown Twitter", "Sky Sports") just touch evidence chips at the top and bottom of the ring.
 - **Alpha-tint status badges:** decide whether to consolidate `failed-fg` (#f87171) and similar onto the base status colours. That would be a visual change, so it was left out of this pass.
 - **"Transfer Hub" copy** remains in `RemoveAdsBanner`, `AdSlot` and `billing/success`, while `BRAND.name` is "Smoke & Fire". This waits on the rename decision in `lib/brand.ts`.
+
+---
+
+## 6. Iteration 3 (2026-11-24): the raea brand motion, ported into the app
+
+The raea brand assets (`raea/treewizard/projects/rumour-hub-brand`) are the source for this UI. They were copied and adapted here; nothing under raea was changed.
+
+| raea source | App |
+|---|---|
+| `TruthMeterMotion` | `TruthMeter`, rewritten as pure SVG (recharts and the mount-gated placeholder are gone). It has a graduated scale, an ink cursor on the leading edge and radar rings in the well, and is exposed as `role="meter"`. |
+| `StatusBadge` (RumourCardMotion) | `StatusBadge`: a dot plus the label. It replaces the duplicated badge maps in RumourCard and admin. |
+| `CARD_SURFACE` | The `bg-card` and `shadow-card` tokens on RumourCard. |
+| hero-loop updates and swaps | `useRumourFeed` now records each SSE update's delta, sequence number and status change. Cards show a ▲/▼ delta chip, the badge pops and the meter sends out one ring. |
+| hero-loop timings (30 fps) | The `motion` tokens: tween 400 ms, chip 1.8 s, pop 270 ms, flash 600 ms, build 530 ms, sweep 1.3 s. |
+
+### Rules kept
+- **CSS-only motion.** The server-rendered markup is already the final reading, with no "––/SCORING" placeholder and no JS timers. Every keyframe ends on the element's resting style.
+- **Reduced motion.** It lands on the final state immediately. Delta chips stay visible instead of leaving, so the change can still be read.
+- **One ring per status change.** The rings are small (under the WCAG area threshold), and score-only updates send no ring.
+
+### Verified
+- **Playwright frames** of the home feed against a mock SSE stream show the power-on, the settled state, both live updates mid-flight, the state after the chips leave, and reduced motion. The md meter at 2x shows "PENDING" clear of the ring.
+- **Tests:** 10 new ones (meter accessibility and scale, badge, reducer, delta chip). Frontend 105/105, backend 166/166.
+
+### Open
+- **Power-on replays** whenever the feed remounts, for example on a filter change. It takes about 1.8 s in total. Consider `intro={false}` after the first page.
+- **The OG image and radar field are not wired in yet.** The raea `Wordmark` says "Transfer Rumour Hub" while `BRAND.name` is "Smoke & Fire", so this waits on the rename decision.

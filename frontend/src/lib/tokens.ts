@@ -93,6 +93,37 @@ export const position: Record<string, string> = {
   ST: '#f97316', CF: '#fb923c',
 }
 
+/**
+ * Instrument parts ported from the raea brand kit (projects/rumour-hub-brand/components/TruthMeterMotion.tsx).
+ * `well` is the dark face inside the meter ring; `tick` is an unlit scale mark.
+ */
+export const meter = {
+  well: '#06110d',
+  tick: '#3b4a5c',
+  cursor: '#ffffff',
+} as const
+
+/** Card face from the raea brand kit's CARD_SURFACE: a lit top edge over a deep drop. */
+export const card = {
+  top: '#13232d',
+  mid: '#0d1920',
+  bottom: '#0a141a',
+  shadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.07), 0 2px 0 rgba(0, 0, 0, 0.45), 0 18px 40px rgba(0, 0, 0, 0.45)',
+} as const
+
+/**
+ * Live-update motion, converted from the raea hero loop (30 fps frames → ms).
+ * Kept here so CSS keyframes (tailwind.config.ts) and any JS timing share one table.
+ */
+export const motion = {
+  tween: 400, // 12 frames: a score update eases to its new value
+  chip: 1800, // 54 frames: the ▲/▼ delta chip reads, then leaves
+  pop: 270, // 8 frames: the status badge overshoots once
+  flash: 600, // 18 frames: one ring leaves the meter on a status change
+  build: 530, // 16 frames: the meter track draws on first paint
+  sweep: 1300, // 40 frames: the arc sweeps up to the score on first paint
+} as const
+
 /** Pixel heights of each chart, shared by the chart and its loading skeleton so nothing jumps. */
 export const chartHeight = {
   club: 140,

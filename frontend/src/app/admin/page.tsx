@@ -4,29 +4,10 @@ import { useCallback, useEffect, useState } from 'react'
 import { clsx } from 'clsx'
 import { api } from '@/lib/api'
 import type { AdminRumour, AdminSource, Player, RumourStatus } from '@/types'
+import StatusBadge from '@/components/StatusBadge'
 
 const STATUS_FILTERS: Array<RumourStatus | 'ALL'> = ['ALL', 'PENDING', 'HOT', 'COMPLETED', 'FAILED', 'DENIED']
 
-const STATUS_BADGE: Record<string, string> = {
-  HOT: 'bg-hot/20 text-hot-fg border-hot/40',
-  PENDING: 'bg-surface-overlay/40 text-ink-secondary border-line-strong/40',
-  COMPLETED: 'bg-completed/20 text-completed-fg border-completed/40',
-  FAILED: 'bg-failed/20 text-failed-fg border-failed/40',
-  DENIED: 'bg-denied-deep/40 text-denied-fg border-denied-line/40',
-}
-
-function StatusBadge({ status }: { status: string }) {
-  return (
-    <span
-      className={clsx(
-        'rounded-full border px-2 py-0.5 text-xs font-semibold uppercase tracking-wide',
-        STATUS_BADGE[status] ?? STATUS_BADGE.PENDING,
-      )}
-    >
-      {status}
-    </span>
-  )
-}
 
 function RumoursPanel() {
   const [filter, setFilter] = useState<RumourStatus | 'ALL'>('PENDING')

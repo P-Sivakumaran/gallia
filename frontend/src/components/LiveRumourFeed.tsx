@@ -15,7 +15,7 @@ interface Props {
 const AD_EVERY_N_CARDS = 5
 
 export default function LiveRumourFeed({ initialRumours, total, adsEnabled = false }: Props) {
-  const rumours = useRumourFeed(initialRumours)
+  const { rumours, live } = useRumourFeed(initialRumours)
 
   return (
     <section>
@@ -31,7 +31,7 @@ export default function LiveRumourFeed({ initialRumours, total, adsEnabled = fal
       <div className="space-y-3">
         {rumours.map((r, i) => (
           <Fragment key={r.id}>
-            <RumourCard rumour={r} />
+            <RumourCard rumour={r} live={live[r.id]} />
             {adsEnabled && i > 0 && (i + 1) % AD_EVERY_N_CARDS === 0 && (
               <AdSlot index={Math.floor(i / AD_EVERY_N_CARDS)} />
             )}

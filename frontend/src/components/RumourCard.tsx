@@ -6,18 +6,14 @@ import type { Rumour } from '@/types'
 import TruthMeter from './TruthMeter'
 import { resolveDisplayOrigin } from '@/lib/rumourOrigin'
 import { clsx } from 'clsx'
+import StatusBadge from './StatusBadge'
+import type { LiveChange } from '@/lib/useRumourFeed'
 
 interface Props {
   rumour: Rumour
   compact?: boolean
-}
-
-const STATUS_BADGE: Record<string, string> = {
-  HOT: 'bg-hot/20 text-hot-fg border-hot/40',
-  PENDING: 'bg-surface-overlay/40 text-ink-secondary border-line-strong/40',
-  COMPLETED: 'bg-completed/20 text-completed-fg border-completed/40',
-  FAILED: 'bg-failed/20 text-failed-fg border-failed/40',
-  DENIED: 'bg-denied-deep/40 text-denied-fg border-denied-line/40',
+  /** The last live update to this rumour (from useRumourFeed) */
+  live?: LiveChange
 }
 
 const SOURCE_TYPE_COLORS: Record<string, string> = {
@@ -52,7 +48,28 @@ function feeLabel(min: number | null, max: number | null, currency: string): str
   return `${symbol}${min ?? max}M`
 }
 
-export default function RumourCard({ rumour, compact = false }: Props) {
+/** ▲/▼ chip from the raea hero loop: reads for 1.8 s after a live score change, then leaves. */
+function DeltaChip({ change }: { change: LiveChange }) {
+  if (change.delta === 0) return null
+  const up = change.delta > 0
+  return (
+    <span
+      key={change.seq}
+      data-testid="delta-chip"
+      className={clsx(
+        'animate-delta-chip font-mono text-xs font-bold tabular-nums',
+        up ? 'text-pitch-500' : 'text-ink-secondary',
+      )}
+    >
+      <span aria-hidden>{up ? '▲' : '▼'} {Math.abs(change.delta)}</span>
+      <span className="sr-only">
+        Likelihood {up ? 'up' : 'down'} {Math.abs(change.delta)} points
+      </span>
+    </span>
+  )
+}
+
+export default function RumourCard({ rumour, compact = false, live }: Props) {
   const router = useRouter()
   const origin = resolveDisplayOrigin(rumour)
 
@@ -65,14 +82,19 @@ export default function RumourCard({ rumour, compact = false }: Props) {
         if (e.key === 'Enter') router.push(`/rumour/${rumour.id}`)
       }}
       className={clsx(
-        'group relative flex cursor-pointer gap-4 rounded-xl border border-line/60 bg-surface-raised/60 p-4 backdrop-blur-sm',
-        'transition-all duration-200 hover:border-line-emphasis hover:bg-surface-raised hover:shadow-lg hover:shadow-black/30',
+        'group relative flex cursor-pointer gap-4 rounded-xl border border-line/60 bg-card p-4 shadow-card',
+        'transition-colors duration-200 hover:border-line-emphasis',
         compact ? 'items-center' : 'flex-col sm:flex-row sm:items-start',
       )}
     >
       {/* Truth meter */}
       <div className="flex-shrink-0">
-        <TruthMeter score={Math.round(rumour.computedLikelihood)} status={rumour.status} size={compact ? 'sm' : 'md'} />
+        <TruthMeter
+          score={Math.round(rumour.computedLikelihood)}
+          status={rumour.status}
+          size={compact ? 'sm' : 'md'}
+          pulseKey={live?.statusChanged ? live.seq : 0}
+        />
       </div>
 
       {/* Main content */}
@@ -89,14 +111,8 @@ export default function RumourCard({ rumour, compact = false }: Props) {
           <span className="rounded-full border px-2 py-0.5 text-xs font-mono font-medium text-ink-soft border-line-strong">
             {rumour.player.position}
           </span>
-          <span
-            className={clsx(
-              'rounded-full border px-2 py-0.5 text-xs font-semibold uppercase tracking-wide',
-              STATUS_BADGE[rumour.status],
-            )}
-          >
-            {rumour.status}
-          </span>
+          <StatusBadge status={rumour.status} popKey={live?.statusChanged ? live.seq : 0} />
+          <span aria-live="polite">{live && <DeltaChip change={live} />}</span>
         </div>
 
         {/* Club transfer row */}

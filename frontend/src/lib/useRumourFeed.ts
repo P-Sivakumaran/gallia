@@ -3,34 +3,54 @@
 import { useEffect, useReducer } from 'react'
 import type { Rumour, RumourStatus } from '@/types'
 
-interface RumourUpdate {
+export interface RumourUpdate {
   id: number
   computedLikelihood: number
   status: RumourStatus
 }
 
+/**
+ * What the last live update did to one rumour, for the motion borrowed from the raea hero loop:
+ * `seq` restarts the CSS animations, `delta` drives the ▲/▼ chip, `statusChanged` the badge pop and meter ring.
+ */
+export interface LiveChange {
+  seq: number
+  delta: number
+  statusChanged: boolean
+}
+
+export interface FeedState {
+  rumours: Rumour[]
+  live: Record<number, LiveChange>
+}
+
 type Action =
   | { type: 'INIT'; rumours: Rumour[] }
   | { type: 'UPDATE'; payload: RumourUpdate }
-  | { type: 'NEW'; rumourId: number }
 
-function reducer(state: Rumour[], action: Action): Rumour[] {
+export function feedReducer(state: FeedState, action: Action): FeedState {
   switch (action.type) {
     case 'INIT':
-      return action.rumours
-    case 'UPDATE':
-      return state.map((r) =>
-        r.id === action.payload.id
-          ? { ...r, computedLikelihood: action.payload.computedLikelihood, status: action.payload.status }
-          : r,
-      )
+      return { rumours: action.rumours, live: {} }
+    case 'UPDATE': {
+      const { id, computedLikelihood, status } = action.payload
+      const current = state.rumours.find((r) => r.id === id)
+      if (!current) return state
+      const delta = Math.round(computedLikelihood) - Math.round(current.computedLikelihood)
+      const statusChanged = status !== current.status
+      if (delta === 0 && !statusChanged) return state
+      return {
+        rumours: state.rumours.map((r) => (r.id === id ? { ...r, computedLikelihood, status } : r)),
+        live: { ...state.live, [id]: { seq: (state.live[id]?.seq ?? 0) + 1, delta, statusChanged } },
+      }
+    }
     default:
       return state
   }
 }
 
-export function useRumourFeed(initialRumours: Rumour[]) {
-  const [rumours, dispatch] = useReducer(reducer, initialRumours)
+export function useRumourFeed(initialRumours: Rumour[]): FeedState {
+  const [state, dispatch] = useReducer(feedReducer, { rumours: initialRumours, live: {} })
 
   useEffect(() => {
     dispatch({ type: 'INIT', rumours: initialRumours })
@@ -52,5 +72,5 @@ export function useRumourFeed(initialRumours: Rumour[]) {
     return () => es.close()
   }, [])
 
-  return rumours
+  return state
 }
