@@ -1,6 +1,21 @@
-# Transfer Rumour Hub
+# Smoke & Fire
 
-Real-time football transfer rumour tracker with likelihood scoring, club dashboards, and live updates.
+*Working name, proposed — the repo is still `transfer-rumour-hub`. The name lives in one place: `frontend/src/lib/brand.ts`.*
+
+**No smoke without fire? We check.** Football transfer rumours with a likelihood forecast on every
+claim, the source trail behind it, and a public [scorecard](frontend/src/app/scorecard/page.tsx) of
+how accurate those forecasts have been against real outcomes.
+
+Most rumour trackers grade sources ("Tier 1", "5 stars") but never show whether their grades were
+right. This one publishes its misses:
+
+- **Scored claims** — every rumour gets a calibrated completion probability with uncertainty, not a vibe.
+- **Provenance** — who said it first, who copied it, and what evidence supports or contradicts it.
+- **Scorecard** — Brier score and calibration chart, with synthetic or under-sampled results labelled as such.
+- **Denials are always free** — official denials and contradicting evidence are never paywalled
+  (see [docs/monetisation-proposal.md](docs/monetisation-proposal.md)).
+
+Roadmap: [docs/roadmap.md](docs/roadmap.md).
 
 ## Stack
 

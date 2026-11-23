@@ -19,7 +19,7 @@ const config: Config = {
       },
       fontFamily: {
         sans: ['Inter', 'ui-sans-serif', 'system-ui'],
-        mono: ['JetBrains Mono', 'ui-monospace'],
+        mono: ['JetBrains Mono', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'Consolas', 'monospace'],
       },
     },
   },

@@ -122,7 +122,7 @@ export default function ModelCalibrationChart({ definition, isLoading = false, e
         <div className="mt-4 h-[220px] animate-pulse rounded-lg bg-slate-800/60" />
       ) : (
         <ResponsiveContainer width="100%" height={220} className="mt-4">
-          <ComposedChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: -20 }}>
+          <ComposedChart data={data} margin={{ top: 8, right: 8, bottom: 16, left: -20 }}>
             <XAxis
               dataKey="meanPredictedPct"
               type="number"
