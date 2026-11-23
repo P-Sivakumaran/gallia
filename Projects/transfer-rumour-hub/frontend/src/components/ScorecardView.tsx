@@ -89,8 +89,9 @@ export default function ScorecardView({ health, error = null }: Props) {
         <h1 className="text-3xl font-bold">How often are we right?</h1>
         <p className="text-slate-400">
           Every rumour here gets a likelihood. This page checks those likelihoods against what actually
-          happened. If we say 70%, roughly 7 in 10 of those transfers should go through. When they don&apos;t,
-          you&apos;ll see it here — we publish the misses, not just the hits.
+          happens as transfers resolve. If we say 70%, roughly 7 in 10 of those transfers should go through.
+          Until enough real outcomes are in, we say so plainly — the numbers below show exactly where things
+          stand, misses included.
         </p>
       </header>
 

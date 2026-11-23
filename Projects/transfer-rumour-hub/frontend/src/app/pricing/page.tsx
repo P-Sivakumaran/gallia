@@ -34,7 +34,7 @@ const TIERS = [
       'Documented, rate-limited API access',
       'Provenance-root and evidence metadata',
       'Historical resolved-claim datasets',
-      'Model-health and calibration metrics',
+      'Stable programmatic access to model-health history (the public scorecard stays free)',
       'Explicit data-license and attribution terms',
     ],
   },

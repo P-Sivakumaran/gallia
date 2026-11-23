@@ -21,9 +21,12 @@ public repo, and blocks normal clones, CI paths and deployment.
 2. Clone fresh to `~/Projects/<name>`; copy `.env` files across; check `.gitignore` covers them.
 3. Bring the untracked `packages/design-kit` (135 MB on disk, mostly build output) in deliberately:
    commit `src/`, config and `.design-sync/` notes, gitignore `dist/`, `ds-bundle/_*` and caches.
-4. Retire `~/.git` after confirming nothing else in `~` is tracked (230 files, all under the app path).
-5. Update the Claude Code `autoMode` trust scope to the new path.
-6. Optionally rename the GitHub repo to the chosen name (GitHub redirects old URLs).
+4. Push the local-only `ml-scoring-service` branch (commit `b91890a`, an early ml-service scaffold,
+   likely superseded by `ml-service/` on main) as an archive branch — it exists nowhere else.
+5. Retire `~/.git` after confirming nothing else in `~` is tracked (230 files, all under the app path)
+   and `git stash list` is empty (it was on 2026-11-23).
+6. Update the Claude Code `autoMode` trust scope to the new path.
+7. Optionally rename the GitHub repo to the chosen name (GitHub redirects old URLs).
 
 ## Milestone 1 — Identity and the scorecard (this PR)
 
