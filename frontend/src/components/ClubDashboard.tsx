@@ -5,18 +5,11 @@ import type { ClubDetail } from '@/types'
 import RumourCard from './RumourCard'
 import SectionKicker from './SectionKicker'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts'
-import { axisProps, tooltipStyle, chartColors } from '@/lib/chartTheme'
+import { axisProps, tooltipStyle, chartColors, chartHeight } from '@/lib/chartTheme'
+import { position as POSITION_COLORS } from '@/lib/tokens'
 
 interface Props {
   club: ClubDetail
-}
-
-const POSITION_COLORS: Record<string, string> = {
-  GK: '#6366f1', CB: '#8b5cf6', LB: '#a78bfa', RB: '#c4b5fd',
-  CDM: '#3b82f6', CM: '#60a5fa', CAM: '#93c5fd',
-  LM: '#22d3ee', RM: '#67e8f9',
-  LW: '#22c55e', RW: '#4ade80',
-  ST: '#f97316', CF: '#fb923c',
 }
 
 export default function ClubDashboard({ club }: Props) {
@@ -45,9 +38,9 @@ export default function ClubDashboard({ club }: Props) {
           { label: 'Squad Size', value: club.players.length },
           { label: 'Expected Spend', value: `€${club.totalExpectedSpend}M` },
         ].map(({ label, value }) => (
-          <div key={label} className="rounded-xl border border-slate-700/60 bg-slate-800/40 p-4">
-            <p className="text-xs font-medium uppercase tracking-widest text-slate-500">{label}</p>
-            <p className="mt-1 text-2xl font-bold text-white">{value}</p>
+          <div key={label} className="rounded-xl border border-line/60 bg-surface-raised/40 p-4">
+            <p className="text-xs font-medium uppercase tracking-widest text-ink-muted">{label}</p>
+            <p className="mt-1 text-2xl font-bold text-ink-primary">{value}</p>
           </div>
         ))}
       </div>
@@ -55,10 +48,10 @@ export default function ClubDashboard({ club }: Props) {
       {/* Spend by position chart */}
       {mounted && chartData.length > 0 && (
         <div>
-          <SectionKicker as="h3" className="mb-3">
+          <SectionKicker as="h3" size="lg" className="mb-3">
             Expected spend by position (€M)
           </SectionKicker>
-          <ResponsiveContainer width="100%" height={140}>
+          <ResponsiveContainer width="100%" height={chartHeight.club}>
             <BarChart data={chartData} margin={{ top: 0, right: 0, bottom: 0, left: -20 }}>
               <XAxis dataKey="position" {...axisProps} />
               <YAxis {...axisProps} />
@@ -79,7 +72,7 @@ export default function ClubDashboard({ club }: Props) {
 
       {/* Incoming rumours */}
       <div>
-        <SectionKicker as="h3" className="mb-3">
+        <SectionKicker as="h3" size="lg" className="mb-3">
           Incoming ({club.activeIn.length})
         </SectionKicker>
         <div className="space-y-2">
@@ -87,14 +80,14 @@ export default function ClubDashboard({ club }: Props) {
             <RumourCard key={r.id} rumour={r} compact />
           ))}
           {club.activeIn.length === 0 && (
-            <p className="text-sm text-slate-500 italic">No active incoming rumours.</p>
+            <p className="text-sm text-ink-muted italic">No active incoming rumours.</p>
           )}
         </div>
       </div>
 
       {/* Outgoing rumours */}
       <div>
-        <SectionKicker as="h3" className="mb-3">
+        <SectionKicker as="h3" size="lg" className="mb-3">
           Outgoing ({club.activeOut.length})
         </SectionKicker>
         <div className="space-y-2">
@@ -102,7 +95,7 @@ export default function ClubDashboard({ club }: Props) {
             <RumourCard key={r.id} rumour={r} compact />
           ))}
           {club.activeOut.length === 0 && (
-            <p className="text-sm text-slate-500 italic">No active outgoing rumours.</p>
+            <p className="text-sm text-ink-muted italic">No active outgoing rumours.</p>
           )}
         </div>
       </div>

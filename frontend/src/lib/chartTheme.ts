@@ -1,22 +1,29 @@
 /**
- * Unified chart theme tokens and Recharts/Canvas configuration.
- * Single source of truth for SVG/Canvas data visualization colors and typography.
+ * Recharts and Sigma configuration built from the design tokens.
+ * Colours live in ./tokens; this file only says which token each chart part uses.
  */
+import { chartHeight, ink, line, networkNode, status, surface } from './tokens'
+
+export { chartHeight }
 
 export const chartColors = {
-  axis: '#64748b',
-  tooltipBg: '#0f172a',
-  tooltipBorder: '#334155',
-  tooltipLabel: '#94a3b8',
-  tooltipItem: '#22c55e',
-  grid: '#475569',
-  track: '#1e293b',
-  success: '#22c55e',
-  danger: '#ef4444',
-  hot: '#f97316',
-  pending: '#94a3b8',
-  clubNode: '#60a5fa',
-  playerNode: '#8b5cf6',
+  axis: ink.muted,
+  tooltipBg: surface.panel,
+  tooltipBorder: line.DEFAULT,
+  tooltipLabel: ink.secondary,
+  tooltipItem: status.completed.DEFAULT,
+  /** Graph node labels drawn on the Sigma canvas */
+  canvasLabel: ink.secondary,
+  /** Chart surface behind marks; marker outlines use it to cut them out */
+  plotBg: surface.panel,
+  grid: line.strong,
+  track: surface.raised,
+  success: status.completed.DEFAULT,
+  danger: status.failed.DEFAULT,
+  hot: status.hot.DEFAULT,
+  pending: status.pending.DEFAULT,
+  playerNode: networkNode.player,
+  clubNode: networkNode.club,
 } as const
 
 export const axisTick = {

@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import {
   ComposedChart, Line, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceDot,
 } from 'recharts'
-import { axisProps, tooltipStyle, chartColors } from '@/lib/chartTheme'
+import { axisProps, tooltipStyle, chartColors, chartHeight } from '@/lib/chartTheme'
 import type { ClaimDetail, ForecastHistoryPoint, EntitlementDenial } from '@/types'
 import { CheckCircleIcon, XCircleIcon } from './icons'
 import UpgradePrompt from './UpgradePrompt'
@@ -42,8 +42,8 @@ export default function ForecastHistoryChart({
 
   if (isLoading) {
     return (
-      <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-5" data-testid="history-loading">
-        <div className="h-44 animate-pulse rounded-lg bg-slate-800/60" />
+      <div className="rounded-xl border border-line-subtle bg-surface-panel/40 p-5" data-testid="history-loading">
+        <div className="h-chart-history animate-pulse rounded-lg bg-surface-raised/60" />
       </div>
     )
   }
@@ -63,8 +63,8 @@ export default function ForecastHistoryChart({
 
   if (error) {
     return (
-      <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-5" data-testid="history-error">
-        <p className="text-sm text-slate-500">Couldn&apos;t load forecast history: {error}</p>
+      <div className="rounded-xl border border-line-subtle bg-surface-panel/40 p-5" data-testid="history-error">
+        <p className="text-sm text-ink-muted">Couldn&apos;t load forecast history: {error}</p>
       </div>
     )
   }
@@ -73,9 +73,9 @@ export default function ForecastHistoryChart({
 
   if (!history || precise.length === 0) {
     return (
-      <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-5" data-testid="history-empty">
-        <p className="text-xs font-semibold uppercase tracking-widest text-slate-500">Forecast history</p>
-        <p className="mt-2 text-sm text-slate-500">
+      <div className="rounded-xl border border-line-subtle bg-surface-panel/40 p-5" data-testid="history-empty">
+        <p className="text-xs font-semibold uppercase tracking-widest text-ink-muted">Forecast history</p>
+        <p className="mt-2 text-sm text-ink-muted">
           This claim doesn&apos;t have any historical forecasts yet — a calibrated probability hasn&apos;t been
           computed for it.
         </p>
@@ -99,13 +99,13 @@ export default function ForecastHistoryChart({
   const denialRow = denialTs != null ? nearestRow(data, denialTs) : null
 
   return (
-    <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-5" data-testid="forecast-history-chart">
+    <div className="rounded-xl border border-line-subtle bg-surface-panel/40 p-5" data-testid="forecast-history-chart">
       <SectionKicker>Forecast history</SectionKicker>
 
       {!mounted ? (
-        <div className="h-44 animate-pulse rounded-lg bg-slate-800/60" />
+        <div className="h-chart-history animate-pulse rounded-lg bg-surface-raised/60" />
       ) : (
-        <ResponsiveContainer width="100%" height={200}>
+        <ResponsiveContainer width="100%" height={chartHeight.history}>
           <ComposedChart data={data} margin={{ top: 12, right: 8, bottom: 0, left: -20 }}>
             <XAxis dataKey="date" {...axisProps} />
             <YAxis domain={[0, 100]} {...axisProps} />
@@ -129,7 +129,7 @@ export default function ForecastHistoryChart({
                 type="monotone"
                 dataKey="low"
                 stroke="none"
-                fill={chartColors.tooltipBg}
+                fill={chartColors.plotBg}
                 fillOpacity={1}
                 isAnimationActive={false}
               />
@@ -141,7 +141,7 @@ export default function ForecastHistoryChart({
                 y={confirmationRow.probability ?? 0}
                 r={6}
                 fill={chartColors.success}
-                stroke={chartColors.tooltipBg}
+                stroke={chartColors.plotBg}
                 strokeWidth={2}
               />
             )}
@@ -151,7 +151,7 @@ export default function ForecastHistoryChart({
                 y={denialRow.probability ?? 0}
                 r={6}
                 fill={chartColors.danger}
-                stroke={chartColors.tooltipBg}
+                stroke={chartColors.plotBg}
                 strokeWidth={2}
               />
             )}
@@ -160,7 +160,7 @@ export default function ForecastHistoryChart({
       )}
 
       {(confirmationRow || denialRow) && (
-        <div className="mt-2 flex flex-wrap gap-4 text-xs text-slate-500">
+        <div className="mt-2 flex flex-wrap gap-4 text-xs text-ink-muted">
           {confirmationRow && (
             <span className="flex items-center gap-1.5">
               <CheckCircleIcon className="h-3.5 w-3.5 text-pitch-500" /> Official confirmation
@@ -168,12 +168,12 @@ export default function ForecastHistoryChart({
           )}
           {denialRow && (
             <span className="flex items-center gap-1.5">
-              <XCircleIcon className="h-3.5 w-3.5 text-red-400" /> Official denial
+              <XCircleIcon className="h-3.5 w-3.5 text-failed-fg" /> Official denial
             </span>
           )}
         </div>
       )}
-      {hasBand && <p className="mt-1 text-label text-slate-600">Shaded band = uncertainty range</p>}
+      {hasBand && <p className="mt-1 text-label text-ink-faint">Shaded band = uncertainty range</p>}
     </div>
   )
 }

@@ -37,7 +37,7 @@ export default function FilterBar() {
           'rounded-full border px-3 py-1 text-xs font-medium transition-colors',
           active
             ? 'border-pitch-500 bg-pitch-500/20 text-pitch-500'
-            : 'border-slate-700 bg-transparent text-slate-400 hover:border-slate-500 hover:text-slate-200',
+            : 'border-line bg-transparent text-ink-secondary hover:border-line-emphasis hover:text-ink-body',
         )}
       >
         {label}

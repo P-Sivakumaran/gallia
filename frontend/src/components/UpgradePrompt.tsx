@@ -34,25 +34,25 @@ export default function UpgradePrompt({ description, requiredTier, featureKey, c
   return (
     <div
       className={clsx(
-        'rounded-xl border border-slate-700/60 bg-slate-800/40',
+        'rounded-xl border border-line/60 bg-surface-raised/40',
         compact ? 'flex flex-wrap items-center justify-between gap-3 px-4 py-2.5' : 'space-y-2 p-4',
       )}
       data-testid="upgrade-prompt"
     >
-      <p className="text-sm text-slate-400">{description}</p>
+      <p className="text-sm text-ink-secondary">{description}</p>
       <div className="flex items-center gap-3">
-        <span className="rounded-full border border-slate-700 px-2.5 py-0.5 text-label font-semibold uppercase tracking-wide text-slate-500">
+        <span className="rounded-full border border-line px-2.5 py-0.5 text-label font-semibold uppercase tracking-wide text-ink-muted">
           {TIER_LABEL[requiredTier]}
         </span>
         <Link
           href="/pricing"
           onClick={onClick}
-          className="rounded-lg bg-pitch-500 px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-pitch-600"
+          className="rounded-lg bg-pitch-500 px-3 py-1.5 text-xs font-semibold text-ink-primary transition-colors hover:bg-pitch-600"
         >
           See what&apos;s included →
         </Link>
       </div>
-      <p className="text-label text-slate-600">
+      <p className="text-label text-ink-faint">
         Forecasts are estimates, not confirmations — every tier sees the same calibrated probability. Upgrading
         changes access and speed, not the number itself.
       </p>

@@ -8,6 +8,7 @@ import {
 } from '@/lib/provenanceGraph'
 import { clsx } from 'clsx'
 import { api } from '@/lib/api'
+import { line as lineTokens, status as statusTokens } from '@/lib/tokens'
 
 interface Props {
   claim: ClaimDetail | null
@@ -17,10 +18,10 @@ interface Props {
 
 const NODE_COLORS: Record<PositionedNode['type'], string> = {
   claim: 'border-pitch-500 bg-pitch-500/10',
-  player: 'border-blue-500 bg-blue-500/10',
-  club: 'border-purple-500 bg-purple-500/10',
-  source: 'border-amber-500 bg-amber-500/10',
-  evidence: 'border-slate-500 bg-slate-800/60',
+  player: 'border-entity-player bg-entity-player/10',
+  club: 'border-entity-club bg-entity-club/10',
+  source: 'border-entity-source bg-entity-source/10',
+  evidence: 'border-line-emphasis bg-surface-raised/60',
 }
 
 const EDGE_LABELS: Record<GraphEdgeType, string> = {
@@ -37,16 +38,16 @@ function ZoomControls({ zoom, onZoom, onReset }: { zoom: number; onZoom: (delta:
       <button
         type="button"
         onClick={() => onZoom(-0.2)}
-        className="rounded border border-slate-700 px-2 py-1 text-xs text-slate-400 hover:border-slate-500 hover:text-slate-200"
+        className="rounded border border-line px-2 py-1 text-xs text-ink-secondary hover:border-line-emphasis hover:text-ink-body"
         aria-label="Zoom out"
       >
         −
       </button>
-      <span className="w-10 text-center text-xs text-slate-500 tabular-nums">{Math.round(zoom * 100)}%</span>
+      <span className="w-10 text-center text-xs text-ink-muted tabular-nums">{Math.round(zoom * 100)}%</span>
       <button
         type="button"
         onClick={() => onZoom(0.2)}
-        className="rounded border border-slate-700 px-2 py-1 text-xs text-slate-400 hover:border-slate-500 hover:text-slate-200"
+        className="rounded border border-line px-2 py-1 text-xs text-ink-secondary hover:border-line-emphasis hover:text-ink-body"
         aria-label="Zoom in"
       >
         +
@@ -54,7 +55,7 @@ function ZoomControls({ zoom, onZoom, onReset }: { zoom: number; onZoom: (delta:
       <button
         type="button"
         onClick={onReset}
-        className="rounded border border-slate-700 px-2 py-1 text-xs text-slate-400 hover:border-slate-500 hover:text-slate-200"
+        className="rounded border border-line px-2 py-1 text-xs text-ink-secondary hover:border-line-emphasis hover:text-ink-body"
         aria-label="Reset zoom"
       >
         Reset
@@ -71,9 +72,9 @@ function GraphAsList({ claim }: { claim: ClaimDetail }) {
         const edgesOut = graph.edges.filter((e) => e.source === node.id)
         return (
           <li key={node.id} className={clsx('rounded-lg border p-2.5', NODE_COLORS[node.type])}>
-            <p className="text-xs font-semibold text-slate-200">{accessibleNodeLabel(node)}</p>
+            <p className="text-xs font-semibold text-ink-body">{accessibleNodeLabel(node)}</p>
             {edgesOut.length > 0 && (
-              <ul className="mt-1 space-y-0.5 pl-3 text-label text-slate-500">
+              <ul className="mt-1 space-y-0.5 pl-3 text-label text-ink-muted">
                 {edgesOut.map((e) => {
                   const target = graph.nodes.find((n) => n.id === e.target)
                   return (
@@ -117,11 +118,11 @@ function SvgGraph({ claim }: { claim: ClaimDetail }) {
   return (
     <div>
       <div className="mb-2 flex items-center justify-between">
-        <p className="text-label text-slate-600">Arrow keys move between connected nodes · Enter selects</p>
+        <p className="text-label text-ink-faint">Arrow keys move between connected nodes · Enter selects</p>
         <ZoomControls zoom={zoom} onZoom={(d) => setZoom((z) => Math.min(2, Math.max(0.5, z + d)))} onReset={() => setZoom(1)} />
       </div>
       <div
-        className="relative overflow-hidden rounded-lg border border-slate-800 bg-slate-950"
+        className="relative overflow-hidden rounded-lg border border-line-subtle bg-surface-base"
         style={{ height: 340 }}
         data-testid="provenance-svg-view"
       >
@@ -140,7 +141,7 @@ function SvgGraph({ claim }: { claim: ClaimDetail }) {
                   key={e.id}
                   x1={center + s.x} y1={center + s.y}
                   x2={center + t.x} y2={center + t.y}
-                  stroke={highlighted ? '#22c55e' : '#334155'}
+                  stroke={highlighted ? statusTokens.completed.DEFAULT : lineTokens.DEFAULT}
                   strokeWidth={highlighted ? 2 : 1}
                 />
               )
@@ -164,7 +165,7 @@ function SvgGraph({ claim }: { claim: ClaimDetail }) {
                 if (e.key === 'Escape') { setSelectedId(null) }
               }}
               className={clsx(
-                'absolute -translate-x-1/2 -translate-y-1/2 rounded-full border px-2 py-1 text-[10px] font-medium text-slate-200 shadow',
+                'absolute -translate-x-1/2 -translate-y-1/2 rounded-full border px-2 py-1 text-[10px] font-medium text-ink-body shadow',
                 'max-w-[110px] truncate focus:outline-none focus:ring-2 focus:ring-pitch-500',
                 NODE_COLORS[node.type],
                 selectedId === node.id && 'ring-2 ring-pitch-500',
@@ -178,9 +179,9 @@ function SvgGraph({ claim }: { claim: ClaimDetail }) {
       </div>
 
       {selectedNode && (
-        <div className="mt-2 rounded-lg border border-slate-800 bg-slate-900/60 p-3 text-xs" role="status">
-          <p className="font-semibold text-slate-200">{accessibleNodeLabel(selectedNode)}</p>
-          <p className="mt-1 text-slate-500">{selectedNeighbors.length} connected node{selectedNeighbors.length !== 1 ? 's' : ''}</p>
+        <div className="mt-2 rounded-lg border border-line-subtle bg-surface-panel/60 p-3 text-xs" role="status">
+          <p className="font-semibold text-ink-body">{accessibleNodeLabel(selectedNode)}</p>
+          <p className="mt-1 text-ink-muted">{selectedNeighbors.length} connected node{selectedNeighbors.length !== 1 ? 's' : ''}</p>
         </div>
       )}
     </div>
@@ -193,31 +194,31 @@ export default function ProvenanceGraph({ claim, isLoading = false, error = null
 
   if (isLoading) {
     return (
-      <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-5" data-testid="provenance-loading">
-        <div className="h-6 w-56 animate-pulse rounded bg-slate-800" />
+      <div className="rounded-xl border border-line-subtle bg-surface-panel/40 p-5" data-testid="provenance-loading">
+        <div className="h-6 w-56 animate-pulse rounded bg-surface-raised" />
       </div>
     )
   }
 
   if (error) {
     return (
-      <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-5" data-testid="provenance-error">
-        <p className="text-sm text-slate-500">Couldn&apos;t load the provenance graph: {error}</p>
+      <div className="rounded-xl border border-line-subtle bg-surface-panel/40 p-5" data-testid="provenance-error">
+        <p className="text-sm text-ink-muted">Couldn&apos;t load the provenance graph: {error}</p>
       </div>
     )
   }
 
   if (!claim) {
     return (
-      <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-5" data-testid="provenance-empty">
-        <p className="text-sm text-slate-500">No claim data available.</p>
+      <div className="rounded-xl border border-line-subtle bg-surface-panel/40 p-5" data-testid="provenance-empty">
+        <p className="text-sm text-ink-muted">No claim data available.</p>
       </div>
     )
   }
 
   if (!expanded) {
     return (
-      <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-5" data-testid="provenance-collapsed">
+      <div className="rounded-xl border border-line-subtle bg-surface-panel/40 p-5" data-testid="provenance-collapsed">
         <button
           type="button"
           onClick={() => {
@@ -230,27 +231,27 @@ export default function ProvenanceGraph({ claim, isLoading = false, error = null
           className="flex w-full items-center justify-between text-left"
         >
           <span>
-            <span className="block text-sm font-semibold text-slate-200">Investigate provenance graph</span>
-            <span className="mt-0.5 block text-xs text-slate-500">
+            <span className="block text-sm font-semibold text-ink-body">Investigate provenance graph</span>
+            <span className="mt-0.5 block text-xs text-ink-muted">
               See how sources, evidence, and this claim connect — for deeper investigation, not casual reading.
             </span>
           </span>
-          <span aria-hidden className="ml-3 text-slate-500">▸</span>
+          <span aria-hidden className="ml-3 text-ink-muted">▸</span>
         </button>
       </div>
     )
   }
 
   return (
-    <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-5" data-testid="provenance-expanded">
+    <div className="rounded-xl border border-line-subtle bg-surface-panel/40 p-5" data-testid="provenance-expanded">
       <div className="mb-3 flex items-center justify-between">
-        <button type="button" onClick={() => setExpanded(false)} className="text-xs font-semibold uppercase tracking-widest text-slate-500 hover:text-slate-300">
+        <button type="button" onClick={() => setExpanded(false)} className="text-xs font-semibold uppercase tracking-widest text-ink-muted hover:text-ink-soft">
           ▾ Provenance graph
         </button>
         <button
           type="button"
           onClick={() => setForceListView((v) => !v)}
-          className="rounded-full border border-slate-700 px-3 py-1 text-xs text-slate-400 hover:border-slate-500 hover:text-slate-200"
+          className="rounded-full border border-line px-3 py-1 text-xs text-ink-secondary hover:border-line-emphasis hover:text-ink-body"
         >
           {forceListView ? 'View as graph' : 'View as list'}
         </button>

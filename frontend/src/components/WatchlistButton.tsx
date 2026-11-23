@@ -16,12 +16,13 @@ export default function WatchlistButton({ playerId, initialWatched, authenticate
   const [watched, setWatched] = useState(initialWatched)
   const [pending, setPending] = useState(false)
   const [limitReached, setLimitReached] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   if (!authenticated) {
     return (
       <Link
         href="/login"
-        className="rounded-lg border border-slate-700 px-3 py-1.5 text-sm text-slate-400 transition-colors hover:border-slate-500 hover:text-white"
+        className="rounded-lg border border-line px-3 py-1.5 text-sm text-ink-secondary transition-colors hover:border-line-emphasis hover:text-ink-primary"
       >
         Log in to watch
       </Link>
@@ -30,9 +31,11 @@ export default function WatchlistButton({ playerId, initialWatched, authenticate
 
   async function toggle(): Promise<void> {
     setPending(true)
+    setError(null)
     try {
       if (watched) {
-        await fetch(`${BASE}/watchlist/${playerId}`, { method: 'DELETE', credentials: 'include' })
+        const res = await fetch(`${BASE}/watchlist/${playerId}`, { method: 'DELETE', credentials: 'include' })
+        if (!res.ok) throw new Error(`DELETE /watchlist ${res.status}`)
         setWatched(false)
         setLimitReached(false)
         return
@@ -53,9 +56,13 @@ export default function WatchlistButton({ playerId, initialWatched, authenticate
         setLimitReached(true)
         return
       }
+      if (!res.ok) throw new Error(`POST /watchlist ${res.status}`)
 
       setWatched(true)
       setLimitReached(false)
+    } catch {
+      // The button keeps showing the last state the server confirmed.
+      setError(watched ? 'Couldn’t remove from your watchlist. Try again.' : 'Couldn’t add to your watchlist. Try again.')
     } finally {
       setPending(false)
     }
@@ -69,11 +76,16 @@ export default function WatchlistButton({ playerId, initialWatched, authenticate
         className={`rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors disabled:opacity-50 ${
           watched
             ? 'border-pitch-500 bg-pitch-500/10 text-pitch-500'
-            : 'border-slate-700 text-slate-400 hover:border-slate-500 hover:text-white'
+            : 'border-line text-ink-secondary hover:border-line-emphasis hover:text-ink-primary'
         }`}
       >
         {watched ? '★ Watching' : '☆ Watch'}
       </button>
+      {error && (
+        <p role="alert" className="text-xs text-failed-fg">
+          {error}
+        </p>
+      )}
       {limitReached && (
         <UpgradePrompt
           description="Free watchlists hold up to 5 players. Unlimited watchlists are part of Supporter/Pro."

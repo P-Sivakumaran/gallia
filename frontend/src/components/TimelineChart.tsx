@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts'
 import type { RumourHistoryPoint } from '@/types'
-import { axisProps, tooltipStyle, chartColors } from '@/lib/chartTheme'
+import { axisProps, tooltipStyle, chartColors, chartHeight } from '@/lib/chartTheme'
 
 interface Props {
   history: RumourHistoryPoint[]
@@ -17,10 +17,10 @@ export default function TimelineChart({ history }: Props) {
   const [mounted, setMounted] = useState(false)
   useEffect(() => { setMounted(true) }, [])
 
-  if (!mounted) return <div className="h-44 animate-pulse rounded-lg bg-slate-800/60" />
+  if (!mounted) return <div className="h-chart-timeline animate-pulse rounded-lg bg-surface-raised/60" />
 
   if (history.length < 2) {
-    return <p className="text-sm text-slate-500 italic">Not enough data for timeline.</p>
+    return <p className="text-sm text-ink-muted italic">Not enough data for timeline.</p>
   }
 
   const data = history.map((h) => ({
@@ -29,7 +29,7 @@ export default function TimelineChart({ history }: Props) {
   }))
 
   return (
-    <ResponsiveContainer width="100%" height={180}>
+    <ResponsiveContainer width="100%" height={chartHeight.timeline}>
       <LineChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: -20 }}>
         <XAxis
           dataKey="date"

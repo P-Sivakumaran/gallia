@@ -26,12 +26,12 @@ function formatDate(iso: string): string {
 
 function directionIcon(item: EvidenceItemData) {
   if (item.evidenceDirection === 'CONFIRMS') return <CheckCircleIcon className="h-4 w-4 text-pitch-500" />
-  if (item.evidenceDirection === 'DENIES') return <XCircleIcon className="h-4 w-4 text-red-400" />
-  if (item.evidenceDirection === 'CONTEXTUAL') return <HelpCircleIcon className="h-4 w-4 text-slate-500" />
+  if (item.evidenceDirection === 'DENIES') return <XCircleIcon className="h-4 w-4 text-failed-fg" />
+  if (item.evidenceDirection === 'CONTEXTUAL') return <HelpCircleIcon className="h-4 w-4 text-ink-muted" />
   return isRoot(item) ? (
-    <OriginalIcon className="h-4 w-4 text-amber-400" />
+    <OriginalIcon className="h-4 w-4 text-caution-fg" />
   ) : (
-    <CopyIcon className="h-4 w-4 text-slate-500" />
+    <CopyIcon className="h-4 w-4 text-ink-muted" />
   )
 }
 
@@ -44,7 +44,7 @@ function EvidenceRow({ item, claim }: { item: EvidenceItemData; claim: ClaimDeta
       <span
         className={clsx(
           'absolute left-0 top-1.5 h-2.5 w-2.5 rounded-full border-2',
-          primary ? 'border-amber-400 bg-amber-400/30' : 'border-slate-700 bg-slate-900',
+          primary ? 'border-caution-fg bg-caution-fg/30' : 'border-line bg-surface-panel',
         )}
         aria-hidden
       />
@@ -52,8 +52,8 @@ function EvidenceRow({ item, claim }: { item: EvidenceItemData; claim: ClaimDeta
         className={clsx(
           'flex items-start gap-2.5 rounded-lg border p-3',
           primary
-            ? 'border-slate-700 bg-slate-800/50'
-            : 'border-slate-800/60 bg-slate-900/30 ml-2',
+            ? 'border-line bg-surface-raised/50'
+            : 'border-line-subtle/60 bg-surface-panel/30 ml-2',
         )}
       >
         <span className="mt-0.5 flex-shrink-0">{directionIcon(item)}</span>
@@ -65,27 +65,27 @@ function EvidenceRow({ item, claim }: { item: EvidenceItemData; claim: ClaimDeta
               rel="noopener noreferrer"
               className={clsx(
                 'hover:underline',
-                primary ? 'text-sm font-semibold text-white' : 'text-xs font-medium text-slate-400',
+                primary ? 'text-sm font-semibold text-ink-primary' : 'text-xs font-medium text-ink-secondary',
               )}
             >
               {item.title}
             </a>
             {primary && (
-              <span className="rounded-full border border-amber-500/40 bg-amber-500/10 px-1.5 py-0.5 text-micro font-medium uppercase tracking-wide text-amber-400">
+              <span className="rounded-full border border-caution/40 bg-caution/10 px-1.5 py-0.5 text-micro font-medium uppercase tracking-wide text-caution-fg">
                 Original
               </span>
             )}
             {!primary && (
-              <span className="rounded-full border border-slate-700 bg-slate-800/60 px-1.5 py-0.5 text-micro font-medium uppercase tracking-wide text-slate-500">
+              <span className="rounded-full border border-line bg-surface-raised/60 px-1.5 py-0.5 text-micro font-medium uppercase tracking-wide text-ink-muted">
                 Copy
               </span>
             )}
           </div>
-          <p className={clsx('mt-0.5', primary ? 'text-xs text-slate-400' : 'text-label text-slate-600')}>
+          <p className={clsx('mt-0.5', primary ? 'text-xs text-ink-secondary' : 'text-label text-ink-faint')}>
             {item.sourceName ?? 'Unknown source'} · {formatDate(item.publishedAt)}
           </p>
           {root && (
-            <a href={`#evidence-${root.id}`} className="mt-1 inline-block text-label text-slate-600 hover:text-slate-400 hover:underline">
+            <a href={`#evidence-${root.id}`} className="mt-1 inline-block text-label text-ink-faint hover:text-ink-secondary hover:underline">
               Same story as: {root.title}
             </a>
           )}
@@ -119,10 +119,10 @@ export default function EvidenceTimeline({ claim, isLoading = false, error = nul
 
   if (isLoading) {
     return (
-      <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-5" data-testid="timeline-loading">
+      <div className="rounded-xl border border-line-subtle bg-surface-panel/40 p-5" data-testid="timeline-loading">
         <div className="animate-pulse space-y-2">
           {[0, 1, 2].map((i) => (
-            <div key={i} className="h-14 rounded-lg bg-slate-800/60" />
+            <div key={i} className="h-14 rounded-lg bg-surface-raised/60" />
           ))}
         </div>
       </div>
@@ -131,22 +131,22 @@ export default function EvidenceTimeline({ claim, isLoading = false, error = nul
 
   if (error) {
     return (
-      <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-5" data-testid="timeline-error">
-        <p className="text-sm text-slate-500">Couldn&apos;t load the evidence timeline: {error}</p>
+      <div className="rounded-xl border border-line-subtle bg-surface-panel/40 p-5" data-testid="timeline-error">
+        <p className="text-sm text-ink-muted">Couldn&apos;t load the evidence timeline: {error}</p>
       </div>
     )
   }
 
   if (!claim || items.length === 0) {
     return (
-      <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-5" data-testid="timeline-empty">
-        <p className="text-sm text-slate-500">No evidence captured for this claim yet.</p>
+      <div className="rounded-xl border border-line-subtle bg-surface-panel/40 p-5" data-testid="timeline-empty">
+        <p className="text-sm text-ink-muted">No evidence captured for this claim yet.</p>
       </div>
     )
   }
 
   return (
-    <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-5" data-testid="evidence-timeline">
+    <div className="rounded-xl border border-line-subtle bg-surface-panel/40 p-5" data-testid="evidence-timeline">
       <SectionKicker>Evidence timeline</SectionKicker>
 
       <div className="mt-3 flex flex-wrap gap-2" role="group" aria-label="Filter evidence by category">
@@ -162,7 +162,7 @@ export default function EvidenceTimeline({ claim, isLoading = false, error = nul
                 'rounded-full border px-3 py-1 text-xs font-medium transition-colors',
                 active
                   ? 'border-pitch-500 bg-pitch-500/20 text-pitch-500'
-                  : 'border-slate-700 bg-transparent text-slate-400 hover:border-slate-500 hover:text-slate-200',
+                  : 'border-line bg-transparent text-ink-secondary hover:border-line-emphasis hover:text-ink-body',
               )}
             >
               {label}
@@ -172,9 +172,9 @@ export default function EvidenceTimeline({ claim, isLoading = false, error = nul
       </div>
 
       {visibleItems.length === 0 ? (
-        <p className="mt-4 text-sm text-slate-500">No evidence matches the selected filters.</p>
+        <p className="mt-4 text-sm text-ink-muted">No evidence matches the selected filters.</p>
       ) : (
-        <ul className="mt-4 space-y-2.5 border-l border-slate-800 pl-0">
+        <ul className="mt-4 space-y-2.5 border-l border-line-subtle pl-0">
           {visibleItems.map((item) => (
             <EvidenceRow key={item.id} item={item} claim={claim} />
           ))}

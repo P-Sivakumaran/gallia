@@ -8,11 +8,11 @@ import type { AdminRumour, AdminSource, Player, RumourStatus } from '@/types'
 const STATUS_FILTERS: Array<RumourStatus | 'ALL'> = ['ALL', 'PENDING', 'HOT', 'COMPLETED', 'FAILED', 'DENIED']
 
 const STATUS_BADGE: Record<string, string> = {
-  HOT: 'bg-orange-500/20 text-orange-400 border-orange-500/40',
-  PENDING: 'bg-slate-700/40 text-slate-400 border-slate-600/40',
-  COMPLETED: 'bg-green-500/20 text-green-400 border-green-500/40',
-  FAILED: 'bg-red-500/20 text-red-400 border-red-500/40',
-  DENIED: 'bg-gray-700/40 text-gray-400 border-gray-600/40',
+  HOT: 'bg-hot/20 text-hot-fg border-hot/40',
+  PENDING: 'bg-surface-overlay/40 text-ink-secondary border-line-strong/40',
+  COMPLETED: 'bg-completed/20 text-completed-fg border-completed/40',
+  FAILED: 'bg-failed/20 text-failed-fg border-failed/40',
+  DENIED: 'bg-denied-deep/40 text-denied-fg border-denied-line/40',
 }
 
 function StatusBadge({ status }: { status: string }) {
@@ -75,7 +75,7 @@ function RumoursPanel() {
               'rounded-full border px-3 py-1 text-xs font-medium transition-colors',
               filter === s
                 ? 'border-pitch-500 bg-pitch-500/20 text-pitch-500'
-                : 'border-slate-700 bg-transparent text-slate-400 hover:border-slate-500 hover:text-slate-200',
+                : 'border-line bg-transparent text-ink-secondary hover:border-line-emphasis hover:text-ink-body',
             )}
           >
             {s}
@@ -83,36 +83,36 @@ function RumoursPanel() {
         ))}
       </div>
 
-      {error && <p className="text-sm text-red-400">{error}</p>}
-      {loading && <p className="text-sm text-slate-500">Loading…</p>}
+      {error && <p className="text-sm text-failed-fg">{error}</p>}
+      {loading && <p className="text-sm text-ink-muted">Loading…</p>}
       {!loading && rumours.length === 0 && !error && (
-        <p className="text-sm text-slate-500">No rumours match this filter.</p>
+        <p className="text-sm text-ink-muted">No rumours match this filter.</p>
       )}
 
       <div className="space-y-2">
         {rumours.map((r) => (
           <div
             key={r.id}
-            className="flex flex-col gap-3 rounded-xl border border-slate-700/60 bg-slate-800/60 p-3"
+            className="flex flex-col gap-3 rounded-xl border border-line/60 bg-surface-raised/60 p-3"
           >
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="font-semibold text-white">{r.player.name}</span>
+                  <span className="font-semibold text-ink-primary">{r.player.name}</span>
                   <StatusBadge status={r.status} />
                   {r.contradicts !== null && (
-                    <span className="rounded-full border border-amber-500/40 bg-amber-500/20 px-2 py-0.5 text-xs font-semibold text-amber-400">
+                    <span className="rounded-full border border-caution/40 bg-caution/20 px-2 py-0.5 text-xs font-semibold text-caution-fg">
                       contradicts #{r.contradicts}
                     </span>
                   )}
                 </div>
-                <div className="mt-1 flex flex-wrap items-center gap-1.5 text-sm text-slate-400">
+                <div className="mt-1 flex flex-wrap items-center gap-1.5 text-sm text-ink-secondary">
                   <span>{r.fromClub.name}</span>
-                  <span className="text-slate-600">→</span>
+                  <span className="text-ink-faint">→</span>
                   <span>{r.toClub.name}</span>
-                  <span className="text-slate-600">·</span>
+                  <span className="text-ink-faint">·</span>
                   <span className="font-mono">{Math.round(r.computedLikelihood)}%</span>
-                  <span className="text-slate-600">·</span>
+                  <span className="text-ink-faint">·</span>
                   <span>{r.source.name} ({Math.round(r.source.reliabilityScore * 100)}%)</span>
                 </div>
               </div>
@@ -122,7 +122,7 @@ function RumoursPanel() {
                   disabled={pendingId === r.id || r.evidence.length === 0}
                   title={r.evidence.length === 0 ? 'No source evidence found for this rumour — cannot set outcome' : undefined}
                   onClick={() => setOutcome(r.id, 'COMPLETED')}
-                  className="rounded-lg border border-green-500/40 bg-green-500/10 px-3 py-1.5 text-xs font-semibold text-green-400 transition-colors hover:bg-green-500/20 disabled:cursor-not-allowed disabled:opacity-30"
+                  className="rounded-lg border border-completed/40 bg-completed/10 px-3 py-1.5 text-xs font-semibold text-completed-fg transition-colors hover:bg-completed/20 disabled:cursor-not-allowed disabled:opacity-30"
                 >
                   Completed
                 </button>
@@ -130,7 +130,7 @@ function RumoursPanel() {
                   disabled={pendingId === r.id || r.evidence.length === 0}
                   title={r.evidence.length === 0 ? 'No source evidence found for this rumour; cannot set outcome' : undefined}
                   onClick={() => setOutcome(r.id, 'FAILED')}
-                  className="rounded-lg border border-red-500/40 bg-red-500/10 px-3 py-1.5 text-xs font-semibold text-red-400 transition-colors hover:bg-red-500/20 disabled:cursor-not-allowed disabled:opacity-30"
+                  className="rounded-lg border border-failed/40 bg-failed/10 px-3 py-1.5 text-xs font-semibold text-failed-fg transition-colors hover:bg-failed/20 disabled:cursor-not-allowed disabled:opacity-30"
                 >
                   Failed
                 </button>
@@ -138,7 +138,7 @@ function RumoursPanel() {
                   disabled={pendingId === r.id || r.evidence.length === 0}
                   title={r.evidence.length === 0 ? 'No source evidence found for this rumour; cannot set outcome' : undefined}
                   onClick={() => setOutcome(r.id, 'DENIED')}
-                  className="rounded-lg border border-gray-500/40 bg-gray-500/10 px-3 py-1.5 text-xs font-semibold text-gray-400 transition-colors hover:bg-gray-500/20 disabled:cursor-not-allowed disabled:opacity-30"
+                  className="rounded-lg border border-denied/40 bg-denied/10 px-3 py-1.5 text-xs font-semibold text-denied-fg transition-colors hover:bg-denied/20 disabled:cursor-not-allowed disabled:opacity-30"
                 >
                   Denied
                 </button>
@@ -146,14 +146,14 @@ function RumoursPanel() {
             </div>
 
             {/* Evidence: every action above must be traceable to one of these */}
-            <div className="border-t border-slate-700/60 pt-2">
+            <div className="border-t border-line/60 pt-2">
               {r.evidence.length === 0 ? (
-                <p className="text-xs text-slate-500">No source articles linked; outcome cannot be set manually.</p>
+                <p className="text-xs text-ink-muted">No source articles linked; outcome cannot be set manually.</p>
               ) : (
                 <ul className="space-y-1">
                   {r.evidence.map((e, i) => (
                     <li key={i} className="flex items-center gap-1.5 text-xs">
-                      <span className="text-slate-500">{e.sourceName}:</span>
+                      <span className="text-ink-muted">{e.sourceName}:</span>
                       <a
                         href={e.link}
                         target="_blank"
@@ -187,13 +187,13 @@ function SourcesPanel() {
       .finally(() => setLoading(false))
   }, [])
 
-  if (loading) return <p className="text-sm text-slate-500">Loading…</p>
-  if (error) return <p className="text-sm text-red-400">{error}</p>
+  if (loading) return <p className="text-sm text-ink-muted">Loading…</p>
+  if (error) return <p className="text-sm text-failed-fg">{error}</p>
 
   return (
-    <div className="overflow-x-auto rounded-xl border border-slate-700/60">
+    <div className="overflow-x-auto rounded-xl border border-line/60">
       <table className="w-full text-sm">
-        <thead className="bg-slate-800/80 text-left text-xs uppercase tracking-wide text-slate-500">
+        <thead className="bg-surface-raised/80 text-left text-xs uppercase tracking-wide text-ink-muted">
           <tr>
             <th className="px-3 py-2">Source</th>
             <th className="px-3 py-2">Type</th>
@@ -203,15 +203,15 @@ function SourcesPanel() {
             <th className="px-3 py-2">Rumours</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-slate-800">
+        <tbody className="divide-y divide-line-subtle">
           {sources.map((s) => (
-            <tr key={s.id} className="bg-slate-900/40">
-              <td className="px-3 py-2 font-medium text-white">{s.name}</td>
-              <td className="px-3 py-2 text-slate-400">{s.type}</td>
-              <td className="px-3 py-2 font-mono text-slate-300">{Math.round(s.reliabilityScore * 100)}%</td>
-              <td className="px-3 py-2 text-green-400">{s.hitCount}</td>
-              <td className="px-3 py-2 text-red-400">{s.missCount}</td>
-              <td className="px-3 py-2 text-slate-400">{s._count.rumours}</td>
+            <tr key={s.id} className="bg-surface-panel/40">
+              <td className="px-3 py-2 font-medium text-ink-primary">{s.name}</td>
+              <td className="px-3 py-2 text-ink-secondary">{s.type}</td>
+              <td className="px-3 py-2 font-mono text-ink-soft">{Math.round(s.reliabilityScore * 100)}%</td>
+              <td className="px-3 py-2 text-completed-fg">{s.hitCount}</td>
+              <td className="px-3 py-2 text-failed-fg">{s.missCount}</td>
+              <td className="px-3 py-2 text-ink-secondary">{s._count.rumours}</td>
             </tr>
           ))}
         </tbody>
@@ -258,19 +258,19 @@ function EnrichPanel() {
         value={query}
         onChange={(e) => search(e.target.value)}
         placeholder="Search player to re-enrich…"
-        className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white placeholder:text-slate-500 focus:border-pitch-500 focus:outline-none"
+        className="w-full rounded-lg border border-line bg-surface-panel px-3 py-2 text-sm text-ink-primary placeholder:text-ink-muted focus:border-pitch-500 focus:outline-none"
       />
-      {searching && <p className="text-sm text-slate-500">Searching…</p>}
+      {searching && <p className="text-sm text-ink-muted">Searching…</p>}
       {message && <p className="text-sm text-pitch-500">{message}</p>}
       <div className="space-y-2">
         {results.map((p) => (
           <div
             key={p.id}
-            className="flex items-center justify-between rounded-xl border border-slate-700/60 bg-slate-800/60 p-3"
+            className="flex items-center justify-between rounded-xl border border-line/60 bg-surface-raised/60 p-3"
           >
             <div>
-              <p className="font-medium text-white">{p.name}</p>
-              <p className="text-xs text-slate-500">
+              <p className="font-medium text-ink-primary">{p.name}</p>
+              <p className="text-xs text-ink-muted">
                 {p.position} · {p.nationality ?? 'Unknown nationality'}
               </p>
             </div>
@@ -293,18 +293,18 @@ export default function AdminPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-white">Admin</h1>
-        <p className="mt-1 text-sm text-slate-500">Manually resolve rumours, review source reliability, trigger enrichment.</p>
+        <h1 className="text-2xl font-bold text-ink-primary">Admin</h1>
+        <p className="mt-1 text-sm text-ink-muted">Manually resolve rumours, review source reliability, trigger enrichment.</p>
       </div>
 
-      <div className="flex gap-2 border-b border-slate-800">
+      <div className="flex gap-2 border-b border-line-subtle">
         {(['rumours', 'sources', 'enrich'] as const).map((t) => (
           <button
             key={t}
             onClick={() => setTab(t)}
             className={clsx(
               'border-b-2 px-4 py-2 text-sm font-medium capitalize transition-colors',
-              tab === t ? 'border-pitch-500 text-white' : 'border-transparent text-slate-500 hover:text-slate-300',
+              tab === t ? 'border-pitch-500 text-ink-primary' : 'border-transparent text-ink-muted hover:text-ink-soft',
             )}
           >
             {t}

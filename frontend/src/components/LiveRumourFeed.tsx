@@ -20,7 +20,7 @@ export default function LiveRumourFeed({ initialRumours, total, adsEnabled = fal
   return (
     <section>
       <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-sm font-semibold uppercase tracking-widest text-slate-400">
+        <h2 className="text-sm font-semibold uppercase tracking-widest text-ink-secondary">
           {total} rumour{total !== 1 ? 's' : ''}
         </h2>
         <span className="flex items-center gap-1.5 text-xs text-pitch-500">
@@ -38,8 +38,8 @@ export default function LiveRumourFeed({ initialRumours, total, adsEnabled = fal
           </Fragment>
         ))}
         {rumours.length === 0 && (
-          <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-12 text-center">
-            <p className="text-slate-500">No rumours match your filters.</p>
+          <div className="rounded-xl border border-line-subtle bg-surface-panel/40 p-12 text-center">
+            <p className="text-ink-muted">No rumours match your filters.</p>
           </div>
         )}
       </div>

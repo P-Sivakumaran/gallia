@@ -16,20 +16,20 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={inter.variable}>
-      <body className="min-h-screen bg-slate-950 font-sans text-white antialiased">
+      <body className="min-h-screen bg-surface-base font-sans text-ink-primary antialiased">
         <AuthProvider>
-          <nav className="sticky top-0 z-50 border-b border-slate-800/60 bg-slate-950/80 backdrop-blur-sm">
+          <nav className="sticky top-0 z-50 border-b border-line-subtle/60 bg-surface-base/80 backdrop-blur-sm">
             <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-x-6 gap-y-2 px-4 py-3">
               <Link href="/" className="flex items-center gap-2 whitespace-nowrap text-lg font-bold">
                 <span className="inline-block h-3 w-3 shrink-0 rounded-full bg-pitch-500" />
                 {BRAND.name}
               </Link>
-              <div className="order-last flex w-full gap-5 overflow-x-auto whitespace-nowrap text-sm text-slate-400 sm:order-none sm:w-auto">
-                <Link href="/" className="hover:text-white transition-colors">Rumours</Link>
-                <Link href="/network" className="hover:text-white transition-colors">Network</Link>
-                <Link href="/scorecard" className="hover:text-white transition-colors">Scorecard</Link>
-                <Link href="/pricing" className="hover:text-white transition-colors">Pricing</Link>
-                <Link href="/admin" className="hover:text-white transition-colors">Admin</Link>
+              <div className="order-last flex w-full gap-5 overflow-x-auto whitespace-nowrap text-sm text-ink-secondary sm:order-none sm:w-auto">
+                <Link href="/" className="hover:text-ink-primary transition-colors">Rumours</Link>
+                <Link href="/network" className="hover:text-ink-primary transition-colors">Network</Link>
+                <Link href="/scorecard" className="hover:text-ink-primary transition-colors">Scorecard</Link>
+                <Link href="/pricing" className="hover:text-ink-primary transition-colors">Pricing</Link>
+                <Link href="/admin" className="hover:text-ink-primary transition-colors">Admin</Link>
               </div>
               <AuthNav />
             </div>

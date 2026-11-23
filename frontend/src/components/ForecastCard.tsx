@@ -28,7 +28,7 @@ function CardShell({ children, testId }: { children: React.ReactNode; testId: st
   return (
     <div
       data-testid={testId}
-      className="rounded-xl border border-slate-800 bg-slate-900/40 p-5"
+      className="rounded-xl border border-line-subtle bg-surface-panel/40 p-5"
     >
       {children}
     </div>
@@ -40,9 +40,9 @@ export default function ForecastCard({ forecast, isLoading = false, error = null
     return (
       <CardShell testId="forecast-card-loading">
         <div className="animate-pulse space-y-3">
-          <div className="h-3 w-32 rounded bg-slate-800" />
-          <div className="h-10 w-24 rounded bg-slate-800" />
-          <div className="h-3 w-48 rounded bg-slate-800" />
+          <div className="h-3 w-32 rounded bg-surface-raised" />
+          <div className="h-10 w-24 rounded bg-surface-raised" />
+          <div className="h-3 w-48 rounded bg-surface-raised" />
         </div>
       </CardShell>
     )
@@ -52,10 +52,10 @@ export default function ForecastCard({ forecast, isLoading = false, error = null
     return (
       <CardShell testId="forecast-card-error">
         <div className="flex items-start gap-3">
-          <XCircleIcon className="mt-0.5 h-6 w-6 flex-shrink-0 text-slate-500" />
+          <XCircleIcon className="mt-0.5 h-6 w-6 flex-shrink-0 text-ink-muted" />
           <div>
-            <p className="text-sm font-semibold text-slate-300">Forecast unavailable</p>
-            <p className="mt-1 text-xs text-slate-500">{error}</p>
+            <p className="text-sm font-semibold text-ink-soft">Forecast unavailable</p>
+            <p className="mt-1 text-xs text-ink-muted">{error}</p>
           </div>
         </div>
       </CardShell>
@@ -66,16 +66,16 @@ export default function ForecastCard({ forecast, isLoading = false, error = null
     return (
       <CardShell testId="forecast-card-insufficient">
         <div className="flex items-start gap-3">
-          <HelpCircleIcon className="mt-0.5 h-6 w-6 flex-shrink-0 text-slate-500" />
+          <HelpCircleIcon className="mt-0.5 h-6 w-6 flex-shrink-0 text-ink-muted" />
           <div className="min-w-0">
-            <p className="text-sm font-semibold text-slate-300">
+            <p className="text-sm font-semibold text-ink-soft">
               Insufficient historical data
             </p>
-            <p className="mt-1 text-xs leading-relaxed text-slate-500">
+            <p className="mt-1 text-xs leading-relaxed text-ink-muted">
               {forecast?.insufficientDataReason ??
                 'Not enough resolved outcomes exist yet to show a calibrated probability.'}
             </p>
-            <p className="mt-3 text-label text-slate-500">
+            <p className="mt-3 text-label text-ink-muted">
               {DISCLAIMER}
             </p>
           </div>
@@ -93,7 +93,7 @@ export default function ForecastCard({ forecast, isLoading = false, error = null
     <CardShell testId={isInterval ? 'forecast-card-interval' : 'forecast-card-precise'}>
       <div className="flex items-start gap-3">
         {isInterval ? (
-          <AlertTriangleIcon className="mt-1 h-6 w-6 flex-shrink-0 text-amber-400" />
+          <AlertTriangleIcon className="mt-1 h-6 w-6 flex-shrink-0 text-caution-fg" />
         ) : (
           <CheckCircleIcon className="mt-1 h-6 w-6 flex-shrink-0 text-pitch-500" />
         )}
@@ -103,7 +103,7 @@ export default function ForecastCard({ forecast, isLoading = false, error = null
           </SectionKicker>
 
           {isInterval ? (
-            <p className="mt-1 text-3xl font-bold tabular-nums text-white">
+            <p className="mt-1 text-3xl font-bold tabular-nums text-ink-primary">
               {low != null && high != null ? `${pct(low)}–${pct(high)}` : '—'}
             </p>
           ) : (
@@ -112,20 +112,20 @@ export default function ForecastCard({ forecast, isLoading = false, error = null
                 {point != null ? pct(point) : '—'}
               </span>
               {low != null && high != null && (
-                <span className="text-sm text-slate-500">
+                <span className="text-sm text-ink-muted">
                   ({pct(low)}–{pct(high)} band)
                 </span>
               )}
             </div>
           )}
 
-          <p className="mt-1 text-xs text-slate-500">
+          <p className="mt-1 text-xs text-ink-muted">
             {isInterval
               ? 'The uncertainty band is too wide to show a single number responsibly.'
               : 'Chance of an official club confirmation within the forecast window.'}
           </p>
 
-          <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-label text-slate-600">
+          <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-label text-ink-faint">
             <span>As of {formatAsOf(forecast.predictionTimestamp)}</span>
             {forecast.modelVersion && (
               <>
@@ -135,7 +135,7 @@ export default function ForecastCard({ forecast, isLoading = false, error = null
             )}
           </div>
 
-          <p className="mt-3 text-label text-slate-500">
+          <p className="mt-3 text-label text-ink-muted">
             {DISCLAIMER}
           </p>
         </div>

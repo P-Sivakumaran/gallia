@@ -5,14 +5,14 @@
 @layer base {
   :root {
     color-scheme: dark;
-    --scrollbar-thumb: theme(colors.slate.700);
+    --scrollbar-thumb: theme(colors.line.DEFAULT);
     --scrollbar-track: transparent;
   }
   html {
     @apply scroll-smooth;
   }
   body {
-    @apply bg-slate-950 text-slate-100;
+    @apply bg-surface-base text-ink-strong;
   }
 }
 

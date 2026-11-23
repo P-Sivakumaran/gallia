@@ -5,7 +5,7 @@ import {
   ComposedChart, Line, Scatter, XAxis, YAxis, Tooltip, ResponsiveContainer,
 } from 'recharts'
 import type { ModelHealthDefinition } from '@/types'
-import { axisTick, tooltipStyle, chartColors } from '@/lib/chartTheme'
+import { axisTick, tooltipStyle, chartColors, chartHeight } from '@/lib/chartTheme'
 
 interface Props {
   definition: ModelHealthDefinition | null
@@ -39,7 +39,7 @@ interface CalibrationDotProps {
 
 function CalibrationDot({ cx, cy, payload, maxN }: CalibrationDotProps) {
   const r = radiusForN(payload.n, maxN)
-  return <circle cx={cx} cy={cy} r={r} fill={chartColors.success} fillOpacity={0.85} stroke={chartColors.tooltipBg} strokeWidth={1.5} />
+  return <circle cx={cx} cy={cy} r={r} fill={chartColors.success} fillOpacity={0.85} stroke={chartColors.plotBg} strokeWidth={1.5} />
 }
 
 export default function ModelCalibrationChart({ definition, isLoading = false, error = null }: Props) {
@@ -48,16 +48,16 @@ export default function ModelCalibrationChart({ definition, isLoading = false, e
 
   if (isLoading) {
     return (
-      <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-5" data-testid="calibration-loading">
-        <div className="h-56 animate-pulse rounded-lg bg-slate-800/60" />
+      <div className="rounded-xl border border-line-subtle bg-surface-panel/40 p-5" data-testid="calibration-loading">
+        <div className="h-chart-calibration animate-pulse rounded-lg bg-surface-raised/60" />
       </div>
     )
   }
 
   if (error) {
     return (
-      <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-5" data-testid="calibration-error">
-        <p className="text-sm text-slate-500">Couldn&apos;t load model calibration: {error}</p>
+      <div className="rounded-xl border border-line-subtle bg-surface-panel/40 p-5" data-testid="calibration-error">
+        <p className="text-sm text-ink-muted">Couldn&apos;t load model calibration: {error}</p>
       </div>
     )
   }
@@ -68,9 +68,9 @@ export default function ModelCalibrationChart({ definition, isLoading = false, e
 
   if (!model || !hasCurve) {
     return (
-      <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-5" data-testid="calibration-empty">
-        <p className="text-xs font-semibold uppercase tracking-widest text-slate-500">Model calibration</p>
-        <p className="mt-2 text-sm text-slate-500">
+      <div className="rounded-xl border border-line-subtle bg-surface-panel/40 p-5" data-testid="calibration-empty">
+        <p className="text-xs font-semibold uppercase tracking-widest text-ink-muted">Model calibration</p>
+        <p className="mt-2 text-sm text-ink-muted">
           No calibration curve yet: not enough resolved real outcomes exist to evaluate the model against.
         </p>
       </div>
@@ -91,12 +91,12 @@ export default function ModelCalibrationChart({ definition, isLoading = false, e
   const isSynthetic = model.trainingDataSource !== 'db'
 
   return (
-    <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-5" data-testid="calibration-chart">
+    <div className="rounded-xl border border-line-subtle bg-surface-panel/40 p-5" data-testid="calibration-chart">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <p className="text-xs font-semibold uppercase tracking-widest text-slate-500">Model calibration</p>
+        <p className="text-xs font-semibold uppercase tracking-widest text-ink-muted">Model calibration</p>
         {isSynthetic && (
           <span
-            className="rounded-full border border-amber-500/40 bg-amber-500/10 px-2 py-0.5 text-label font-semibold text-amber-400"
+            className="rounded-full border border-caution/40 bg-caution/10 px-2 py-0.5 text-label font-semibold text-caution-fg"
             data-testid="calibration-synthetic-badge"
           >
             Synthetic training data (not a live calibration guarantee)
@@ -106,23 +106,23 @@ export default function ModelCalibrationChart({ definition, isLoading = false, e
 
       <div className="mt-3 grid grid-cols-3 gap-3 text-xs">
         <div>
-          <p className="text-slate-500">Brier score</p>
-          <p className="mt-0.5 font-mono text-sm text-white">{model.brierScore != null ? model.brierScore.toFixed(3) : '—'}</p>
+          <p className="text-ink-muted">Brier score</p>
+          <p className="mt-0.5 font-mono text-sm text-ink-primary">{model.brierScore != null ? model.brierScore.toFixed(3) : '—'}</p>
         </div>
         <div>
-          <p className="text-slate-500">Log loss</p>
-          <p className="mt-0.5 font-mono text-sm text-white">{model.logLoss != null ? model.logLoss.toFixed(3) : '—'}</p>
+          <p className="text-ink-muted">Log loss</p>
+          <p className="mt-0.5 font-mono text-sm text-ink-primary">{model.logLoss != null ? model.logLoss.toFixed(3) : '—'}</p>
         </div>
         <div>
-          <p className="text-slate-500">Test samples</p>
-          <p className="mt-0.5 font-mono text-sm text-white">{model.nTestSamples}</p>
+          <p className="text-ink-muted">Test samples</p>
+          <p className="mt-0.5 font-mono text-sm text-ink-primary">{model.nTestSamples}</p>
         </div>
       </div>
 
       {!mounted ? (
-        <div className="mt-4 h-56 animate-pulse rounded-lg bg-slate-800/60" />
+        <div className="mt-4 h-chart-calibration animate-pulse rounded-lg bg-surface-raised/60" />
       ) : (
-        <ResponsiveContainer width="100%" height={220} className="mt-4">
+        <ResponsiveContainer width="100%" height={chartHeight.calibration} className="mt-4">
           <ComposedChart data={data} margin={{ top: 8, right: 8, bottom: 16, left: -20 }}>
             <XAxis
               dataKey="meanPredictedPct"
@@ -169,7 +169,7 @@ export default function ModelCalibrationChart({ definition, isLoading = false, e
         </ResponsiveContainer>
       )}
 
-      <p className="mt-1 text-label text-slate-600">
+      <p className="mt-1 text-label text-ink-faint">
         Dashed line = perfect calibration. Dot size = bin sample count.
       </p>
     </div>

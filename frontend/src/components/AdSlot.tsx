@@ -11,8 +11,8 @@ export default function AdSlot({ index = 0 }: { index?: number }) {
   const ad = PLACEHOLDERS[index % PLACEHOLDERS.length]
 
   return (
-    <div className="flex items-center gap-4 rounded-xl border border-dashed border-slate-700/60 bg-slate-900/30 p-4">
-      <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-slate-800 text-slate-500">
+    <div className="flex items-center gap-4 rounded-xl border border-dashed border-line/60 bg-surface-panel/30 p-4">
+      <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-surface-raised text-ink-muted">
         <svg viewBox="0 0 24 24" fill="none" className="h-5 w-5">
           <path
             d="M4 4h16v12H8l-4 4V4z"
@@ -23,10 +23,10 @@ export default function AdSlot({ index = 0 }: { index?: number }) {
         </svg>
       </div>
       <div className="min-w-0 flex-1">
-        <p className="text-sm font-medium text-slate-200">{ad.title}</p>
-        <p className="text-xs text-slate-500">{ad.body}</p>
+        <p className="text-sm font-medium text-ink-body">{ad.title}</p>
+        <p className="text-xs text-ink-muted">{ad.body}</p>
       </div>
-      <span className="flex-shrink-0 rounded border border-slate-700 px-1.5 py-0.5 text-micro font-semibold uppercase tracking-wide text-slate-500">
+      <span className="flex-shrink-0 rounded border border-line px-1.5 py-0.5 text-micro font-semibold uppercase tracking-wide text-ink-muted">
         Ad
       </span>
     </div>

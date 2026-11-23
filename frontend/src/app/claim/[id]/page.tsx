@@ -64,7 +64,7 @@ function ClaimHeader({ claim }: { claim: ClaimDetail }) {
   return (
     <div className="flex flex-wrap items-start justify-between gap-4">
       <div>
-        <h1 className="text-2xl font-bold text-white">
+        <h1 className="text-2xl font-bold text-ink-primary">
           {claim.player ? (
             <Link href={`/player/${claim.player.id}`} className="hover:text-pitch-500">
               {claim.player.name}
@@ -73,21 +73,21 @@ function ClaimHeader({ claim }: { claim: ClaimDetail }) {
             `Claim #${claim.id}`
           )}
         </h1>
-        <div className="mt-1.5 flex flex-wrap items-center gap-1.5 text-sm text-slate-400">
+        <div className="mt-1.5 flex flex-wrap items-center gap-1.5 text-sm text-ink-secondary">
           {claim.fromClub && <span>{claim.fromClub.shortName ?? claim.fromClub.name}</span>}
           {claim.fromClub && claim.toClub && <span aria-hidden>→</span>}
           {claim.toClub && <span>{claim.toClub.shortName ?? claim.toClub.name}</span>}
-          <span className="text-slate-600">·</span>
+          <span className="text-ink-faint">·</span>
           <span>{claim.transferType}</span>
           {claim.window && (
             <>
-              <span className="text-slate-600">·</span>
+              <span className="text-ink-faint">·</span>
               <span>{claim.window}</span>
             </>
           )}
         </div>
       </div>
-      <span className="rounded-full border border-slate-700 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-slate-400">
+      <span className="rounded-full border border-line px-3 py-1 text-xs font-semibold uppercase tracking-wide text-ink-secondary">
         {claim.claimStatus}
       </span>
     </div>

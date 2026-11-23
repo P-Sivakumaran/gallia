@@ -13,20 +13,20 @@ interface Props {
 }
 
 const STATUS_BADGE: Record<string, string> = {
-  HOT: 'bg-orange-500/20 text-orange-400 border-orange-500/40',
-  PENDING: 'bg-slate-700/40 text-slate-400 border-slate-600/40',
-  COMPLETED: 'bg-green-500/20 text-green-400 border-green-500/40',
-  FAILED: 'bg-red-500/20 text-red-400 border-red-500/40',
-  DENIED: 'bg-gray-700/40 text-gray-400 border-gray-600/40',
+  HOT: 'bg-hot/20 text-hot-fg border-hot/40',
+  PENDING: 'bg-surface-overlay/40 text-ink-secondary border-line-strong/40',
+  COMPLETED: 'bg-completed/20 text-completed-fg border-completed/40',
+  FAILED: 'bg-failed/20 text-failed-fg border-failed/40',
+  DENIED: 'bg-denied-deep/40 text-denied-fg border-denied-line/40',
 }
 
 const SOURCE_TYPE_COLORS: Record<string, string> = {
-  JOURNALIST: 'bg-blue-500/20 text-blue-300',
-  NEWS_OUTLET: 'bg-purple-500/20 text-purple-300',
-  CLUB_OFFICIAL: 'bg-emerald-500/20 text-emerald-300',
-  AGENT: 'bg-yellow-500/20 text-yellow-300',
-  SOCIAL_MEDIA: 'bg-pink-500/20 text-pink-300',
-  AGGREGATOR: 'bg-slate-500/20 text-slate-300',
+  JOURNALIST: 'bg-kind-journalist/20 text-kind-journalist-fg',
+  NEWS_OUTLET: 'bg-kind-outlet/20 text-kind-outlet-fg',
+  CLUB_OFFICIAL: 'bg-kind-official/20 text-kind-official-fg',
+  AGENT: 'bg-kind-agent/20 text-kind-agent-fg',
+  SOCIAL_MEDIA: 'bg-kind-social/20 text-kind-social-fg',
+  AGGREGATOR: 'bg-kind-aggregator/20 text-kind-aggregator-fg',
 }
 
 function ReliabilityDots({ score }: { score: number }) {
@@ -36,7 +36,7 @@ function ReliabilityDots({ score }: { score: number }) {
       {Array.from({ length: 5 }).map((_, i) => (
         <span
           key={i}
-          className={clsx('h-1.5 w-1.5 rounded-full', i < filled ? 'bg-emerald-400' : 'bg-slate-600')}
+          className={clsx('h-1.5 w-1.5 rounded-full', i < filled ? 'bg-credibility' : 'bg-surface-subtle')}
         />
       ))}
     </span>
@@ -65,8 +65,8 @@ export default function RumourCard({ rumour, compact = false }: Props) {
         if (e.key === 'Enter') router.push(`/rumour/${rumour.id}`)
       }}
       className={clsx(
-        'group relative flex cursor-pointer gap-4 rounded-xl border border-slate-700/60 bg-slate-800/60 p-4 backdrop-blur-sm',
-        'transition-all duration-200 hover:border-slate-500 hover:bg-slate-800 hover:shadow-lg hover:shadow-black/30',
+        'group relative flex cursor-pointer gap-4 rounded-xl border border-line/60 bg-surface-raised/60 p-4 backdrop-blur-sm',
+        'transition-all duration-200 hover:border-line-emphasis hover:bg-surface-raised hover:shadow-lg hover:shadow-black/30',
         compact ? 'items-center' : 'flex-col sm:flex-row sm:items-start',
       )}
     >
@@ -81,12 +81,12 @@ export default function RumourCard({ rumour, compact = false }: Props) {
         <div className="flex flex-wrap items-center gap-2">
           <Link
             href={`/player/${rumour.player.id}`}
-            className="text-base font-semibold text-white hover:text-pitch-500"
+            className="text-base font-semibold text-ink-primary hover:text-pitch-500"
             onClick={(e) => e.stopPropagation()}
           >
             {rumour.player.name}
           </Link>
-          <span className="rounded-full border px-2 py-0.5 text-xs font-mono font-medium text-slate-300 border-slate-600">
+          <span className="rounded-full border px-2 py-0.5 text-xs font-mono font-medium text-ink-soft border-line-strong">
             {rumour.player.position}
           </span>
           <span
@@ -103,32 +103,32 @@ export default function RumourCard({ rumour, compact = false }: Props) {
         <div className="mt-1.5 flex flex-wrap items-center gap-1.5 text-sm">
           <Link
             href={`/club/${origin.club.id}`}
-            className="font-medium text-slate-300 hover:text-white"
+            className="font-medium text-ink-soft hover:text-ink-primary"
             onClick={(e) => e.stopPropagation()}
           >
             {origin.club.shortName ?? origin.club.name}
           </Link>
           {origin.unconfirmed && (
             <span
-              className="rounded-full border border-amber-500/40 bg-amber-500/10 px-1.5 py-0.5 text-micro font-medium uppercase tracking-wide text-amber-400"
+              className="rounded-full border border-caution/40 bg-caution/10 px-1.5 py-0.5 text-micro font-medium uppercase tracking-wide text-caution-fg"
               title="Origin club couldn't be confirmed from the source text — showing the player's actual current club instead"
             >
               unconfirmed origin
             </span>
           )}
-          <span className="text-slate-500">→</span>
+          <span className="text-ink-muted">→</span>
           <Link
             href={`/club/${rumour.toClub.id}`}
-            className="font-medium text-slate-300 hover:text-white"
+            className="font-medium text-ink-soft hover:text-ink-primary"
             onClick={(e) => e.stopPropagation()}
           >
             {rumour.toClub.shortName ?? rumour.toClub.name}
           </Link>
-          <span className="ml-1 font-mono text-slate-400">
+          <span className="ml-1 font-mono text-ink-secondary">
             {feeLabel(rumour.reportedFeeMin, rumour.reportedFeeMax, rumour.currency)}
           </span>
-          <span className="text-slate-600">·</span>
-          <span className="text-slate-500">{rumour.window}</span>
+          <span className="text-ink-faint">·</span>
+          <span className="text-ink-muted">{rumour.window}</span>
         </div>
 
         {/* Source chip + reliability */}
@@ -137,14 +137,14 @@ export default function RumourCard({ rumour, compact = false }: Props) {
             <span
               className={clsx(
                 'rounded-full px-2 py-0.5 text-xs font-medium',
-                SOURCE_TYPE_COLORS[rumour.source.type] ?? 'bg-slate-600/40 text-slate-300',
+                SOURCE_TYPE_COLORS[rumour.source.type] ?? 'bg-surface-subtle/40 text-ink-soft',
               )}
             >
               {rumour.source.name}
             </span>
             <ReliabilityDots score={rumour.source.reliabilityScore} />
             {rumour.distinctSourceCount > 1 && (
-              <span className="text-xs text-slate-500">+{rumour.distinctSourceCount - 1} more source{rumour.distinctSourceCount > 2 ? 's' : ''}</span>
+              <span className="text-xs text-ink-muted">+{rumour.distinctSourceCount - 1} more source{rumour.distinctSourceCount > 2 ? 's' : ''}</span>
             )}
           </div>
         )}

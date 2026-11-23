@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { RadialBarChart, RadialBar, PolarAngleAxis } from 'recharts'
 import type { RumourStatus } from '@/types'
 import { chartColors } from '@/lib/chartTheme'
+import { status as statusTokens } from '@/lib/tokens'
 
 interface Props {
   score: number // 0–100
@@ -12,11 +13,11 @@ interface Props {
 }
 
 const STATUS_COLORS: Record<RumourStatus, string> = {
-  HOT: '#f97316',
-  PENDING: '#94a3b8',
-  COMPLETED: '#22c55e',
-  FAILED: '#ef4444',
-  DENIED: '#6b7280',
+  HOT: statusTokens.hot.DEFAULT,
+  PENDING: statusTokens.pending.DEFAULT,
+  COMPLETED: statusTokens.completed.DEFAULT,
+  FAILED: statusTokens.failed.DEFAULT,
+  DENIED: statusTokens.denied.DEFAULT,
 }
 
 const STATUS_LABELS: Record<RumourStatus, string> = {
@@ -45,11 +46,11 @@ export default function TruthMeter({ score, status, size = 'md' }: Props) {
   if (!mounted) {
     return (
       <div className="relative flex flex-col items-center" style={{ width: outer, height: outer }}>
-        <div className="absolute inset-0 rounded-full bg-slate-800" style={{ margin: 4 }} />
+        <div className="absolute inset-0 rounded-full bg-surface-raised" style={{ margin: 4 }} />
         <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center" style={{ fontSize }}>
           <span className="font-bold tabular-nums leading-none" style={{ color }}>{score}</span>
           {size !== 'sm' && (
-            <span className="mt-0.5 text-micro font-semibold uppercase tracking-widest text-slate-400">
+            <span className="mt-0.5 text-micro font-semibold uppercase tracking-widest text-ink-secondary">
               {STATUS_LABELS[status]}
             </span>
           )}
@@ -83,7 +84,7 @@ export default function TruthMeter({ score, status, size = 'md' }: Props) {
           {score}
         </span>
         {size !== 'sm' && (
-          <span className="mt-0.5 text-micro font-semibold uppercase tracking-widest text-slate-400">
+          <span className="mt-0.5 text-micro font-semibold uppercase tracking-widest text-ink-secondary">
             {STATUS_LABELS[status]}
           </span>
         )}

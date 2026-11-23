@@ -7,7 +7,7 @@ type Status = 'checking' | 'ok' | 'error'
 
 export default function BillingSuccessPage() {
   return (
-    <Suspense fallback={<p className="mx-auto max-w-md py-20 text-center text-slate-400">Loading…</p>}>
+    <Suspense fallback={<p className="mx-auto max-w-md py-20 text-center text-ink-secondary">Loading…</p>}>
       <BillingSuccessContent />
     </Suspense>
   )
@@ -31,23 +31,23 @@ function BillingSuccessContent() {
 
   return (
     <div className="mx-auto max-w-md space-y-4 py-20 text-center">
-      {status === 'checking' && <p className="text-slate-400">Confirming payment…</p>}
+      {status === 'checking' && <p className="text-ink-secondary">Confirming payment…</p>}
       {status === 'ok' && (
         <>
-          <p className="text-xl font-semibold text-white">Ads removed. Thanks for the support.</p>
+          <p className="text-xl font-semibold text-ink-primary">Ads removed. Thanks for the support.</p>
           {/* Full reload, not client navigation — the ad-free cookie needs to
               be picked up by a fresh server render of the feed. */}
           {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
           <a
             href="/"
-            className="inline-block rounded-lg bg-pitch-500 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-pitch-600"
+            className="inline-block rounded-lg bg-pitch-500 px-4 py-2 text-sm font-semibold text-ink-primary transition-colors hover:bg-pitch-600"
           >
             Back to Transfer Hub
           </a>
         </>
       )}
       {status === 'error' && (
-        <p className="text-red-400">Couldn&apos;t confirm payment. If you were charged, contact support.</p>
+        <p className="text-failed-fg">Couldn&apos;t confirm payment. If you were charged, contact support.</p>
       )}
     </div>
   )

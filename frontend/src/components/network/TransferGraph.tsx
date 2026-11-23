@@ -132,7 +132,7 @@ export default function TransferGraph() {
       labelFont: 'Inter, sans-serif',
       labelSize: 11,
       labelWeight: '600',
-      labelColor: { color: chartColors.tooltipLabel },
+      labelColor: { color: chartColors.canvasLabel },
       minCameraRatio: 0.1,
       maxCameraRatio: 10,
     })
@@ -175,19 +175,19 @@ export default function TransferGraph() {
 
   if (initError) {
     return (
-      <div className="rounded-xl border border-red-900/40 bg-red-950/20 p-6 text-sm">
-        <p className="font-semibold text-red-400 mb-2">Graph init error</p>
-        <pre className="text-red-300/70 text-xs overflow-auto">{initError}</pre>
+      <div className="rounded-xl border border-failed-deep/40 bg-failed-deepest/20 p-6 text-sm">
+        <p className="font-semibold text-failed-fg mb-2">Graph init error</p>
+        <pre className="text-failed-soft/70 text-xs overflow-auto">{initError}</pre>
       </div>
     )
   }
 
   if (loading) {
     return (
-      <div className="flex h-canvas-md items-center justify-center rounded-xl border border-slate-800 bg-slate-900/40">
+      <div className="flex h-canvas-md items-center justify-center rounded-xl border border-line-subtle bg-surface-panel/40">
         <div className="text-center">
           <div className="mx-auto mb-3 h-8 w-8 animate-spin rounded-full border-2 border-pitch-500 border-t-transparent" />
-          <p className="text-sm text-slate-500">Building transfer network...</p>
+          <p className="text-sm text-ink-muted">Building transfer network...</p>
         </div>
       </div>
     )
@@ -206,14 +206,14 @@ export default function TransferGraph() {
                 'rounded-full border px-3 py-1 text-xs font-semibold transition-colors',
                 filter === f
                   ? 'border-pitch-500 bg-pitch-500/20 text-pitch-500'
-                  : 'border-slate-700 text-slate-400 hover:border-slate-500',
+                  : 'border-line text-ink-secondary hover:border-line-emphasis',
               )}
             >
               {f}
             </button>
           ))}
         </div>
-        <div className="ml-auto flex gap-3 text-xs text-slate-500">
+        <div className="ml-auto flex gap-3 text-xs text-ink-muted">
           {STATUS_LEGEND.map((l) => (
             <span key={l.label} className="flex items-center gap-1.5">
               <span className="h-2.5 w-2.5 rounded-full" style={{ background: l.color }} />
@@ -224,40 +224,40 @@ export default function TransferGraph() {
       </div>
 
       {/* Graph canvas */}
-      <div className="relative overflow-hidden rounded-xl border border-slate-800 bg-slate-950">
+      <div className="relative overflow-hidden rounded-xl border border-line-subtle bg-surface-base">
         <div ref={containerRef} className="h-canvas-lg w-full" />
 
         {/* Node type legend */}
-        <div className="absolute bottom-4 left-4 flex flex-col gap-1.5 rounded-lg border border-slate-700 bg-slate-900/90 px-3 py-2 text-xs backdrop-blur">
-          <span className="flex items-center gap-2 text-slate-400">
-            <span className="h-3 w-3 rounded-full bg-blue-400" /> Player
+        <div className="absolute bottom-4 left-4 flex flex-col gap-1.5 rounded-lg border border-line bg-surface-panel/90 px-3 py-2 text-xs backdrop-blur">
+          <span className="flex items-center gap-2 text-ink-secondary">
+            <span className="h-3 w-3 rounded-full bg-node-player" /> Player
           </span>
-          <span className="flex items-center gap-2 text-slate-400">
-            <span className="h-3 w-3 rounded-sm bg-purple-500" /> Club
+          <span className="flex items-center gap-2 text-ink-secondary">
+            <span className="h-3 w-3 rounded-sm bg-node-club" /> Club
           </span>
         </div>
 
         {/* Stats */}
         {data && (
-          <div className="absolute bottom-4 right-4 rounded-lg border border-slate-700 bg-slate-900/90 px-3 py-2 text-xs text-slate-400 backdrop-blur">
+          <div className="absolute bottom-4 right-4 rounded-lg border border-line bg-surface-panel/90 px-3 py-2 text-xs text-ink-secondary backdrop-blur">
             {data.meta.nodeCount} nodes · {Math.round(data.meta.edgeCount / 2)} rumours
           </div>
         )}
 
         {/* Hover tooltip */}
         {hovered && (
-          <div className="absolute left-4 top-4 rounded-lg border border-slate-700 bg-slate-900/95 px-3 py-2 text-sm backdrop-blur">
-            <p className="font-semibold text-white">{hovered.label}</p>
-            <p className="text-xs text-slate-400 capitalize">{hovered.type}</p>
-            {hovered.position && <p className="text-xs text-slate-500">Position: {hovered.position}</p>}
-            {hovered.league && <p className="text-xs text-slate-500">{hovered.league}</p>}
+          <div className="absolute left-4 top-4 rounded-lg border border-line bg-surface-panel/95 px-3 py-2 text-sm backdrop-blur">
+            <p className="font-semibold text-ink-primary">{hovered.label}</p>
+            <p className="text-xs text-ink-secondary capitalize">{hovered.type}</p>
+            {hovered.position && <p className="text-xs text-ink-muted">Position: {hovered.position}</p>}
+            {hovered.league && <p className="text-xs text-ink-muted">{hovered.league}</p>}
             {hovered.marketValue && (
               <p className="text-xs text-pitch-500 font-mono">€{hovered.marketValue}M</p>
             )}
           </div>
         )}
       </div>
-      <p className="mt-2 text-xs text-slate-600">Scroll to zoom · drag to pan · hover nodes for detail</p>
+      <p className="mt-2 text-xs text-ink-faint">Scroll to zoom · drag to pan · hover nodes for detail</p>
     </div>
   )
 }

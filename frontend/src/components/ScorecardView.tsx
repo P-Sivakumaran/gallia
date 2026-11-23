@@ -16,8 +16,8 @@ function formatDate(iso: string): string {
 function Stat({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <p className="text-xs text-slate-500">{label}</p>
-      <p className="mt-0.5 font-mono text-sm text-white">{value}</p>
+      <p className="text-xs text-ink-muted">{label}</p>
+      <p className="mt-0.5 font-mono text-sm text-ink-primary">{value}</p>
     </div>
   )
 }
@@ -47,8 +47,8 @@ function verdict(def: ModelHealthDefinition): { tone: 'ok' | 'warn' | 'none'; te
 
 const TONE_CLASS = {
   ok: 'border-pitch-500/40 bg-pitch-500/10 text-pitch-100',
-  warn: 'border-amber-500/40 bg-amber-500/10 text-amber-300',
-  none: 'border-slate-700 bg-slate-900/40 text-slate-400',
+  warn: 'border-caution/40 bg-caution/10 text-caution-soft',
+  none: 'border-line bg-surface-panel/40 text-ink-secondary',
 } as const
 
 function DefinitionSection({ def }: { def: ModelHealthDefinition }) {
@@ -60,7 +60,7 @@ function DefinitionSection({ def }: { def: ModelHealthDefinition }) {
         <h2 className="text-lg font-semibold">
           Will the transfer complete within {def.horizonDays} days?
         </h2>
-        {m && <p className="font-mono text-xs text-slate-500">model {m.version}</p>}
+        {m && <p className="font-mono text-xs text-ink-muted">model {m.version}</p>}
       </div>
 
       <p className={`rounded-lg border px-3 py-2 text-sm ${TONE_CLASS[v.tone]}`} data-testid="scorecard-verdict">
@@ -68,7 +68,7 @@ function DefinitionSection({ def }: { def: ModelHealthDefinition }) {
       </p>
 
       {m && (
-        <div className="grid grid-cols-2 gap-4 rounded-xl border border-slate-800 bg-slate-900/40 p-5 sm:grid-cols-4">
+        <div className="grid grid-cols-2 gap-4 rounded-xl border border-line-subtle bg-surface-panel/40 p-5 sm:grid-cols-4">
           <Stat label="Trained" value={formatDate(m.trainedAt)} />
           <Stat label="Training rumours" value={String(m.nTrainSamples)} />
           <Stat label="Test rumours" value={String(m.nTestSamples)} />
@@ -87,7 +87,7 @@ export default function ScorecardView({ health, error = null }: Props) {
       <header className="space-y-3">
         <p className="text-xs font-semibold uppercase tracking-widest text-pitch-500">Scorecard</p>
         <h1 className="text-3xl font-bold">How often are we right?</h1>
-        <p className="text-slate-400">
+        <p className="text-ink-secondary">
           Every rumour here gets a likelihood. This page checks those likelihoods against what actually
           happens as transfers resolve. If we say 70%, roughly 7 in 10 of those transfers should go through.
           Until enough real outcomes are in, we say so plainly — the numbers below show exactly where things
@@ -96,36 +96,36 @@ export default function ScorecardView({ health, error = null }: Props) {
       </header>
 
       <section className="grid gap-4 text-sm sm:grid-cols-2">
-        <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-4">
-          <p className="font-semibold text-white">Brier score</p>
-          <p className="mt-1 text-slate-400">
+        <div className="rounded-xl border border-line-subtle bg-surface-panel/40 p-4">
+          <p className="font-semibold text-ink-primary">Brier score</p>
+          <p className="mt-1 text-ink-secondary">
             Average squared gap between our forecast and the outcome. 0 is perfect; always guessing 50% scores 0.25.
             Lower is better.
           </p>
         </div>
-        <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-4">
-          <p className="font-semibold text-white">Calibration chart</p>
-          <p className="mt-1 text-slate-400">
+        <div className="rounded-xl border border-line-subtle bg-surface-panel/40 p-4">
+          <p className="font-semibold text-ink-primary">Calibration chart</p>
+          <p className="mt-1 text-ink-secondary">
             Dots on the dashed line mean our percentages match reality. Dots below it mean we were too confident.
           </p>
         </div>
       </section>
 
       {error ? (
-        <p className="rounded-lg border border-slate-800 bg-slate-900/40 p-4 text-sm text-slate-400" data-testid="scorecard-error">
+        <p className="rounded-lg border border-line-subtle bg-surface-panel/40 p-4 text-sm text-ink-secondary" data-testid="scorecard-error">
           The scorecard is unavailable right now ({error}). Forecasts are still shown on each rumour.
         </p>
       ) : !health || health.definitions.length === 0 ? (
-        <p className="rounded-lg border border-slate-800 bg-slate-900/40 p-4 text-sm text-slate-400" data-testid="scorecard-empty">
+        <p className="rounded-lg border border-line-subtle bg-surface-panel/40 p-4 text-sm text-ink-secondary" data-testid="scorecard-empty">
           No forecasting model is active yet, so there is nothing to score.
         </p>
       ) : (
         health.definitions.map((def) => <DefinitionSection key={def.id} def={def} />)
       )}
 
-      <footer className="border-t border-slate-800 pt-6 text-sm text-slate-500">
+      <footer className="border-t border-line-subtle pt-6 text-sm text-ink-muted">
         Official denials and contradicting evidence are always free to see on every rumour.{' '}
-        <Link href="/pricing" className="text-slate-300 underline-offset-2 hover:underline">
+        <Link href="/pricing" className="text-ink-soft underline-offset-2 hover:underline">
           What&apos;s free and what&apos;s paid
         </Link>
       </footer>

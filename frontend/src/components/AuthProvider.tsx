@@ -29,7 +29,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   useEffect(() => {
-    refresh().finally(() => setLoading(false))
+    // On first load an unreachable API reads as signed out, not an unhandled rejection.
+    // After login/register, refresh() still throws so the form can show the failure.
+    refresh()
+      .catch(() => setUser(null))
+      .finally(() => setLoading(false))
   }, [])
 
   async function submit(path: string, email: string, password: string): Promise<void> {
