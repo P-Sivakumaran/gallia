@@ -20,7 +20,9 @@ interface Props {
   /** Increment to send one ring out from the meter (a status change) */
   pulseKey?: number
   /** Play the power-on build and sweep on first paint */
-  intro?: boolean
+  intro?: Intro
+  /** Increment to roll the number in (a live score change) */
+  rollKey?: number
 }
 
 const STATUS_COLORS: Record<RumourStatus, string> = {
@@ -47,7 +49,28 @@ const SIZES = {
   xl: { size: 240, strokeRatio: 0.12, scoreSize: 76, ticks: true, label: true },
 } as const
 
-export default function TruthMeter({ score, status, size = 'md', pulseKey = 0, intro = true }: Props) {
+/**
+ * When the power-on plays: 'always' on every mount, 'session' only during the first load of a
+ * browser session (the `intro:` variant), false never. Class strings are literal for Tailwind.
+ */
+type Intro = 'always' | 'session' | false
+const INTRO_CLASSES = {
+  always: {
+    fade: 'motion-safe:animate-meter-fade',
+    build: 'motion-safe:animate-meter-build',
+    sweep: 'motion-safe:animate-meter-sweep',
+    cursor: 'motion-safe:animate-meter-cursor',
+  },
+  session: {
+    fade: 'intro:motion-safe:animate-meter-fade',
+    build: 'intro:motion-safe:animate-meter-build',
+    sweep: 'intro:motion-safe:animate-meter-sweep',
+    cursor: 'intro:motion-safe:animate-meter-cursor',
+  },
+} as const
+
+export default function TruthMeter({ score, status, size = 'md', pulseKey = 0, intro = 'always', rollKey = 0 }: Props) {
+  const ic = intro ? INTRO_CLASSES[intro] : null
   const spec = SIZES[size]
   const d = spec.size
   const value = Math.max(0, Math.min(100, Math.round(score)))
@@ -129,7 +152,7 @@ export default function TruthMeter({ score, status, size = 'md', pulseKey = 0, i
             strokeWidth={t.major ? thin * 1.8 : thin}
           />
         ))}
-        <g className={clsx(intro && 'motion-safe:animate-meter-fade')}>
+        <g className={ic?.fade}>
           {ticks
             .filter((t) => t.lit)
             .map((t) => (
@@ -156,7 +179,7 @@ export default function TruthMeter({ score, status, size = 'md', pulseKey = 0, i
           strokeWidth={strokeWidth}
           strokeDasharray={circumference}
           transform={`rotate(-90 ${c0} ${c0})`}
-          className={clsx(intro && 'motion-safe:animate-meter-build')}
+          className={ic?.build}
           style={{ strokeDashoffset: 0 }}
         />
 
@@ -170,7 +193,7 @@ export default function TruthMeter({ score, status, size = 'md', pulseKey = 0, i
           strokeWidth={strokeWidth}
           strokeDasharray={circumference}
           transform={`rotate(-90 ${c0} ${c0})`}
-          className={clsx('transition-meter duration-tween ease-tween', intro && 'motion-safe:animate-meter-sweep')}
+          className={clsx('transition-meter duration-tween ease-tween', ic?.sweep)}
           style={{ strokeDashoffset: circumference * (1 - value / 100), opacity: value > 0 ? 1 : 0 }}
         />
 
@@ -183,14 +206,14 @@ export default function TruthMeter({ score, status, size = 'md', pulseKey = 0, i
             y2={1}
             stroke={meter.cursor}
             strokeWidth={Math.max(2, d * 0.014)}
-            className={clsx('transition-transform duration-tween ease-tween', intro && 'motion-safe:animate-meter-cursor')}
+            className={clsx('transition-transform duration-tween ease-tween', ic?.cursor)}
             style={{ transform: `rotate(${value * 3.6}deg)`, transformOrigin: `${c0}px ${c0}px` }}
           />
         )}
       </svg>
 
       <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
-        <span className="font-mono font-extrabold tabular-nums leading-none tracking-tight" style={{ color, fontSize: scoreSize }}>
+        <span key={rollKey} className={clsx('font-mono font-extrabold tabular-nums leading-none tracking-tight', rollKey > 0 && 'motion-safe:animate-digit-roll')} style={{ color, fontSize: scoreSize }}>
           {value}
         </span>
         {spec.label && (

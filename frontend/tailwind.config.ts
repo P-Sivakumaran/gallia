@@ -1,7 +1,12 @@
 import type { Config } from 'tailwindcss'
+import plugin from 'tailwindcss/plugin'
 import {
   card,
   caution,
+  cue,
+  feedStagger,
+  feedStaggerMax,
+  radarTurn,
   chartHeight,
   credibility,
   entity,
@@ -80,7 +85,25 @@ const config: Config = {
         kicker: '0.14em',
       },
       keyframes: {
-        'radar-sweep': { from: { transform: 'rotate(-140deg)', opacity: '0' } },
+        'radar-sweep': { from: { transform: 'rotate(-360deg)' } },
+        rise: { from: { opacity: '0', transform: 'translateY(14px)' } },
+        'fade-in': { from: { opacity: '0' } },
+        'draw-in': { from: { strokeDashoffset: '1' } },
+        'blip-on': {
+          '0%': { opacity: '0.15', transform: 'scale(0.6)' },
+          '55%': { opacity: '1', transform: 'scale(1.35)' },
+          '100%': { opacity: '1', transform: 'scale(1)' },
+        },
+        slam: {
+          '0%': { opacity: '0', transform: 'scale(1.16)' },
+          '60%': { opacity: '1', transform: 'scale(0.97)' },
+          '100%': { opacity: '1', transform: 'scale(1)' },
+        },
+        'digit-roll': { from: { opacity: '0', transform: 'translateY(55%)' } },
+        'card-flash': {
+          from: { opacity: '0.95', transform: 'scale(1)' },
+          to: { opacity: '0', transform: 'scale(1.025)' },
+        },
         'ticker-in': { from: { transform: 'translateY(100%)', opacity: '0' } },
         'meter-build': { from: { strokeDashoffset: 'var(--meter-c)' } },
         'meter-sweep': { from: { strokeDashoffset: 'var(--meter-c)' } },
@@ -110,7 +133,15 @@ const config: Config = {
         'status-pop': `status-pop ${motion.pop}ms ${OUT_CUBIC}`,
         'meter-pulse': `meter-pulse ${motion.flash}ms ${OUT_CUBIC} both`,
         'delta-chip': `delta-chip ${motion.chip}ms linear both`,
-        'radar-sweep': `radar-sweep ${motion.sweep + motion.build}ms ${OUT_CUBIC} backwards`,
+        // Arrival moves start at their element's --cue (cue-* utilities below)
+        'radar-sweep': `radar-sweep ${radarTurn}ms ${OUT_CUBIC} var(--cue, 0ms) backwards`,
+        rise: `rise 520ms ${OUT_CUBIC} var(--cue, 0ms) backwards`,
+        'fade-in': `fade-in 520ms ${OUT_CUBIC} var(--cue, 0ms) backwards`,
+        'draw-in': `draw-in 420ms ${OUT_CUBIC} var(--cue, 0ms) backwards`,
+        'blip-on': `blip-on 420ms ${OUT_CUBIC} var(--cue, 0ms) backwards`,
+        slam: `slam 380ms ${OUT_CUBIC} var(--cue, 0ms) backwards`,
+        'digit-roll': `digit-roll ${motion.tween}ms ${OUT_CUBIC}`,
+        'card-flash': `card-flash ${motion.flash}ms ${OUT_CUBIC} both`,
         'ticker-in': `ticker-in ${motion.tween}ms ${OUT_CUBIC} backwards`,
       },
       transitionProperty: {
@@ -124,7 +155,18 @@ const config: Config = {
       },
     },
   },
-  plugins: [],
+  plugins: [
+    plugin(({ addVariant, addUtilities }) => {
+      // `intro:` applies only while <html> has .intro: the first load of a session (see app/layout.tsx).
+      addVariant('intro', '.intro &')
+      addUtilities({
+        ...Object.fromEntries(Object.entries(cue).map(([k, ms]) => [`.cue-${k}`, { '--cue': `${ms}ms` }])),
+        ...Object.fromEntries(
+          Array.from({ length: feedStaggerMax }, (_, i) => [`.cue-feed-${i}`, { '--cue': `${i * feedStagger}ms` }]),
+        ),
+      })
+    }),
+  ],
 }
 
 export default config

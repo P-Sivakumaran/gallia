@@ -35,3 +35,32 @@
     animation: none !important;
   }
 }
+
+/* Scroll-driven reveal (scorecard meter scale). Pure CSS: browsers without scroll timelines,
+   and anyone with reduced motion, simply see the content in place. */
+@keyframes reveal-rise {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+}
+@keyframes pin-drop {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -22px);
+  }
+}
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .reveal {
+      animation: reveal-rise linear both;
+      animation-timeline: view();
+      animation-range: entry 5% cover 28%;
+    }
+    .reveal-pin {
+      animation: pin-drop linear both;
+      animation-timeline: view();
+      animation-range: entry 20% cover 40%;
+    }
+  }
+}

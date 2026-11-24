@@ -29,7 +29,7 @@ export default function MeterScale() {
 
       <ul className="grid grid-cols-2 gap-3 md:grid-cols-4">
         {EXAMPLES.map((e) => (
-          <li key={e.status} className={clsx('relative flex flex-col items-center gap-4 overflow-hidden rounded-2xl border bg-card px-3 pb-5 pt-6 shadow-card', e.edge)}>
+          <li key={e.status} className={clsx('reveal relative flex flex-col items-center gap-4 overflow-hidden rounded-2xl border bg-card px-3 pb-5 pt-6 shadow-card', e.edge)}>
             <span aria-hidden className={clsx('absolute inset-x-0 top-0 h-1', e.stripe)} />
             <StatusBadge status={e.status} />
             <TruthMeter score={e.score} status={e.status} size="md" intro={false} />
@@ -42,7 +42,7 @@ export default function MeterScale() {
       <div aria-hidden className="relative mx-2 pb-8 pt-9">
         <div className="h-2.5 rounded-full bg-surface-raised" />
         {EXAMPLES.map((e) => (
-          <div key={e.status} className="absolute top-0 -translate-x-1/2 text-center" style={{ left: `${e.score}%` }}>
+          <div key={e.status} className="reveal-pin absolute top-0 -translate-x-1/2 text-center" style={{ left: `${e.score}%` }}>
             <p className={clsx('font-mono text-base font-extrabold', e.text)}>{e.score}</p>
             <div className={clsx('mx-auto mt-1 h-8 w-1.5 rounded-sm', e.pin)} />
           </div>

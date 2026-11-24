@@ -3,8 +3,22 @@
  * a scale and a stepped sweep trail (discrete slices, no blur). It sweeps once on first paint and
  * holds: it never loops (WCAG 2.2.2). One blip per distinct source behind the rumour.
  */
+import type { CSSProperties } from 'react'
+import { cue, radarTurn } from '@/lib/tokens'
+
 const SLICES = 14
 const SLICE_DEG = 2.6
+
+/**
+ * When the arrival sweep passes a blip, in ms from first paint. The sweep turns once from heading−360°
+ * to heading with an out-cubic ease, so its heading at progress t is heading − 360·(1−t)³.
+ * Solving for the blip's angle gives the moment the beam crosses it: cause, then effect.
+ */
+export function blipDelay(angle: number, heading: number): number {
+  const k = ((((heading - angle) % 360) + 360) % 360) / 360 // fraction of the turn still to go
+  const t = 1 - Math.cbrt(k)
+  return Math.round(cue.radar + t * radarTurn)
+}
 
 export default function RadarField({ size, sources, heading = 238 }: { size: number; sources: number; heading?: number }) {
   const c = size / 2
@@ -21,7 +35,7 @@ export default function RadarField({ size, sources, heading = 238 }: { size: num
 
   return (
     <svg viewBox={`0 0 ${size} ${size}`} aria-hidden className="h-full w-full text-pitch-500">
-      <g className="origin-center motion-safe:animate-radar-sweep">
+      <g className="cue-radar origin-center intro:motion-safe:animate-radar-sweep">
         {Array.from({ length: SLICES }, (_, i) => {
           const [x0, y0] = pt(heading - (i + 1) * SLICE_DEG, r)
           const [x1, y1] = pt(heading - i * SLICE_DEG, r)
@@ -55,7 +69,11 @@ export default function RadarField({ size, sources, heading = 238 }: { size: num
       {blips.map((b, i) => {
         const [x, y] = pt(b.angle, r * b.dist)
         return (
-          <g key={i}>
+          <g
+            key={i}
+            className="intro:motion-safe:animate-blip-on"
+            style={{ '--cue': `${blipDelay(b.angle, heading)}ms`, transformOrigin: `${x}px ${y}px` } as CSSProperties}
+          >
             <circle cx={x} cy={y} r={5} fill="currentColor" />
             <circle cx={x} cy={y} r={11} fill="none" stroke="currentColor" strokeOpacity={0.3} strokeWidth={1.5} />
           </g>

@@ -8,6 +8,10 @@ import Wordmark from '@/components/Wordmark'
 import { BRAND } from '@/lib/brand'
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
+// Arrival motion plays once per browser session: mark <html> before first paint, unmark once it's over,
+// so filter changes and later navigation don't replay it. Without JS there is no class and no motion.
+const INTRO_SCRIPT = `try{var s=sessionStorage;if(!s.getItem('sf-intro')){s.setItem('sf-intro','1');var h=document.documentElement;h.classList.add('intro');setTimeout(function(){h.classList.remove('intro')},${4000})}}catch(e){}`
+
 const mono = JetBrains_Mono({ subsets: ['latin'], variable: '--font-mono', weight: ['500', '700', '800'] })
 
 export const metadata: Metadata = {
@@ -17,7 +21,10 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${inter.variable} ${mono.variable}`}>
+    <html lang="en" className={`${inter.variable} ${mono.variable}`} suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: INTRO_SCRIPT }} />
+      </head>
       <body className="min-h-screen bg-field-deep font-sans text-ink-primary antialiased">
         {/* The pitch field (raea PitchBackground): a fixed layer, so it doesn't scroll-jank on iOS */}
         <div aria-hidden className="pointer-events-none fixed inset-0 -z-10 bg-field">

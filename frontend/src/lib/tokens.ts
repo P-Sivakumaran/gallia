@@ -134,6 +134,35 @@ export const motion = {
   sweep: 1300, // 40 frames: the arc sweeps up to the score on first paint
 } as const
 
+/**
+ * Arrival choreography for the home hero, in ms from first paint. It's the raea rumour-of-the-day
+ * timing table (`T`) reworked for a page: headline, then the ticker, then the card builds row by row
+ * while the radar turns once, and the verdict lands last. Plays on the first load of a session only.
+ */
+export const cue = {
+  headline: 0,
+  lede: 90,
+  ticker: 180,
+  card: 260,
+  name: 360,
+  route: 440,
+  from: 500,
+  arrow: 580,
+  to: 660,
+  fee: 760,
+  sources: 830,
+  reliability: 900,
+  radar: 160,
+  verdict: 2200,
+} as const
+
+/** One full radar turn on arrival; each source blip lights as the sweep passes it. */
+export const radarTurn = 2000
+
+/** Feed cards rise one after another, this far apart, up to `feedStaggerMax` cards. */
+export const feedStagger = 70
+export const feedStaggerMax = 8
+
 /** Pixel heights of each chart, shared by the chart and its loading skeleton so nothing jumps. */
 export const chartHeight = {
   club: 140,

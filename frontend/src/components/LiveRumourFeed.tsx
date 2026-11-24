@@ -46,7 +46,7 @@ export default function LiveRumourFeed({ total, adsEnabled = false }: Props) {
       <div className="grid gap-3 lg:grid-cols-2">
         {rumours.map((r, i) => (
           <Fragment key={r.id}>
-            <RumourCard rumour={r} live={live[r.id]} />
+            <RumourCard rumour={r} live={live[r.id]} index={i} />
             {adsEnabled && i > 0 && (i + 1) % AD_EVERY_N_CARDS === 0 && (
               <div className="lg:col-span-2">
                 <AdSlot index={Math.floor(i / AD_EVERY_N_CARDS)} />

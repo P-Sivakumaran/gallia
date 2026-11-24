@@ -16,6 +16,8 @@ interface Props {
   compact?: boolean
   /** The last live update to this rumour (from useRumourFeed) */
   live?: LiveChange
+  /** Position in the feed, for the arrival stagger */
+  index?: number
 }
 
 const SOURCE_TYPE_COLORS: Record<string, string> = {
@@ -64,7 +66,17 @@ const STRIPE: Record<string, string> = {
   DENIED: 'bg-denied',
 }
 
-export default function RumourCard({ rumour, compact = false, live }: Props) {
+/** Arrival stagger: literal class names so Tailwind generates each --cue (see tailwind.config.ts). */
+const CUE_FEED = ['cue-feed-0', 'cue-feed-1', 'cue-feed-2', 'cue-feed-3', 'cue-feed-4', 'cue-feed-5', 'cue-feed-6', 'cue-feed-7']
+const FLASH: Record<string, string> = {
+  HOT: 'border-hot',
+  PENDING: 'border-pending',
+  COMPLETED: 'border-completed',
+  FAILED: 'border-failed',
+  DENIED: 'border-denied',
+}
+
+export default function RumourCard({ rumour, compact = false, live, index = 0 }: Props) {
   const router = useRouter()
   const origin = resolveDisplayOrigin(rumour)
 
@@ -78,12 +90,22 @@ export default function RumourCard({ rumour, compact = false, live }: Props) {
       }}
       className={clsx(
         'group relative flex cursor-pointer gap-4 overflow-hidden rounded-xl border bg-card p-4 pt-5 shadow-card',
+        CUE_FEED[Math.min(index, CUE_FEED.length - 1)],
+        'intro:motion-safe:animate-rise',
         EDGE[rumour.status],
-        'transition-colors duration-200 hover:border-pitch-500/60',
+        'transition duration-200 hover:-translate-y-0.5 hover:border-pitch-500/60',
         compact ? 'items-center' : 'items-start',
       )}
     >
       <span aria-hidden className={clsx('absolute inset-x-0 top-0 h-1', STRIPE[rumour.status])} />
+      {/* A status change flashes the card's edge once in the new colour */}
+      {live?.statusChanged && (
+        <span
+          key={live.seq}
+          aria-hidden
+          className={clsx('pointer-events-none absolute inset-0 rounded-xl border-2 motion-safe:animate-card-flash', FLASH[rumour.status])}
+        />
+      )}
       {/* Truth meter */}
       <div className="flex-shrink-0">
         <TruthMeter
@@ -91,6 +113,8 @@ export default function RumourCard({ rumour, compact = false, live }: Props) {
           status={rumour.status}
           size={compact ? 'sm' : 'md'}
           pulseKey={live?.statusChanged ? live.seq : 0}
+          rollKey={live?.seq ?? 0}
+          intro="session"
         />
       </div>
 

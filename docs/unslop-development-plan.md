@@ -197,4 +197,27 @@ These were measured, not eyeballed:
 ### Open
 - **"Transfer Hub" copy** in the remove-ads banner, the ad slot and billing still waits on the rename.
 - **Network page:** the canvas and the pricing and admin pages got the panel surface but no bespoke raea treatment.
-- **The meter's power-on replays** on remount, for example on a filter change.
+
+---
+
+## 8. Iteration 5 (2026-11-24): Arrival Choreography & Session-Gated Motion
+
+Closes the open issue where the meter's power-on sweep and entry transitions replayed on every client remount (such as applying a filter).
+
+### Session-Gated Intro
+- Added `INTRO_SCRIPT` in `frontend/src/app/layout.tsx` running before first paint to tag `document.documentElement` with `.intro` if `sessionStorage.getItem('sf-intro')` is unset, and clear it after 4 seconds.
+- Added Tailwind `intro:` variant (`.intro &`) and `--cue` timing utilities.
+- Extended `TruthMeter`'s `intro` prop to support `'always' | 'session' | false`. In `HomeHero` and `RumourCard`, `intro="session"` ensures power-on plays only once per session.
+
+### Orchestrated Hero Arrival & Feed Stagger
+- **Cue sequencing (`cue` in tokens.ts):** Headline (0ms) -> lede (90ms) -> ticker (180ms) -> card (260ms) -> from/to clubs (500/660ms) with animated SVG route arrow (`strokeDasharray={1}` / `animate-draw-in`) -> fee / sources / reliability stat cells (760/830/900ms) -> radar sweep & blips -> verdict slam (2200ms).
+- **Radar & blip sync:** `blipDelay(angle, heading)` calculates the exact moment the cubic-eased radar beam crosses each source blip to light it up.
+- **Feed card stagger:** `cue-feed-0` through `cue-feed-7` stagger the entry of initial cards.
+- **Live event reactive styling:** Live status updates flash the card boundary (`border-hot`, `border-completed`, etc.) via `animate-card-flash` and re-slam the verdict bar.
+- **Scorecard scroll-driven reveal:** Meter scale cards and indicator pins use `@supports (animation-timeline: view())` in `globals.css` with zero JS overhead.
+
+### Verified
+- `next build`: 13/13 pages statically and dynamically optimized with zero errors.
+- Tests: frontend 105/105, backend 166/166 passing (271/271 total).
+- Linter & Typecheck: 0 errors.
+- Detector: 0 red findings.
