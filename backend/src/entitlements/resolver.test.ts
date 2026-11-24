@@ -23,7 +23,7 @@ describe('checkEntitlement', () => {
   })
 
   it('allows a RESEARCH user through a PRO-gated feature (higher tier satisfies lower requirement)', () => {
-    const result = checkEntitlement('RESEARCH', 'FORECAST_HISTORY')
+    const result = checkEntitlement('RESEARCH', 'INSTANT_ALERTS')
     expect(result.allowed).toBe(true)
   })
 
@@ -55,9 +55,13 @@ describe('checkEntitlement', () => {
     expect(result.allowed).toBe(true)
   })
 
+  it('lets every tier, including anonymous Free, read forecast history (Gallia is a public site)', () => {
+    expect(checkEntitlement('FREE', 'FORECAST_HISTORY').allowed).toBe(true)
+  })
+
   it('respects an env override disabling a default-on flag', () => {
     process.env.FEATURE_FORECAST_HISTORY = 'false'
-    const result = checkEntitlement('PRO', 'FORECAST_HISTORY')
+    const result = checkEntitlement('FREE', 'FORECAST_HISTORY')
     expect(result.allowed).toBe(false)
     expect(result.reason).toBe('FEATURE_DISABLED')
   })

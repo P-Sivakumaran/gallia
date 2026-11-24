@@ -40,7 +40,7 @@ function fakeRes(): Response & { statusCode?: number; body?: unknown } {
 describe('requireEntitlement', () => {
   it('lets an entitled Pro user through', async () => {
     const db = fakeDb({ 1: 'PRO' })
-    const mw = requireEntitlement(db, 'FORECAST_HISTORY')
+    const mw = requireEntitlement(db, 'INSTANT_ALERTS')
     const req = { userId: 1 } as EntitledRequest
     const res = fakeRes()
     let called = false
@@ -54,7 +54,7 @@ describe('requireEntitlement', () => {
 
   it('403s a Free user on a Pro-gated feature, without calling next, and logs ENTITLEMENT_DENIED', async () => {
     const db = fakeDb({ 1: 'FREE' })
-    const mw = requireEntitlement(db, 'FORECAST_HISTORY')
+    const mw = requireEntitlement(db, 'INSTANT_ALERTS')
     const req = { userId: 1 } as EntitledRequest
     const res = fakeRes()
     let called = false
@@ -69,7 +69,7 @@ describe('requireEntitlement', () => {
 
   it('treats an anonymous request (no userId) as Free tier rather than throwing or 401ing', async () => {
     const db = fakeDb({})
-    const mw = requireEntitlement(db, 'FORECAST_HISTORY')
+    const mw = requireEntitlement(db, 'INSTANT_ALERTS')
     const req = {} as EntitledRequest
     const res = fakeRes()
     await mw(req, res, () => {})

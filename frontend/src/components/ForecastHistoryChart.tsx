@@ -7,7 +7,6 @@ import {
 import { axisProps, tooltipStyle, chartColors, chartHeight } from '@/lib/chartTheme'
 import type { ClaimDetail, ForecastHistoryPoint, EntitlementDenial } from '@/types'
 import { CheckCircleIcon, XCircleIcon } from './icons'
-import UpgradePrompt from './UpgradePrompt'
 import SectionKicker from './SectionKicker'
 
 interface Props {
@@ -48,18 +47,9 @@ export default function ForecastHistoryChart({
     )
   }
 
-  if (entitlementDenied) {
-    return (
-      <div className="space-y-2" data-testid="history-entitlement-denied">
-        <SectionKicker>Forecast history</SectionKicker>
-        <UpgradePrompt
-          description="Full forecast history and the probability-change timeline are part of Supporter/Pro."
-          requiredTier={entitlementDenied.requiredTier}
-          featureKey="FORECAST_HISTORY"
-        />
-      </div>
-    )
-  }
+  // Forecast history is public; a denial now only means the feature flag is switched off,
+  // so the section is left out rather than shown as an upsell.
+  if (entitlementDenied) return null
 
   if (error) {
     return (

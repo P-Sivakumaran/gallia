@@ -92,9 +92,9 @@ export async function handleGetClaim(req: AuthedRequest, res: Response): Promise
 // Separate from GET /claims/:id/forecast (which produces a NEW prediction
 // and is never gated — the forecast value itself is free, see
 // docs/monetisation-proposal.md). This only reads what's already
-// persisted, gated by FORECAST_HISTORY (Pro). Anonymous requests are
-// treated as Free tier, not rejected outright — see
-// entitlements/middleware.ts.
+// persisted. FORECAST_HISTORY is open to every tier (Free included, and
+// anonymous requests count as Free); the check remains so the
+// FEATURE_FORECAST_HISTORY flag can still switch it off.
 export async function handleGetClaimForecastHistory(req: AuthedRequest, res: Response): Promise<void> {
   const claimId = parseInt(req.params.id, 10)
   if (Number.isNaN(claimId)) {

@@ -18,17 +18,16 @@ describe('ForecastHistoryChart — states', () => {
     expect(screen.getByTestId('history-error')).toBeInTheDocument()
   })
 
-  it('renders an upgrade prompt, not the generic error, when the entitlement gate denies access', () => {
-    render(
+  it('renders nothing, not an upsell or the generic error, when the backend switches history off', () => {
+    const { container } = render(
       <ForecastHistoryChart
         history={null}
         error="ignored when entitlementDenied is set"
-        entitlementDenied={{ reason: 'INSUFFICIENT_TIER', requiredTier: 'PRO', currentTier: 'FREE' }}
+        entitlementDenied={{ reason: 'FEATURE_DISABLED', requiredTier: 'FREE', currentTier: 'FREE' }}
       />,
     )
-    expect(screen.getByTestId('history-entitlement-denied')).toBeInTheDocument()
-    expect(screen.queryByTestId('history-error')).not.toBeInTheDocument()
-    expect(screen.getByTestId('upgrade-prompt')).toBeInTheDocument()
+    expect(container).toBeEmptyDOMElement()
+    expect(screen.queryByTestId('upgrade-prompt')).not.toBeInTheDocument()
   })
 
   it('renders a clear empty state when the claim has no historical forecasts', () => {

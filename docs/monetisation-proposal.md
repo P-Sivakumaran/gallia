@@ -71,7 +71,8 @@ tier-gated, see below).
 **Supporter/Pro** — unlimited watchlist; instant-alert *preference*
 (delivery mechanism is explicitly out of scope, see "Limitations");
 forecast history + probability-change timeline (`GET
-/claims/:id/forecast-history`, already built, now entitlement-gated);
+/claims/:id/forecast-history`, already built, now entitlement-gated —
+**superseded 2026-11-24: open to every tier, since Gallia is a public website**);
 advanced filters (minimum source tier, in this implementation — see
 "Implementation scope"); CSV export of the user's own watchlist, gated by
 **both** tier and a default-**off** feature flag (see "Data licensing"

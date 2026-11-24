@@ -45,7 +45,9 @@ export function tierMeets(userTier: EntitlementTier, required: EntitlementTier):
 export const ENTITLEMENTS: Record<FeatureKey, EntitlementTier> = {
   UNLIMITED_WATCHLIST: 'PRO',
   INSTANT_ALERTS: 'PRO',
-  FORECAST_HISTORY: 'PRO',
+  // Public: Gallia is a public website, so the forecast timeline is open to every reader.
+  // FEATURE_FORECAST_HISTORY=false still switches it off for everyone.
+  FORECAST_HISTORY: 'FREE',
   ADVANCED_FILTERS: 'PRO',
   CSV_EXPORT_WATCHLIST: 'PRO',
   API_ACCESS: 'RESEARCH',
