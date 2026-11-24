@@ -12,7 +12,7 @@ import { fetchApiFootballTransfers } from '../ingestion/sources/apifootball.js'
 import { extractRumoursFromText, getEntities } from '../ingestion/entityMatcher.js'
 import { computeScore } from '../scoring/likelihoodEngine.js'
 import { broadcast } from '../sse/broadcaster.js'
-import { detectOutcome, applyOutcome } from '../ingestion/outcomeDetector.js'
+import { detectOutcome, applyOutcome, resolveWindowOutcomes } from '../ingestion/outcomeDetector.js'
 import { runPlayerEnrichment } from '../ingestion/enrichment.js'
 import { runPlayerClubSyncWithPrisma } from '../ingestion/playerClubSync.js'
 import { runRetentionPurge, type RetentionDb, type PurgeHealthDb } from '../analytics/retention.js'
@@ -273,6 +273,11 @@ async function upsertNormalizedRumour(r: Awaited<ReturnType<typeof fetchLatestRu
   })
 
   if (existing) {
+    if (r.baseProbability === 1.0) {
+      await applyOutcome(existing.id, 'COMPLETED', prisma)
+      broadcast('rumour:updated', { id: existing.id, status: 'COMPLETED' })
+      return
+    }
     await prisma.rumour.update({
       where: { id: existing.id },
       data: { distinctSourceCount: { increment: 1 } },
@@ -302,11 +307,19 @@ async function upsertNormalizedRumour(r: Awaited<ReturnType<typeof fetchLatestRu
       baseProbability: r.baseProbability,
       window: r.window,
       rumourDate: r.rumourDate,
-      computedLikelihood: 0,
+      computedLikelihood: r.baseProbability === 1.0 ? 100 : 0,
+      status: r.baseProbability === 1.0 ? RumourStatus.COMPLETED : RumourStatus.PENDING,
     },
   })
-  await scoreQueue.add('score', { rumourId: rumour.id })
-  broadcast('rumour:new', { id: rumour.id })
+
+  if (r.baseProbability === 1.0) {
+    await applyOutcome(rumour.id, 'COMPLETED', prisma)
+    broadcast('rumour:new', { id: rumour.id })
+    broadcast('rumour:updated', { id: rumour.id, status: 'COMPLETED' })
+  } else {
+    await scoreQueue.add('score', { rumourId: rumour.id })
+    broadcast('rumour:new', { id: rumour.id })
+  }
 }
 
 // ─── Score worker ───────────────────────────────────────────────────────────
@@ -395,6 +408,14 @@ async function processPlayerSync(_job: { data: PlayerSyncJobData }) {
 // ─── Maintenance worker (public-beta readiness, 2026-08-14) ────────────────
 
 async function processMaintenance(job: { data: MaintenanceJobData }) {
+  if (job.data.task === 'resolve-window-outcomes') {
+    const summary = await resolveWindowOutcomes(prisma)
+    console.log(
+      `[worker:maintenance] Window outcome resolution: checked=${summary.checked}, resolved=${summary.resolved} (${summary.completed} completed, ${summary.failed} failed)`,
+    )
+    return summary
+  }
+
   if (job.data.task !== 'purge-product-events') return
 
   const result = await runRetentionPurge(prisma as unknown as RetentionDb & PurgeHealthDb)

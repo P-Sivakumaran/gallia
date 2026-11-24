@@ -50,6 +50,14 @@ export async function scheduleRecurringJobs(): Promise<void> {
     { name: 'purge-product-events', data: { task: 'purge-product-events' } },
   )
 
+  // Real outcomes resolution (Milestone 2) — automatically resolves pending
+  // rumours once their transfer window closing deadline has elapsed.
+  await maintenanceQueue.upsertJobScheduler(
+    'resolve-window-outcomes-recurring',
+    { every: PURGE_INTERVAL_MS },
+    { name: 'resolve-window-outcomes', data: { task: 'resolve-window-outcomes' } },
+  )
+
   // upsertJobScheduler only ever adds/updates — it never removes a scheduler
   // for a feed that's since been renamed or deleted from RSS_FEEDS. Found
   // live (2026-08-13): "Goal.com" and "Football365" kept firing every
@@ -74,6 +82,7 @@ export async function scheduleRecurringJobs(): Promise<void> {
   // past the cutoff) — safe to also fire once on boot rather than waiting
   // up to 24h for the first scheduled run.
   await maintenanceQueue.add('purge-product-events-boot', { task: 'purge-product-events' })
+  await maintenanceQueue.add('resolve-window-outcomes-boot', { task: 'resolve-window-outcomes' })
   for (const feed of RSS_FEEDS) {
     await ingestQueue.add(`rss-${feed.name}-boot`, {
       source: 'rss',

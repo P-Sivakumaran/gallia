@@ -22,7 +22,9 @@ export type EnrichJobData = {
 
 export type PlayerSyncJobData = Record<string, never>
 
-export type MaintenanceJobData = { task: 'purge-product-events' }
+export type MaintenanceJobData =
+  | { task: 'purge-product-events' }
+  | { task: 'resolve-window-outcomes' }
 
 const defaultOpts = { connection: createRedisConnection() }
 
