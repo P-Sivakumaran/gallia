@@ -22,7 +22,7 @@ router.post('/checkout-session', async (_req, res) => {
         price_data: {
           currency: 'gbp',
           unit_amount: REMOVE_ADS_PENCE,
-          product_data: { name: 'Smoke & Fire — Remove Ads' },
+          product_data: { name: 'Gallia — Remove Ads' },
         },
         quantity: 1,
       },

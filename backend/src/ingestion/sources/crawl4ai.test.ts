@@ -14,7 +14,7 @@ describe('crawl4ai source adapter', () => {
     const result = await crawlUrl('http://localhost:3000', { wordCountThreshold: 5, timeoutMs: 10000 })
     expect(result.success).toBe(true)
     expect(result.url).toBe('http://localhost:3000')
-    expect(result.title).toContain('Smoke & Fire')
+    expect(result.title).toContain('Gallia')
     expect(result.markdown).toBeDefined()
     expect(result.markdown!.length).toBeGreaterThan(100)
     expect(result.durationMs).toBeGreaterThan(0)

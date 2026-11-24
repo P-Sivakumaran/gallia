@@ -29,12 +29,17 @@ export default async function Image() {
       >
         {/* Top bar: Wordmark & Tag */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: '12px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div
+              style={{
+                width: '18px',
+                height: '18px',
+                borderRadius: '50%',
+                backgroundColor: pitch[500],
+              }}
+            />
             <div style={{ display: 'flex', fontSize: '38px', fontWeight: 900, letterSpacing: '-0.04em', color: ink.primary }}>
-              SMOKE &amp;
-            </div>
-            <div style={{ display: 'flex', fontSize: '38px', fontWeight: 900, letterSpacing: '-0.04em', color: pitch[500] }}>
-              FIRE
+              GALLIA
             </div>
           </div>
           <div
@@ -150,7 +155,7 @@ export default async function Image() {
             <div style={{ display: 'flex' }}>• Brier-Score Model Calibration</div>
             <div style={{ display: 'flex' }}>• Zero Paywalled Denials</div>
           </div>
-          <div style={{ display: 'flex', fontWeight: 700, color: ink.secondary }}>smokeandfire.app</div>
+          <div style={{ display: 'flex', fontWeight: 700, color: ink.secondary }}>gallia.app</div>
         </div>
       </div>
     ),
