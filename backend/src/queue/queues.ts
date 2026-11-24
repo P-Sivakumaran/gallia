@@ -5,6 +5,16 @@ export type IngestJobData =
   | { source: 'sportmonks' }
   | { source: 'rss'; feedUrl: string; sourceName: string }
   | { source: 'apifootball' }
+  | { source: 'crawl'; url: string; sourceName: string; defaultReliability?: number; cssSelector?: string }
+
+export type CrawlJobData = {
+  url: string
+  sourceName: string
+  rawSignalId?: number
+  rumourId?: number
+  defaultReliability?: number
+  cssSelector?: string
+}
 
 export type ScoreJobData = { rumourId: number }
 
@@ -62,6 +72,17 @@ export const enrichQueue = new Queue<EnrichJobData>('enrich', {
     backoff: { type: 'exponential', delay: 30_000 }, // back off on rate-limit
     removeOnComplete: 200,
     removeOnFail: 100,
+  },
+})
+
+// Deep web crawl queue (Crawl4AI) — throttled to prevent headless browser exhaustion
+export const crawlQueue = new Queue<CrawlJobData>('crawl', {
+  ...defaultOpts,
+  defaultJobOptions: {
+    attempts: 2,
+    backoff: { type: 'exponential', delay: 5_000 },
+    removeOnComplete: 100,
+    removeOnFail: 50,
   },
 })
 

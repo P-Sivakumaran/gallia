@@ -151,11 +151,11 @@ describe('outcomeDetector: resolveWindowOutcomes', () => {
       },
     ] as any)
 
-    vi.mocked(mockDb.rumour.findUnique).mockImplementation(async ({ where }: any) => {
+    vi.mocked(mockDb.rumour.findUnique).mockImplementation((async ({ where }: any) => {
       if (where.id === 1) return { sourceId: 5, status: RumourStatus.HOT, computedLikelihood: 80 } as any
       if (where.id === 2) return { sourceId: 5, status: RumourStatus.PENDING, computedLikelihood: 50 } as any
       return null
-    })
+    }) as any)
 
     vi.mocked(mockDb.source.findUnique).mockResolvedValue({
       id: 5,

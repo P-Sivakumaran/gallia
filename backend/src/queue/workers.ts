@@ -2,9 +2,9 @@ import { Worker } from 'bullmq'
 import { PrismaClient, RumourStatus, SourceType } from '@prisma/client'
 import { createRedisConnection } from './connection.js'
 import {
-  scoreQueue, dedupeQueue, enrichQueue,
+  scoreQueue, dedupeQueue, enrichQueue, crawlQueue,
   type IngestJobData, type ScoreJobData, type DedupeJobData, type EnrichJobData, type PlayerSyncJobData,
-  type MaintenanceJobData,
+  type MaintenanceJobData, type CrawlJobData,
 } from './queues.js'
 import { fetchLatestRumours } from '../ingestion/sportmonks.js'
 import { fetchRSSSignals, RSS_FEEDS } from '../ingestion/sources/rss.js'
@@ -13,6 +13,7 @@ import { extractRumoursFromText, getEntities } from '../ingestion/entityMatcher.
 import { computeScore } from '../scoring/likelihoodEngine.js'
 import { broadcast } from '../sse/broadcaster.js'
 import { detectOutcome, applyOutcome, resolveWindowOutcomes } from '../ingestion/outcomeDetector.js'
+import { crawlUrl } from '../ingestion/sources/crawl4ai.js'
 import { runPlayerEnrichment } from '../ingestion/enrichment.js'
 import { runPlayerClubSyncWithPrisma } from '../ingestion/playerClubSync.js'
 import { runRetentionPurge, type RetentionDb, type PurgeHealthDb } from '../analytics/retention.js'
@@ -244,6 +245,17 @@ async function processIngest(job: { data: IngestJobData }) {
           where: { id: raw.id },
           data: { matched: true, rumourId: matchedRumourId },
         })
+      } else if (signal.link && signal.link.startsWith('http')) {
+        // High-value signal had 0 candidate matches from brief RSS summary/headline alone:
+        // Dispatch to Crawl4AI to fetch the full article body and re-extract entities.
+        await crawlQueue.add('deep-crawl', {
+          url: signal.link,
+          sourceName,
+          rawSignalId: raw.id,
+          defaultReliability: reliability,
+        }, {
+          jobId: `crawl-raw-${raw.id}`,
+        })
       }
     }
 
@@ -434,6 +446,126 @@ async function processMaintenance(job: { data: MaintenanceJobData }) {
   }
 }
 
+// ─── Process Crawl (Crawl4AI) ────────────────────────────────────────────────
+
+export async function processCrawl(job: { data: CrawlJobData }): Promise<{ matched: number }> {
+  const { url, sourceName, rawSignalId, defaultReliability, cssSelector } = job.data
+  console.log(`[worker:crawl] Deep crawling "${url}" from ${sourceName}...`)
+
+  const crawlResult = await crawlUrl(url, {
+    cssSelector,
+    wordCountThreshold: 10,
+    timeoutMs: 30_000,
+  })
+
+  if (!crawlResult.success || !crawlResult.markdown) {
+    console.warn(`[worker:crawl] Failed to crawl "${url}": ${crawlResult.errorMessage}`)
+    return { matched: 0 }
+  }
+
+  const articleMarkdown = crawlResult.markdown
+  const articleTitle = crawlResult.title ?? sourceName
+
+  // Update raw signal if one was passed
+  if (rawSignalId) {
+    await prisma.rawSignal.update({
+      where: { id: rawSignalId },
+      data: {
+        rawText: `${articleTitle}\n\n${articleMarkdown}`.slice(0, 10000),
+      },
+    })
+  }
+
+  // Check for outcome signals inside full article
+  const detectedOutcome = detectOutcome(articleMarkdown)
+
+  // Extract entities from the deeper markdown text
+  const candidates = await extractRumoursFromText(articleTitle, articleMarkdown.slice(0, 4000))
+  if (candidates.length === 0) {
+    console.log(`[worker:crawl] No rumour candidates found in full article (${url}).`)
+    return { matched: 0 }
+  }
+
+  const reliability = defaultReliability ?? 0.70
+  const sourceId = await ensureSource(sourceName, reliability)
+  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+  let matched = 0
+
+  for (const candidate of candidates) {
+    const existing = await prisma.rumour.findFirst({
+      where: {
+        playerId: candidate.playerId,
+        fromClubId: candidate.fromClubId,
+        toClubId: candidate.toClubId,
+        rumourDate: { gte: sevenDaysAgo },
+      },
+    })
+
+    if (existing) {
+      await prisma.rumour.update({
+        where: { id: existing.id },
+        data: { distinctSourceCount: { increment: 1 } },
+      })
+      await scoreQueue.add('score', { rumourId: existing.id })
+      if (detectedOutcome) {
+        await applyOutcome(existing.id, detectedOutcome, prisma)
+        broadcast('rumour:updated', { id: existing.id, status: detectedOutcome })
+      }
+    } else {
+      const rumour = await prisma.rumour.create({
+        data: {
+          playerId: candidate.playerId,
+          fromClubId: candidate.fromClubId,
+          fromClubInferred: candidate.fromClubInferred,
+          toClubId: candidate.toClubId,
+          sourceId,
+          baseProbability: candidate.confidence,
+          window: 'SUMMER',
+          rumourDate: new Date(),
+          computedLikelihood: 0,
+          notes: articleTitle.slice(0, 255),
+          status: RumourStatus.PENDING,
+        },
+      })
+      await scoreQueue.add('score', { rumourId: rumour.id })
+      if (detectedOutcome) {
+        await applyOutcome(rumour.id, detectedOutcome, prisma)
+        broadcast('rumour:updated', { id: rumour.id, status: detectedOutcome })
+      }
+
+      await linkContradiction(rumour.id, candidate.playerId, candidate.toClubId)
+      broadcast('rumour:new', {
+        id: rumour.id,
+        player: candidate.playerName,
+        from: candidate.fromClubName,
+        to: candidate.toClubName,
+        source: `${sourceName} (Crawl4AI)`,
+      })
+    }
+
+    if (candidate.autoCreated) {
+      await enrichQueue.add('enrich', {
+        playerId: candidate.playerId,
+        playerName: candidate.playerName,
+      }, {
+        jobId: `enrich-player-${candidate.playerId}`,
+      })
+    }
+
+    matched++
+  }
+
+  if (rawSignalId && matched > 0) {
+    await prisma.rawSignal.update({
+      where: { id: rawSignalId },
+      data: { matched: true },
+    })
+  }
+
+  console.log(`[worker:crawl] Finished "${url}": extracted ${matched} rumour candidates.`)
+  return { matched }
+}
+
 // ─── Start all workers ──────────────────────────────────────────────────────
 
 export function startWorkers(): void {
@@ -445,5 +577,7 @@ export function startWorkers(): void {
   // concurrency 1 — a second overlapping run could race on the adopt-by-name reconciliation step
   new Worker<PlayerSyncJobData>('player-sync', processPlayerSync as any, { connection: conn, concurrency: 1 })
   new Worker<MaintenanceJobData>('maintenance', processMaintenance as any, { connection: conn, concurrency: 1 })
-  console.log('[workers] Ingest, score, dedupe, enrich, player-sync, maintenance workers started.')
+  // Crawl4AI worker: concurrency 2 to bound headless Chromium memory usage
+  new Worker<CrawlJobData>('crawl', processCrawl as any, { connection: conn, concurrency: 2 })
+  console.log('[workers] Ingest, score, dedupe, enrich, player-sync, maintenance, crawl workers started.')
 }
