@@ -11,3 +11,4 @@ prisma/dev.db
 *.sqlite
 *.tsbuildinfo
 .chap/
+.archify/
