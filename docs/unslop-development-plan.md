@@ -247,7 +247,9 @@ Closes the remaining open UI and branding items across the codebase.
 
 ---
 
-## 8. Iteration 5 (2026-11-24): the animations, built out
+## 10. Iteration 5, verified (2026-11-24): what each move says, frame captures, raea check
+
+Section 8 was committed by a parallel session from the same working tree before this verification ran. This section records the intent table and the checks.
 
 Each move says one thing, following raea's animate guide. There is one easing family: out-cubic for arrivals and in-out for value changes.
 
@@ -274,3 +276,6 @@ Each move says one thing, following raea's animate guide. There is one easing fa
   - Two "frozen" warnings flag the 3.6–4.7 s holds between real live updates. They're kept on purpose: idle motion would contradict the animate guide.
   - A blotching warning appeared on the default-quality encode only (the encoder starved the near-blacks).
 - **Gates:** frontend 106/106 (one new `blipDelay` test), backend 166/166, tsc, eslint, detector at 0 red.
+
+### Open after iteration 6
+- `app/opengraph-image.tsx` (added in iteration 6 by the parallel session) hardcodes hex in inline styles: 13 red `B-1` findings. `ImageResponse` needs inline styles, but the values can come from `lib/tokens.ts`.
