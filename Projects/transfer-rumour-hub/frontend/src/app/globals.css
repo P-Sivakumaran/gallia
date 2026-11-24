@@ -42,31 +42,6 @@
   border-bottom: 1px solid var(--border-subtle);
   background: #0d1117;
 }
-.g-wordmark {
-  display: flex;
-  align-items: center;
-  gap: 13px;
-  color: var(--ink-strong);
-  font-size: 25px;
-  font-weight: 650;
-  letter-spacing: 5px;
-  line-height: 1.5;
-  text-decoration: none;
-}
-.g-brand-icon {
-  display: grid;
-  place-items: center;
-  width: 33px;
-  height: 36px;
-  padding-right: 3px;
-  border: 1px solid var(--signal-fire);
-  border-radius: 2px 2px 12px 2px;
-  color: var(--signal-fire);
-  font-size: 25px;
-  font-weight: 500;
-  letter-spacing: -3px;
-}
-.g-brand-dot { width: 6px; height: 6px; margin: 7px 0 0 -5px; align-self: flex-start; border-radius: 50%; background: var(--signal-fire); }
 .g-brand-caption {
   display: grid;
   gap: 4px;
@@ -102,7 +77,6 @@
 @media (max-width: 640px) {
   :root { --page-gutter: 16px; }
   .g-header { height: 72px; }
-  .g-wordmark { font-size: 23px; }
   .g-edition { display: none; }
 }
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto!important}*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}

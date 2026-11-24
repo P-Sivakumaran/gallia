@@ -1,0 +1,141 @@
+.wordmark {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  min-height: 44px;
+  border-radius: 4px;
+  color: var(--ink-strong);
+  font-size: 25px;
+  font-weight: 650;
+  line-height: 1.5;
+  text-decoration: none;
+}
+
+.lockup {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.mark {
+  position: relative;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 33px;
+  height: 36px;
+  padding-right: 3px;
+  color: var(--signal-fire);
+  font-size: 25px;
+  font-weight: 500;
+  letter-spacing: -3px;
+}
+
+.frame {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.frame path {
+  stroke: currentColor;
+  stroke-width: 1;
+  stroke-linejoin: round;
+  stroke-dasharray: 100;
+  stroke-dashoffset: 0;
+}
+
+.initial,
+.letter {
+  display: inline-block;
+}
+
+.name {
+  display: inline-flex;
+  align-items: center;
+  letter-spacing: 5px;
+  line-height: 36px;
+}
+
+.letter:last-child {
+  letter-spacing: 0;
+}
+
+.dot {
+  position: relative;
+  align-self: flex-start;
+  width: 6px;
+  height: 6px;
+  margin: 7px 0 0 3px;
+  border-radius: 50%;
+  background: var(--signal-fire);
+}
+
+.dot::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border: 1px solid var(--signal-fire);
+  border-radius: 50%;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.wordmark:hover .frame {
+  color: #b4edc8;
+}
+
+/* The resting logo is visible by default; motion is strictly opt-in. */
+@media (prefers-reduced-motion: no-preference) {
+  .frame path {
+    animation: frame-draw 620ms cubic-bezier(.22, 1, .36, 1) both;
+  }
+
+  .initial {
+    animation: letter-reveal 360ms cubic-bezier(.22, 1, .36, 1) 80ms both;
+  }
+
+  .letter {
+    animation-name: letter-reveal;
+    animation-duration: 440ms;
+    animation-timing-function: cubic-bezier(.22, 1, .36, 1);
+    animation-fill-mode: both;
+  }
+
+  .dot {
+    animation: dot-reveal 260ms ease-out 620ms both;
+  }
+
+  .dot::after {
+    animation: signal-settle 480ms ease-out 740ms both;
+  }
+}
+
+@keyframes frame-draw {
+  from { stroke-dashoffset: 100; }
+  to { stroke-dashoffset: 0; }
+}
+
+@keyframes letter-reveal {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes dot-reveal {
+  from { opacity: 0; transform: scale(.6); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes signal-settle {
+  0% { opacity: 0; transform: scale(.65); }
+  25% { opacity: .45; }
+  100% { opacity: 0; transform: scale(1.35); }
+}
+
+@media (max-width: 640px) {
+  .wordmark { font-size: 23px; }
+  .name { letter-spacing: 4px; }
+}
