@@ -1,4 +1,3 @@
-import Link from 'next/link'
 import ModelCalibrationChart from '@/components/ModelCalibrationChart'
 import type { ModelHealthDefinition, ModelHealthResponse } from '@/types'
 import MeterScale from './MeterScale'
@@ -127,10 +126,7 @@ export default function ScorecardView({ health, error = null }: Props) {
       )}
 
       <footer className="border-t border-line-subtle pt-6 text-sm text-ink-muted">
-        Official denials and contradicting evidence are always free to see on every rumour.{' '}
-        <Link href="/pricing" className="text-ink-soft underline-offset-2 hover:underline">
-          What&apos;s free and what&apos;s paid
-        </Link>
+        Official denials and contradicting evidence are always shown on every rumour.
       </footer>
     </div>
   )

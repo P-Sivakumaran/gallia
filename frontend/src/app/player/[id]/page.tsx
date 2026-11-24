@@ -1,36 +1,12 @@
 import { notFound } from 'next/navigation'
-import { cookies } from 'next/headers'
 import { api } from '@/lib/api'
 import RumourCard from '@/components/RumourCard'
-import WatchlistButton from '@/components/WatchlistButton'
-
-const BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001'
-
-async function isWatched(playerId: number, cookieHeader: string): Promise<boolean> {
-  if (!cookieHeader) return false
-  // Watch state is secondary: if the watchlist API is down, render the player as unwatched.
-  try {
-    const res = await fetch(`${BASE}/watchlist`, {
-      headers: { Cookie: cookieHeader },
-      cache: 'no-store',
-    })
-    if (!res.ok) return false
-    const items: { playerId: number }[] = await res.json()
-    return items.some((i) => i.playerId === playerId)
-  } catch {
-    return false
-  }
-}
 
 export default async function PlayerPage({ params }: { params: Promise<{ id: string }> }) {
   const { id: rawId } = await params
   const id = parseInt(rawId, 10)
   const player = await api.players.get(id).catch(() => null)
   if (!player) notFound()
-
-  const cookieStore = await cookies()
-  const authenticated = !!cookieStore.get('token')
-  const watched = await isWatched(id, cookieStore.toString())
 
   const contractEnd = player.contractEnd
     ? new Date(player.contractEnd).toLocaleDateString('en-GB', { month: 'short', year: 'numeric' })
@@ -64,7 +40,6 @@ export default async function PlayerPage({ params }: { params: Promise<{ id: str
             </div>
           </div>
         </div>
-        <WatchlistButton playerId={player.id} initialWatched={watched} authenticated={authenticated} />
       </div>
 
       {/* Rumours */}

@@ -1,10 +1,8 @@
 import { Suspense } from 'react'
-import { cookies } from 'next/headers'
 import Link from 'next/link'
 import { api } from '@/lib/api'
 import FilterBar from '@/components/FilterBar'
 import LiveRumourFeed from '@/components/LiveRumourFeed'
-import RemoveAdsBanner from '@/components/RemoveAdsBanner'
 import SectionKicker from '@/components/SectionKicker'
 import HomeHero from '@/components/live/HomeHero'
 import { RumourFeedProvider } from '@/components/live/RumourFeedProvider'
@@ -37,8 +35,6 @@ export default async function HomePage({
 
   const stats = await api.stats.overview()
   const totalPages = Math.ceil(total / limit)
-  const cookieStore = await cookies()
-  const adsEnabled = !cookieStore.get('ads_removed')
 
   return (
     <RumourFeedProvider initialRumours={rumours}>
@@ -58,8 +54,6 @@ export default async function HomePage({
           </div>
         ))}
       </dl>
-
-      {adsEnabled && <RemoveAdsBanner />}
 
       {/* Network CTA */}
       <Link
@@ -93,7 +87,7 @@ export default async function HomePage({
       </section>
 
       {/* Live feed */}
-      <LiveRumourFeed total={total} adsEnabled={adsEnabled} />
+      <LiveRumourFeed total={total} />
 
       {/* Pagination */}
       {totalPages > 1 && (

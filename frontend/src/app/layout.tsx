@@ -3,7 +3,6 @@ import { Inter, JetBrains_Mono } from 'next/font/google'
 import Link from 'next/link'
 import './globals.css'
 import { AuthProvider } from '@/components/AuthProvider'
-import AuthNav from '@/components/AuthNav'
 import GalliaLogo from '@/components/gallia/GalliaLogo'
 import SiteMain from '@/components/SiteMain'
 import { BRAND } from '@/lib/brand'
@@ -39,10 +38,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <Link href="/rumours" className="transition-colors hover:text-ink-primary">Rumours</Link>
               <Link href="/network" className="transition-colors hover:text-ink-primary">Network</Link>
               <Link href="/scorecard" className="transition-colors hover:text-ink-primary">Scorecard</Link>
-              <Link href="/pricing" className="transition-colors hover:text-ink-primary">Pricing</Link>
-              <Link href="/admin" className="transition-colors hover:text-ink-primary">Admin</Link>
             </div>
-            <AuthNav />
           </nav>
           <SiteMain>{children}</SiteMain>
         </AuthProvider>
