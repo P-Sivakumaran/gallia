@@ -3,12 +3,14 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import Link from 'next/link'
 import type { GalliaClaim, GalliaEvidence, GalliaWorkspace } from '@/lib/gallia-types'
-import { DeltaChip, Icon, ProbabilityMeter, Sparkline, StatusBadge } from './Primitives'
+import { DeltaChip, EvidenceBalance, Icon, ProbabilityMeter, Sparkline, StatusBadge } from './Primitives'
 import './gallia.css'
 
 const tabs = [
-  { name: 'Intelligence', icon: 'grid' }, { name: 'Watchlist', icon: 'star' },
-  { name: 'Sources & provenance', icon: 'branch' }, { name: 'Calibration', icon: 'chart' },
+  { name: 'Intelligence', shortName: 'Desk', icon: 'grid' },
+  { name: 'Watchlist', shortName: 'Watchlist', icon: 'star' },
+  { name: 'Sources & provenance', shortName: 'Sources', icon: 'branch' },
+  { name: 'Calibration', shortName: 'Calibration', icon: 'chart' },
 ]
 
 function PanelTitle({ icon, title, right }: { icon: string; title: string; right?: ReactNode }) {
@@ -22,7 +24,7 @@ function EvidenceNode({ evidence }: { evidence: GalliaEvidence }) {
   </details>
 }
 
-function Modal({ title, onClose, children }: { title: string; onClose: () => void; children: ReactNode }) {
+function Modal({ title, onClose, children, variant = 'default' }: { title: string; onClose: () => void; children: ReactNode; variant?: 'default' | 'dossier' | 'drawer' }) {
   const dialog = useRef<HTMLDialogElement>(null)
   useEffect(() => {
     const element = dialog.current
@@ -31,7 +33,7 @@ function Modal({ title, onClose, children }: { title: string; onClose: () => voi
     document.body.style.overflow = 'hidden'
     return () => { document.body.style.overflow = previousOverflow; element?.close() }
   }, [])
-  return <dialog ref={dialog} aria-label={title} className="g-dialog" onCancel={onClose} onClick={(e) => { if (e.target === dialog.current) onClose() }}>
+  return <dialog ref={dialog} aria-label={title} className={`g-dialog g-dialog-${variant}`} onCancel={onClose} onClick={(e) => { if (e.target === dialog.current) onClose() }}>
     <div className="g-dialog-inner"><div className="g-dialog-top"><span className="g-eyebrow">{title}</span><button className="g-icon-button" onClick={onClose} aria-label="Close dialog"><Icon name="close" /></button></div>{children}</div>
   </dialog>
 }
@@ -95,38 +97,90 @@ export default function GalliaDashboard({ workspace }: { workspace: GalliaWorksp
   </>
 
   return <div className="g-app">
-    <nav className="g-navigation" aria-label="Main navigation"><div className="g-nav-tabs">{tabs.map((item) => <button key={item.name} className={tab === item.name ? 'active' : ''} onClick={() => setTab(item.name)} aria-current={tab === item.name ? 'page' : undefined}><Icon name={item.icon} size={16} />{item.name}{item.name === 'Watchlist' && <span className="g-nav-count">{watched.length}</span>}</button>)}</div><button className="g-window" onClick={() => setMethodology(true)}><span className="g-status-dot" />SUMMER WINDOW <Icon name="down" size={13} /></button></nav>
+    <nav className="g-navigation" aria-label="Main navigation">
+      <div className="g-nav-tabs">
+        {tabs.map((item) => (
+          <button
+            key={item.name}
+            className={tab === item.name ? 'active' : ''}
+            onClick={() => setTab(item.name)}
+            aria-label={`${item.name}${item.name === 'Watchlist' ? ` ${watched.length}` : ''}`}
+            aria-current={tab === item.name ? 'page' : undefined}
+          >
+            <Icon name={item.icon} size={17} />
+            <span className="g-nav-label" aria-hidden="true">{item.name}</span>
+            <span className="g-nav-short-label" aria-hidden="true">{item.shortName}</span>
+            {item.name === 'Watchlist' && <span className="g-nav-count" aria-hidden="true">{watched.length}</span>}
+          </button>
+        ))}
+      </div>
+      <button className="g-window" onClick={() => setMethodology(true)}><span className="g-status-dot" />SUMMER WINDOW <span className="g-window-year">{demo ? '2025' : 'READ-ONLY'}</span><Icon name="down" size={13} /></button>
+    </nav>
     <div className="g-ticker"><span className="g-ticker-label"><Icon name="activity" size={14} />{demo ? 'SIGNAL PREVIEW' : 'LATEST EVIDENCE'}</span><div className="g-ticker-track">{claims.slice(0, 3).map((claim, i) => <button key={claim.id} onClick={() => setSelected(claim)}><span className="g-muted">{demo ? ['+12s', '+45s', '+2m'][i] : 'RECORD'}</span><strong>{claim.name}</strong><span className="g-ticker-route">→ {claim.to}</span><span className="g-tier">{claim.tier ? `T${claim.tier}` : '—'}</span><DeltaChip value={claim.delta} /></button>)}</div><span className="g-ticker-end">{demo ? 'ILLUSTRATIVE' : 'READ-ONLY'}</span></div>
     <div className="g-workspace">
-      <section className="g-page-heading"><div><div className="g-eyebrow"><span className="g-status-dot" /> LESS NOISE. MORE SIGNAL.</div><h1>The transfer intelligence desk<span>.</span></h1><p>Follow the evidence. Understand the odds. Stay ahead of the story.</p></div><button className="g-button" onClick={() => setDrawer(true)}><Icon name="star" size={15} />Your watchlist<span className="g-button-count">{watched.length}</span></button></section>
-      <div className="g-connection-notice"><span><span className="g-amber-dot" />{demo ? 'ILLUSTRATIVE WORKSPACE' : 'CONNECTED WORKSPACE'}</span><p>{workspace.reason}{demo ? ' · All stories, forecasts and scores below are examples, not live reporting.' : ''}</p><button onClick={() => setMethodology(true)}>Data status <Icon name="external" size={13} /></button></div>
+      <section className="g-page-heading"><div><div className="g-eyebrow"><span className="g-kicker-rule" aria-hidden="true" /> LESS NOISE. MORE SIGNAL.</div><h1>The transfer intelligence desk<span>.</span></h1><p>Follow the evidence. Understand the odds. Stay ahead of the story.</p></div><button className="g-button" onClick={() => setDrawer(true)}><Icon name="star" size={15} />Your watchlist<span className="g-button-count">{watched.length}</span></button></section>
+      <div className={`g-connection-notice ${demo ? 'is-illustrative' : 'is-connected'}`}><span><span className="g-amber-dot" />{demo ? 'ILLUSTRATIVE WORKSPACE' : 'CONNECTED WORKSPACE'}</span><p>{demo ? 'All stories, forecasts and scores below are examples, not live reporting.' : workspace.reason}</p><button title={workspace.reason} onClick={() => setMethodology(true)}>Data status <Icon name="external" size={13} /></button></div>
       <section className="g-metrics" aria-label="Workspace overview">
         {[{ label: 'ACTIVE SIGNALS', value: demo ? '1,284' : String(claims.length), change: demo ? '+36 today' : 'Public records', icon: 'activity', bars: [12, 20, 16, 27, 21, 30, 26, 37, 31, 40] },
           { label: 'HIGH-CONVICTION', value: demo ? '24' : '—', change: demo ? 'Above 70% likelihood' : 'Model verification pending', icon: 'shield', bars: [10, 15, 20, 14, 23, 28, 20, 30, 26, 35] },
           { label: 'SOURCES MONITORED', value: demo ? '186' : String(new Set(claims.flatMap((c) => c.evidence.map((e) => e.source))).size), change: demo ? 'Across 12 leagues' : 'In loaded evidence', icon: 'branch', bars: [13, 17, 16, 23, 22, 29, 27, 34, 32, 38] },
           { label: 'MODEL BRIER SCORE', value: demo ? '0.142' : '—', change: demo ? '↓ 0.018 vs. last window' : 'No verified score available', icon: 'chart', bars: [40, 35, 37, 28, 30, 24, 27, 18, 20, 14] },
-        ].map((metric) => <article className="g-metric" key={metric.label}><div><span className="g-eyebrow">{metric.label}</span><Icon name={metric.icon} size={16} /></div><div className="g-metric-bottom"><div><strong>{metric.value}</strong><p className={metric.label === 'MODEL BRIER SCORE' ? 'g-green' : ''}>{metric.change}</p></div><div className="g-mini-bars" aria-hidden="true">{metric.bars.map((n, i) => <i key={i} style={{ height: n }} />)}</div></div></article>)}
+        ].map((metric) => <article className="g-metric" key={metric.label}><div><span className="g-eyebrow">{metric.label}</span><Icon name={metric.icon} size={16} /></div><div className="g-metric-bottom"><div><strong>{metric.value}</strong><p className={metric.label === 'MODEL BRIER SCORE' ? 'g-green' : ''}>{metric.change}</p></div>{demo && <div className="g-mini-bars" aria-hidden="true">{metric.bars.map((n, i) => <i key={i} style={{ height: n }} />)}</div>}</div></article>)}
       </section>
-      <div className="g-tools"><div className="g-search"><Icon name="search" size={17} /><input ref={search} aria-label="Search players, clubs or claims" value={query} onChange={(e) => { setQuery(e.target.value); if (tab !== 'Watchlist') setTab('Intelligence') }} placeholder="Search players, clubs or claims…" /><kbd>⌘ K</kbd>{query && <button onClick={() => setQuery('')} aria-label="Clear search"><Icon name="close" size={14} /></button>}</div><div className="g-filter-controls"><label><span className="g-sr-only">League</span><select value={league} onChange={(e) => setLeague(e.target.value)}>{['All leagues', 'Premier League', 'Serie A', 'La Liga', 'Bundesliga', 'Ligue 1'].map((l) => <option key={l}>{l}</option>)}</select></label><label><span className="g-sr-only">Signal status</span><select value={status} onChange={(e) => setStatus(e.target.value)}>{['All signals', 'Hot', 'Smoke', 'Confirmed', 'Denied'].map((s) => <option key={s}>{s}</option>)}</select></label><label><span className="g-sr-only">Source tier</span><select value={tier} onChange={(e) => setTier(e.target.value)}><option>All tiers</option>{[1, 2, 3].map((t) => <option key={t} value={t}>Tier {t}</option>)}</select></label>{(league !== 'All leagues' || status !== 'All signals' || tier !== 'All tiers') && <button className="g-icon-button" aria-label="Reset filters" onClick={() => { setLeague('All leagues'); setStatus('All signals'); setTier('All tiers') }}><Icon name="close" size={16} /></button>}</div><span className="g-tool-caption"><Icon name="clock" size={14} />{demo ? 'Sample window · Jun 2025' : 'Refreshes every 30s on request'}</span></div>
+      <div className="g-tools"><div className="g-search"><Icon name="search" size={17} /><input ref={search} aria-label="Search players, clubs or claims" value={query} onChange={(e) => { setQuery(e.target.value); if (tab !== 'Watchlist') setTab('Intelligence') }} placeholder="Search players, clubs or claims…" /><kbd>⌘ K</kbd>{query && <button onClick={() => setQuery('')} aria-label="Clear search"><Icon name="close" size={14} /></button>}</div><div className="g-filter-controls"><label><span className="g-sr-only">League</span><select value={league} data-active={league !== 'All leagues'} onChange={(e) => setLeague(e.target.value)}>{['All leagues', 'Premier League', 'Serie A', 'La Liga', 'Bundesliga', 'Ligue 1'].map((l) => <option key={l}>{l}</option>)}</select></label><label><span className="g-sr-only">Signal status</span><select value={status} data-active={status !== 'All signals'} onChange={(e) => setStatus(e.target.value)}>{['All signals', 'Hot', 'Smoke', 'Confirmed', 'Denied'].map((s) => <option key={s}>{s}</option>)}</select></label><label><span className="g-sr-only">Source tier</span><select value={tier} data-active={tier !== 'All tiers'} onChange={(e) => setTier(e.target.value)}><option>All tiers</option>{[1, 2, 3].map((t) => <option key={t} value={t}>Tier {t}</option>)}</select></label>{(league !== 'All leagues' || status !== 'All signals' || tier !== 'All tiers') && <button className="g-icon-button" aria-label="Reset filters" onClick={() => { setLeague('All leagues'); setStatus('All signals'); setTier('All tiers') }}><Icon name="close" size={16} /></button>}</div><span className="g-tool-caption"><Icon name="clock" size={14} />{demo ? 'Sample window · Jun 2025' : 'Refreshes every 30s on request'}</span></div>
 
       {(tab === 'Intelligence' || tab === 'Watchlist') && <>
         {tab === 'Intelligence' && hero && <div className="g-hero-grid">
           <section className="g-panel g-hero">
-            <div className="g-hero-top"><span className="g-eyebrow"><span className="g-feature-mark">↗</span> RUMOUR OF THE DAY</span><span className="g-claim-id">CLAIM / {hero.id.replace('demo-', '').padStart(4, '0')}</span><button className={`g-icon-button ${watched.includes(hero.id) ? 'g-is-watched' : ''}`} onClick={() => toggleWatch(hero.id)} aria-label={`${watched.includes(hero.id) ? 'Unwatch' : 'Watch'} ${hero.name}`} aria-pressed={watched.includes(hero.id)}><Icon name="star" size={18} /></button></div>
-            <div className="g-hero-main"><div className="g-hero-story"><div className="g-hero-tags"><StatusBadge status={hero.status} /><span className="g-muted">{hero.position} <span className="g-divider">/</span> {hero.age} <span className="g-divider">/</span> {hero.nationality}</span></div><h2>{hero.name}</h2><p className="g-hero-headline">{hero.headline}</p><div className="g-transfer-route"><span className="g-club-crest sporting">{hero.from.slice(0, 3).toUpperCase()}</span><strong>{hero.from}</strong><Icon name="arrow" size={20} /><span className="g-club-crest arsenal">{hero.to.slice(0, 3).toUpperCase()}</span><strong>{hero.to}</strong></div><div className="g-hero-delta"><DeltaChip value={hero.delta} /><span>{demo ? 'since tier-1 briefing' : 'Awaiting a verified forecast'}</span></div></div><div className="g-hero-forecast"><ProbabilityMeter value={hero.probability} /><div className="g-corridor-label"><span />{demo ? 'Illustrative range: 66–82%' : 'Forecast pending 200 resolved data points'}</div></div></div>
+            <div className="g-hero-top"><span className="g-eyebrow"><Icon name="activity" size={16} /> RUMOUR OF THE DAY</span><span className="g-claim-id">CLAIM / {hero.id.replace('demo-', '').padStart(4, '0')}</span><button className={`g-icon-button ${watched.includes(hero.id) ? 'g-is-watched' : ''}`} onClick={() => toggleWatch(hero.id)} aria-label={`${watched.includes(hero.id) ? 'Unwatch' : 'Watch'} ${hero.name}`} aria-pressed={watched.includes(hero.id)}><Icon name="star" size={18} /></button></div>
+            <div className="g-hero-main">
+              <div className="g-hero-story">
+                <div className="g-hero-tags"><StatusBadge status={hero.status} /><span className="g-muted">{hero.position} <span className="g-divider">/</span> {hero.age} <span className="g-divider">/</span> {hero.nationality}</span></div>
+                <h2>{hero.name}</h2>
+                <p className="g-hero-headline">{hero.headline}</p>
+                <div className="g-transfer-route">
+                  <div className="g-route-club"><span className="g-club-code" aria-hidden="true">{hero.from.slice(0, 3).toUpperCase()}</span><span><small>CURRENT CLUB</small><strong>{hero.from}</strong></span></div>
+                  <span className="g-route-arrow"><Icon name="arrow" size={18} /></span>
+                  <div className="g-route-club"><span className="g-club-code destination" aria-hidden="true">{hero.to.slice(0, 3).toUpperCase()}</span><span><small>DESTINATION</small><strong>{hero.to}</strong></span></div>
+                </div>
+                <div className="g-hero-delta"><DeltaChip value={hero.delta} /><span>{demo ? 'since tier-1 briefing' : 'Awaiting a verified forecast'}</span></div>
+              </div>
+              <div className="g-hero-forecast">
+                <span className="g-forecast-caption">{demo ? 'ILLUSTRATIVE FORECAST' : 'CALIBRATED FORECAST'}</span>
+                <ProbabilityMeter value={hero.probability} range={demo ? [66, 82] : undefined} />
+                <div className="g-corridor-label"><span />{demo ? 'Illustrative range: 66–82%' : 'Forecast pending 200 resolved data points'}</div>
+              </div>
+            </div>
             <div className="g-route-matrix">{[{ label: 'ESTIMATED FEE', value: hero.fee }, { label: 'CONTRACT EXPIRES', value: hero.contract }, { label: 'REPRESENTATION', value: demo ? 'HCM Sports Management' : 'Not disclosed' }, { label: 'REPORTED WAGES', value: demo ? '€200k / week' : 'Not disclosed' }].map((item) => <div key={item.label}><span className="g-eyebrow">{item.label}</span><strong>{item.value}</strong></div>)}</div>
-            <div className="g-hero-bottom"><span><Icon name="branch" size={14} />{hero.evidence.length} evidence items <span className="g-divider">·</span> {new Set(hero.evidence.map((e) => e.parentId || e.id)).size} origin clusters</span><button className="g-green-link" onClick={() => setSelected(hero)}>Open claim dossier <Icon name="arrow" size={16} /></button></div>
+            <div className="g-hero-bottom"><span><Icon name="branch" size={14} />{hero.evidence.length} evidence items <span className="g-divider">·</span> {new Set(hero.evidence.map((e) => e.parentId || e.id)).size} origin clusters</span><button className="g-button g-button-primary" onClick={() => setSelected(hero)}>Open claim dossier <Icon name="arrow" size={16} /></button></div>
           </section>
           <aside className="g-panel g-watchlist"><PanelTitle icon="star" title="Your watchlist" right={<button className="g-icon-button" onClick={() => setDrawer(true)} aria-label="Manage watchlist"><Icon name="settings" size={16} /></button>} />{watchlistContent}</aside>
         </div>}
         <div className="g-secondary-grid">
-          <section className="g-panel g-feed" id="signals"><PanelTitle icon="activity" title={tab === 'Watchlist' ? 'Your tracked signals' : 'On the radar'} right={<span className="g-count-label">{filtered.length} SIGNALS</span>} /><div className="g-feed-toolbar"><div className="g-feed-tabs"><button className={status === 'All signals' ? 'active' : ''} onClick={() => setStatus('All signals')}>All signals</button><button className={status === 'Hot' ? 'active' : ''} onClick={() => setStatus('Hot')}>High conviction <span>{claims.filter((c) => c.status === 'Hot').length}</span></button><button className={status === 'Confirmed' ? 'active' : ''} onClick={() => setStatus('Confirmed')}>Confirmed</button></div><label className="g-sort"><span className="g-sr-only">Sort signals</span><select value={sort} onChange={(e) => setSort(e.target.value)}><option>Signal strength</option><option>Biggest movement</option><option>Player A–Z</option></select></label></div>
+          <section className="g-panel g-feed" id="signals"><PanelTitle icon="activity" title={tab === 'Watchlist' ? 'Your tracked signals' : 'On the radar'} right={<span className="g-count-label">{filtered.length} SIGNALS</span>} /><div className="g-feed-toolbar"><div className="g-feed-tabs"><button className={status === 'All signals' ? 'active' : ''} aria-pressed={status === 'All signals'} onClick={() => setStatus('All signals')}>All signals</button><button className={status === 'Hot' ? 'active' : ''} aria-pressed={status === 'Hot'} onClick={() => setStatus('Hot')}>High conviction <span>{claims.filter((c) => c.status === 'Hot').length}</span></button><button className={status === 'Confirmed' ? 'active' : ''} aria-pressed={status === 'Confirmed'} onClick={() => setStatus('Confirmed')}>Confirmed</button></div><label className="g-sort"><span className="g-sr-only">Sort signals</span><select value={sort} onChange={(e) => setSort(e.target.value)}><option>Signal strength</option><option>Biggest movement</option><option>Player A–Z</option></select></label></div>
             <div className="g-feed-columns"><span>PLAYER / TRANSFER ROUTE</span><span>60D TREND</span><span>LIKELIHOOD</span><span>24H Δ</span><span /></div>
-            <div className="g-feed-list">{filtered.map((claim) => <article className="g-feed-row" key={claim.id}><button className="g-feed-player" onClick={() => setSelected(claim)}><span className={`g-player-monogram ${claim.status === 'Confirmed' ? 'confirmed' : ''}`}>{claim.name.split(' ').map((n) => n[0]).slice(0, 2).join('')}</span><span><span className="g-player-name">{claim.name}<span className="g-position">{claim.position}</span></span><span className="g-feed-route">{claim.from} <span>→</span> {claim.to}</span></span></button><div className="g-row-trend"><Sparkline values={claim.trend} negative={(claim.delta ?? 0) < 0} /></div><div className="g-row-prob"><strong className={claim.status === 'Smoke' ? 'g-muted' : ''}>{claim.probability ?? '—'}{claim.probability !== null && <small>%</small>}</strong><span className={`g-small-status ${claim.status.toLowerCase()}`}>{claim.status.toUpperCase()}</span></div><DeltaChip value={claim.delta} /><button className={`g-icon-button ${watched.includes(claim.id) ? 'g-is-watched' : ''}`} onClick={() => toggleWatch(claim.id)} aria-label={`${watched.includes(claim.id) ? 'Unwatch' : 'Watch'} ${claim.name}`} aria-pressed={watched.includes(claim.id)}><Icon name="star" size={16} /></button></article>)}</div>
+            <div className="g-feed-list">
+              {filtered.map((claim) => (
+                <article className="g-feed-row" key={claim.id}>
+                  <button className="g-feed-player" aria-label={`Open dossier for ${claim.name}`} onClick={() => setSelected(claim)}>
+                    <span className={`g-player-monogram ${claim.status === 'Confirmed' ? 'confirmed' : ''}`} aria-hidden="true">{claim.name.split(' ').map((n) => n[0]).slice(0, 2).join('')}</span>
+                    <span><span className="g-player-name">{claim.name}<span className="g-position">{claim.position}</span></span><span className="g-feed-route">{claim.from} <span>→</span> {claim.to}</span></span>
+                  </button>
+                  <div className="g-row-trend"><Sparkline values={claim.trend} negative={(claim.delta ?? 0) < 0} /></div>
+                  <div className={`g-row-prob ${claim.status.toLowerCase()}`}>
+                    <strong>{claim.probability ?? '—'}{claim.probability !== null && <small>%</small>}</strong>
+                    {claim.probability !== null && <span className="g-probability-track" aria-hidden="true"><i style={{ width: `${claim.probability}%` }} /></span>}
+                    <span className={`g-small-status ${claim.status.toLowerCase()}`}>{claim.status.toUpperCase()}</span>
+                  </div>
+                  <DeltaChip value={claim.delta} />
+                  <button className={`g-icon-button ${watched.includes(claim.id) ? 'g-is-watched' : ''}`} onClick={() => toggleWatch(claim.id)} aria-label={`${watched.includes(claim.id) ? 'Unwatch' : 'Watch'} ${claim.name}`} aria-pressed={watched.includes(claim.id)}><Icon name="star" size={16} /></button>
+                </article>
+              ))}
+            </div>
             {!filtered.length && <div className="g-empty"><Icon name="search" size={24} /><h3>No active smoke in this sector.</h3><p>Try another player or broaden your filters.</p><button className="g-button" onClick={() => { setQuery(''); setLeague('All leagues'); setStatus('All signals'); setTier('All tiers') }}>Clear search & filters</button></div>}
             <div className="g-panel-foot"><span>Evidence over engagement. Always.</span><span>{demo ? 'EXAMPLE DATASET / 06' : `${claims.length} LOADED RECORDS`}</span></div>
           </section>
-          <aside className="g-panel g-provenance"><PanelTitle icon="branch" title="Follow the evidence" right={<span className="g-tier">PROVENANCE</span>} />{hero ? <><div className="g-provenance-intro"><span className="g-eyebrow">CANONICAL CLAIM</span><h3>{hero.name} → {hero.to}</h3><p>{demo ? 'Personal terms agreed on a five-year contract.' : hero.headline}</p></div><div className="g-evidence-tree">{hero.evidence.slice(0, 3).map((e) => <EvidenceNode evidence={e} key={e.id} />)}{!hero.evidence.length && <p className="g-empty">No published evidence available.</p>}</div><button className="g-provenance-all" onClick={() => setSelected(hero)}>Explore full evidence tree <Icon name="arrow" size={16} /></button></> : <p className="g-empty">No claims available.</p>}</aside>
+          <aside className="g-panel g-provenance"><PanelTitle icon="branch" title="Follow the evidence" right={<span className="g-tier">PROVENANCE</span>} />{hero ? <><div className="g-provenance-intro"><span className="g-eyebrow">CANONICAL CLAIM</span><h3>{hero.name} → {hero.to}</h3><p>{demo ? 'Personal terms agreed on a five-year contract.' : hero.headline}</p></div><EvidenceBalance evidence={hero.evidence} /><div className="g-evidence-tree">{hero.evidence.slice(0, 4).map((e) => <EvidenceNode evidence={e} key={e.id} />)}{!hero.evidence.length && <p className="g-empty">No published evidence available.</p>}</div><button className="g-provenance-all" onClick={() => setSelected(hero)}>Explore full evidence tree <Icon name="arrow" size={16} /></button></> : <p className="g-empty">No claims available.</p>}</aside>
         </div>
       </>}
       {tab === 'Sources & provenance' && <section className="g-panel g-source-view"><PanelTitle icon="branch" title="The provenance engine" right={<span className="g-tier">ORIGINS, NOT ECHOES</span>} /><div className="g-source-intro"><h2>Every claim has a paper trail.</h2><p>Independent reporting is separated from syndication. Open a source to inspect the original excerpt and lineage.</p></div>{claims.filter((c) => c.evidence.length).map((claim) => <div className="g-source-claim" key={claim.id}><h3>{claim.name} <span className="g-muted">→ {claim.to}</span></h3>{claim.evidence.map((e) => <EvidenceNode key={e.id} evidence={e} />)}</div>)}{!claims.some((c) => c.evidence.length) && <p className="g-empty">No accessible evidence records in this workspace.</p>}</section>}
@@ -137,8 +191,35 @@ export default function GalliaDashboard({ workspace }: { workspace: GalliaWorksp
       ].map((row) => <tr key={row.player}><td><strong>{row.player}</strong><span>{row.route}</span></td><td className="g-mono">{row.peak}</td><td><Sparkline values={row.trend} negative={row.outcome === 'Failed'} /></td><td className="g-window-cell">{row.window}</td><td><span className={`g-outcome ${row.outcome === 'Failed' ? 'failed' : ''}`}><Icon name={row.outcome === 'Failed' ? 'close' : 'check'} size={13} />{row.outcome}</span></td><td className="g-mono">{row.brier}</td><td className={`g-mono ${row.outcome === 'Failed' ? 'g-red' : 'g-green'}`}>{row.payout}</td></tr>)}</tbody></table>{!demo && <p className="g-empty">Forecast pending 200 resolved data points. No verified calibration records are exposed by this connection.</p>}</div><div className="g-panel-foot"><span><Icon name="shield" size={14} />{demo ? 'Illustrative records · not an audited performance claim' : 'No synthetic scores presented as calibrated forecasts'}</span><button className="g-text-button" onClick={() => setMethodology(true)}>How we measure <Icon name="arrow" size={14} /></button></div></section>}
       <footer className="g-footer"><div><strong>GALLIA</strong><span>Born in the lobby. Built for the signal.</span></div><div><span className="g-status-dot" />{demo ? 'DEMO WORKSPACE' : 'SUPABASE READ-ONLY'}<span className="g-divider">/</span><button onClick={() => setMethodology(true)}>Methodology & data</button><span className="g-divider">/</span><span>NOT FINANCIAL ADVICE</span></div></footer>
     </div>
-    {selected && <Modal title={`CLAIM DOSSIER / ${selected.id}`} onClose={() => setSelected(null)}><div className="g-dossier-heading"><StatusBadge status={selected.status} /><h2>{selected.name}</h2><p>{selected.from} → {selected.to}</p><p className="g-muted">{selected.headline}</p>{demo && <div className="g-dossier-warning">Illustrative dossier. Source attributions, excerpts and probabilities are sample content, not live reporting.</div>}</div><div className="g-dossier-stats"><div><span className="g-eyebrow">LIKELIHOOD</span><strong>{selected.probability !== null ? `${selected.probability}%` : 'Pending'}</strong></div><div><span className="g-eyebrow">ESTIMATED FEE</span><strong>{selected.fee}</strong></div><div><span className="g-eyebrow">EVIDENCE ITEMS</span><strong>{selected.evidence.length}</strong></div><button className="g-button" onClick={() => toggleWatch(selected.id)}><Icon name="star" size={16} />{watched.includes(selected.id) ? 'Following' : 'Follow player'}</button></div><section className="g-dossier-section"><h3>Probability evolution <span className="g-tier">60-DAY WINDOW</span></h3><Sparkline values={selected.trend} large /><div className="g-chart-axis"><span>DAY −60</span><span>DAY −30</span><span>LATEST</span></div></section><section className="g-dossier-section"><h3>Raw lineage & article excerpts</h3><p className="g-muted">Original signals, supporting reports and contradictions. Expand each node to inspect its excerpt.</p><div className="g-evidence-tree">{selected.evidence.map((e) => <EvidenceNode key={e.id} evidence={e} />)}</div>{!selected.evidence.length && <div className="g-empty">No raw excerpts are available for this claim. We don’t invent the missing paper trail.</div>}<p className="g-extraction-note"><Icon name="book" size={15} />{demo ? 'Crawl4AI extraction preview · no live crawl has been performed.' : 'Stored excerpts are shown as received. Extraction provider is not verified.'}</p></section></Modal>}
-    {drawer && <Modal title="YOUR WATCHLIST" onClose={() => setDrawer(false)}><div className="g-drawer-heading"><h2>Keep your eye on the signal.</h2><p>Players you’re tracking in this session.</p></div>{watchlistContent}<div className="g-session-note"><Icon name="shield" size={18} /><p>This workspace’s watchlist and preferences are temporary. <Link href="/watchlist">Open account watchlist</Link> for the imported app’s signed-in tracking. Push and digest delivery are not connected.</p></div></Modal>}
+    {selected && (
+      <Modal title={`CLAIM DOSSIER / ${selected.id}`} variant="dossier" onClose={() => setSelected(null)}>
+        <div className="g-dossier-heading">
+          <StatusBadge status={selected.status} /><h2>{selected.name}</h2>
+          <p>{selected.from} → {selected.to}</p><p className="g-muted">{selected.headline}</p>
+          {demo && <div className="g-dossier-warning">Illustrative dossier. Source attributions, excerpts and probabilities are sample content, not live reporting.</div>}
+        </div>
+        <div className="g-dossier-stats">
+          <div><span className="g-eyebrow">LIKELIHOOD</span><strong>{selected.probability !== null ? `${selected.probability}%` : 'Pending'}</strong></div>
+          <div><span className="g-eyebrow">ESTIMATED FEE</span><strong>{selected.fee}</strong></div>
+          <div><span className="g-eyebrow">EVIDENCE ITEMS</span><strong>{selected.evidence.length}</strong></div>
+          <button className="g-button" onClick={() => toggleWatch(selected.id)}><Icon name="star" size={16} />{watched.includes(selected.id) ? 'Following' : 'Follow player'}</button>
+        </div>
+        <section className="g-dossier-section">
+          <h3>Probability evolution <span className="g-tier">60-DAY WINDOW</span></h3>
+          <Sparkline values={selected.trend} large />
+          {selected.trend.length > 1 && <div className="g-chart-axis"><span>DAY −60</span><span>DAY −30</span><span>LATEST</span></div>}
+        </section>
+        <section className="g-dossier-section">
+          <h3>Raw lineage & article excerpts</h3>
+          <p className="g-muted">Original signals, supporting reports and contradictions. Expand each node to inspect its excerpt.</p>
+          <EvidenceBalance evidence={selected.evidence} />
+          <div className="g-evidence-tree">{selected.evidence.map((e) => <EvidenceNode key={e.id} evidence={e} />)}</div>
+          {!selected.evidence.length && <div className="g-empty">No raw excerpts are available for this claim. We don’t invent the missing paper trail.</div>}
+          <p className="g-extraction-note"><Icon name="book" size={15} />{demo ? 'Crawl4AI extraction preview · no live crawl has been performed.' : 'Stored excerpts are shown as received. Extraction provider is not verified.'}</p>
+        </section>
+      </Modal>
+    )}
+    {drawer && <Modal title="YOUR WATCHLIST" variant="drawer" onClose={() => setDrawer(false)}><div className="g-drawer-heading"><h2>Keep your eye on the signal.</h2><p>Players you’re tracking in this session.</p></div>{watchlistContent}<div className="g-session-note"><Icon name="shield" size={18} /><p>This workspace’s watchlist and preferences are temporary. <Link href="/watchlist">Open account watchlist</Link> for the imported app’s signed-in tracking. Push and digest delivery are not connected.</p></div></Modal>}
     {methodology && <Modal title="METHODOLOGY & DATA STATUS" onClose={() => setMethodology(false)}><div className="g-drawer-heading"><h2>Trust is a paper trail.</h2><p>We show what we know. And what we don’t.</p></div><div className="g-methodology"><h3>Connection status</h3><p>{workspace.reason}. {demo ? 'The public Supabase key is linked, but table reads are not authorized or are unavailable. No database password is required to view this demo, and permissions have not been changed.' : 'Records are read using the connected Supabase public role and its existing access policies.'}</p><h3>Forecasts are earned, not invented</h3><p>Real claims do not receive an inferred probability. The imported forecasting pipeline requires real resolved outcomes and a verified model before publishing calibrated predictions. The illustrative workspace’s figures do not satisfy that requirement.</p><h3>The Brier score</h3><p>Mean squared error between a probability and a binary outcome: (p − y)². Zero is perfect; lower is better. A 96% forecast that completes has an error of 0.0016. The ledger’s payout delta is the illustrative outcome residual (y − p), not a monetary return.</p><h3>Evidence is not a popularity contest</h3><p>Five syndicated stories from one report are one origin, not five independent confirmations. Supporting, contradicting and contextual evidence remain visible together.</p><h3>Current implementation limits</h3><p>The summer 2025 window is an editorial demo. SSE delivery, account persistence, Crawl4AI ingestion and push notifications are not connected to this new desk. The imported backend implementations remain intact.</p></div></Modal>}
     <div className={`g-toast ${notice ? 'visible' : ''}`} role="status" aria-live="polite">{notice && <><Icon name="check" size={17} />{notice}</>}</div>
   </div>

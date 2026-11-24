@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import type { SignalStatus } from '@/lib/gallia-types'
+import type { GalliaEvidence, SignalStatus } from '@/lib/gallia-types'
 
 export function Icon({ name, size = 18 }: { name: string; size?: number }) {
   const paths: Record<string, ReactNode> = {
@@ -46,18 +46,55 @@ export function Sparkline({ values, negative = false, large = false }: { values:
   </svg>
 }
 
-export function ProbabilityMeter({ value }: { value: number | null }) {
-  return <div className="g-meter">
-    <svg viewBox="0 0 240 146" aria-hidden="true">
-      <path className="g-meter-track" d="M24 122a96 96 0 0 1 192 0" pathLength="100" />
-      <path className="g-meter-corridor" d="M24 122a96 96 0 0 1 192 0" pathLength="100" strokeDasharray="17 100" strokeDashoffset="-65" />
-      <path className="g-meter-fill" d="M24 122a96 96 0 0 1 192 0" pathLength="100" strokeDasharray={`${value ?? 0} 100`} />
-      {[0, 25, 50, 75, 100].map((n) => {
-        const angle = Math.PI + n / 100 * Math.PI
-        return <line key={n} x1={120 + 82 * Math.cos(angle)} x2={120 + 76 * Math.cos(angle)} y1={122 + 82 * Math.sin(angle)} y2={122 + 76 * Math.sin(angle)} stroke="#586361" />
-      })}
-    </svg>
-    <div className="g-meter-value">{value ?? '—'}{value !== null && <span>%</span>}<small>{value === null ? 'FORECAST PENDING' : 'TRANSFER LIKELIHOOD'}</small></div>
-    <div className="g-meter-scale"><span>0%</span><span>100%</span></div>
-  </div>
+export function ProbabilityMeter({ value, range }: { value: number | null; range?: [number, number] }) {
+  const probability = value === null ? null : Math.min(100, Math.max(0, value))
+  const point = (percentage: number, radius: number) => {
+    const angle = Math.PI + percentage / 100 * Math.PI
+    return { x: 120 + radius * Math.cos(angle), y: 122 + radius * Math.sin(angle) }
+  }
+
+  return (
+    <div className="g-meter" role="img" aria-label={probability === null ? 'Forecast pending' : `Transfer likelihood: ${probability}%`}>
+      <svg viewBox="0 0 240 160" aria-hidden="true">
+        {probability !== null && range && (
+          <path className="g-meter-corridor" d="M24 122a96 96 0 0 1 192 0" pathLength="100" strokeDasharray={`${range[1] - range[0]} 100`} strokeDashoffset={-range[0]} />
+        )}
+        {Array.from({ length: 40 }, (_, index) => {
+          const start = point(index * 2.5 + .4, 96)
+          const end = point((index + 1) * 2.5 - .4, 96)
+          return <path key={index} className={`g-meter-segment ${probability !== null && (index + .5) * 2.5 <= probability ? 'is-filled' : ''}`} d={`M${start.x} ${start.y}A96 96 0 0 1 ${end.x} ${end.y}`} />
+        })}
+        {Array.from({ length: 21 }, (_, index) => {
+          const outer = point(index * 5, 81)
+          const inner = point(index * 5, index % 5 === 0 ? 73 : 77)
+          return <line key={index} x1={outer.x} x2={inner.x} y1={outer.y} y2={inner.y} className="g-meter-tick" />
+        })}
+      </svg>
+      <div className="g-meter-value" aria-hidden="true">{probability ?? '—'}{probability !== null && <span>%</span>}<small>{probability === null ? 'FORECAST PENDING' : 'TRANSFER LIKELIHOOD'}</small></div>
+      <div className="g-meter-scale" aria-hidden="true"><span>0%</span><span>100%</span></div>
+    </div>
+  )
+}
+
+export function EvidenceBalance({ evidence }: { evidence: GalliaEvidence[] }) {
+  if (!evidence.length) return null
+  const directions = [
+    { direction: 'SUPPORTS', label: 'supports', className: 'supports' },
+    { direction: 'CONTRADICTS', label: 'contradicts', className: 'contradicts' },
+    { direction: 'CONTEXTUAL', label: 'contextual', className: 'contextual' },
+  ].map((item) => ({
+    ...item,
+    count: evidence.filter((entry) => entry.direction === item.direction).length,
+  }))
+
+  return (
+    <div className="g-evidence-balance" role="group" aria-label="Evidence direction breakdown">
+      <div className="g-evidence-balance-track" aria-hidden="true">
+        {directions.filter((item) => item.count > 0).map((item) => <span key={item.direction} className={item.className} style={{ flex: item.count }} />)}
+      </div>
+      <div className="g-evidence-balance-labels">
+        {directions.map((item) => <span key={item.direction} className={item.className}><i aria-hidden="true" />{item.count} {item.label}</span>)}
+      </div>
+    </div>
+  )
 }

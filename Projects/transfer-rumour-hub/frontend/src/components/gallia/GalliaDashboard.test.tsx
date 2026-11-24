@@ -65,6 +65,25 @@ describe('Gallia intelligence desk', () => {
     expect(screen.getByText(/Illustrative excerpt: Sporting have not accepted/)).toBeVisible()
   })
 
+  it('summarizes all three evidence directions and keeps contextual reporting visible', () => {
+    render(<GalliaDashboard workspace={workspace} />)
+    const balance = screen.getByRole('group', { name: 'Evidence direction breakdown' })
+    expect(within(balance).getByText('2 supports')).toBeInTheDocument()
+    expect(within(balance).getByText('1 contradicts')).toBeInTheDocument()
+    expect(within(balance).getByText('1 contextual')).toBeInTheDocument()
+    expect(screen.getByText('A centre-forward remains the summer priority')).toBeVisible()
+  })
+
+  it('keeps the command-key search accessible from the navigation', async () => {
+    const user = userEvent.setup()
+    render(<GalliaDashboard workspace={workspace} />)
+    await user.keyboard('{Meta>}k{/Meta}')
+    expect(screen.getByRole('textbox', { name: 'Search players, clubs or claims' })).toHaveFocus()
+    await user.type(screen.getByRole('textbox'), 'Arsenal')
+    await user.keyboard('{Escape}')
+    expect(screen.getByRole('textbox')).toHaveValue('')
+  })
+
   it('does not display example performance in a connected empty workspace', () => {
     render(<GalliaDashboard workspace={{ mode: 'connected', reason: 'Authorized public records', claims: [] }} />)
     expect(screen.getByText('CONNECTED WORKSPACE')).toBeInTheDocument()

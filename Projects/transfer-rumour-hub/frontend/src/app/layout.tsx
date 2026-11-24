@@ -15,11 +15,19 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`${inter.variable} ${mono.variable}`}>
-      <body className="min-h-screen font-sans antialiased">
+      <body className="min-h-screen antialiased">
         <AuthProvider>
           <header className="g-header">
-            <Link href="/" className="g-wordmark" aria-label="Gallia home"><span className="g-brand-icon" aria-hidden="true">G</span>GALLIA<span className="g-brand-dot" /></Link>
-            <span className="g-brand-caption">THE TRANSFER INTELLIGENCE TERMINAL</span>
+            <Link href="/" className="g-wordmark" aria-label="Gallia home">
+              <span className="g-brand-icon" aria-hidden="true">
+                <svg width="32" height="36" viewBox="0 0 32 36" fill="none">
+                  <path d="M28 9V3H4v30h24V18H16v7h5" stroke="currentColor" strokeWidth="1.5" />
+                  <path d="M11 26V10h10" stroke="currentColor" strokeWidth="1.5" />
+                </svg>
+              </span>
+              GALLIA<span className="g-brand-dot" />
+            </Link>
+            <span className="g-brand-caption"><span>TRANSFER INTELLIGENCE</span><span>CALCIOMERCATO, QUANTIFIED.</span></span>
             <div className="g-header-right"><span className="g-edition">MILANO · EST. 2025</span><Link className="g-avatar" href="/login" aria-label="Sign in to your account">G</Link></div>
           </header>
           <main>{children}</main>
