@@ -94,7 +94,6 @@
   border-bottom: 1px solid var(--border-subtle);
   background: var(--surface-inset);
 }
-.g-site-nav > :last-child { margin-left: auto; }
 
 @layer utilities {
   .scrollbar-thin {

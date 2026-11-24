@@ -87,7 +87,9 @@ export default function TruthMeter({ score, status, size = 'md', pulseKey = 0, i
 
   const polar = (r: number, pct: number) => {
     const a = ((-90 + (pct / 100) * 360) * Math.PI) / 180
-    return [c0 + r * Math.cos(a), c0 + r * Math.sin(a)] as const
+    // Rounded so server (Node) and browser trig agree on the last digits; unrounded coords caused a hydration mismatch.
+    const round = (n: number) => Math.round(n * 1000) / 1000
+    return [round(c0 + r * Math.cos(a)), round(c0 + r * Math.sin(a))] as const
   }
 
   // Graduated scale: a mark every 5 units (every 2 on the 240px dial), majors at 0/25/50/75.
