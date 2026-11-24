@@ -131,7 +131,11 @@ export async function resolveWindowOutcomes(
     if (!cutoff) continue
 
     if (now.getTime() > cutoff.getTime() + GRACE_PERIOD_MS) {
-      const isCompleted = Boolean(r.player && r.player.currentClubId === r.toClubId)
+      // Unknown club data is not evidence that a transfer failed. Auto-created
+      // or unsynced players often have null currentClubId until the catalog
+      // sync catches up, so leave those rumours open for a later pass.
+      if (r.player.currentClubId == null) continue
+      const isCompleted = r.player.currentClubId === r.toClubId
       const outcome = isCompleted ? RumourStatus.COMPLETED : RumourStatus.FAILED
 
       await applyOutcome(r.id, outcome, db)

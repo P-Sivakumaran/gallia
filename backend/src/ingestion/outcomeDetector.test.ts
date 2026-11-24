@@ -216,4 +216,41 @@ describe('outcomeDetector: resolveWindowOutcomes', () => {
     expect(summary.completed).toBe(0)
     expect(summary.failed).toBe(0)
   })
+
+  it('does not fail an expired rumour when the player current club is unknown', async () => {
+    const mockDb = {
+      rumour: {
+        findMany: vi.fn(),
+        update: vi.fn(),
+      },
+      rumourHistory: {
+        create: vi.fn(),
+      },
+    } as unknown as PrismaClient
+
+    vi.mocked(mockDb.rumour.findMany).mockResolvedValue([
+      {
+        id: 4,
+        window: 'SUMMER',
+        rumourDate: new Date('2026-07-20T12:00:00Z'),
+        toClubId: 100,
+        sourceId: 5,
+        status: RumourStatus.HOT,
+        computedLikelihood: 80,
+        player: { currentClubId: null },
+      },
+    ] as any)
+
+    const summary = await resolveWindowOutcomes(mockDb, new Date('2026-09-10T12:00:00Z'), {
+      summerCutoffMonthDay: '09-02',
+      winterCutoffMonthDay: '02-02',
+    })
+
+    expect(summary.checked).toBe(1)
+    expect(summary.resolved).toBe(0)
+    expect(summary.completed).toBe(0)
+    expect(summary.failed).toBe(0)
+    expect(mockDb.rumour.update).not.toHaveBeenCalled()
+    expect(mockDb.rumourHistory.create).not.toHaveBeenCalled()
+  })
 })
