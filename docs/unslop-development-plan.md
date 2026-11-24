@@ -244,3 +244,33 @@ Closes the remaining open UI and branding items across the codebase.
 - Tests: frontend 105/105, backend 166/166 passing (271/271 total).
 - Linter & Typecheck: 0 errors.
 - Detector: 0 red findings across both frontend and backend.
+
+---
+
+## 8. Iteration 5 (2026-11-24): the animations, built out
+
+Each move says one thing, following raea's animate guide. There is one easing family: out-cubic for arrivals and in-out for value changes.
+
+| Moment | Motion | What it says |
+|---|---|---|
+| Arrival (first load of a session) | The headline, ticker and card rise in order. The route builds FROM → the arrow draws → to-club. Stat cells follow, then the meter powers on. | The order matches the rumour-of-the-day story. |
+| Arrival | The radar turns once. Each source blip lights at the moment the beam crosses it (`blipDelay` solves the out-cubic ease for its angle). | Cause, then effect: one blip per source. |
+| Arrival | The verdict slams in last. | The conclusion lands after the evidence. |
+| Arrival | Feed cards rise 70 ms apart. | — |
+| Live score change | Digits roll in, the arc and cursor ease to the new value, and the ▲/▼ chip shows. | The number changed, and by how much. |
+| Live status change | The card edge flashes once in the new colour, the badge pops, the meter sends out one ring, and the hero verdict slams again. | The state changed. |
+| Hover | Cards lift 2px. | The card is clickable. |
+| Scorecard scroll | Meter-state cards rise and the axis pins drop, driven by `animation-timeline: view()`. | Pure CSS. Other browsers show the content in place. |
+
+### How it's built
+- **Named cue table** (`tokens.ts` `cue`), like raea's `T`. The `cue-*` utilities set `--cue`, and every arrival keyframe starts at `var(--cue)`.
+- **Once per session.** An inline script adds `.intro` to `<html>` before first paint, on the first load of a session only, and removes it at 4 s. The `intro:` Tailwind variant scopes the arrival to it. This fixes the open item where the intro replayed on every filter change. Without JS there is no class and no motion.
+- **Reduced motion.** It lands on the final state at once (`motion-safe:` plus the global rule). Delta chips stay visible.
+
+### Verified
+- **Arrival:** frames at 250, 550, 900, 1400, 2000, 2450 and 3200 ms show the order. A reload in the same session paints the final state with no `.intro`. The `.intro` class is gone by 4.5 s.
+- **Live update:** captured mid-flight, with the digits rolled and the chip showing.
+- **`raea check`** on a 12 s fresh-session capture at master quality: 0 errors, no flashing past the limit, clean darks.
+  - Two "frozen" warnings flag the 3.6–4.7 s holds between real live updates. They're kept on purpose: idle motion would contradict the animate guide.
+  - A blotching warning appeared on the default-quality encode only (the encoder starved the near-blacks).
+- **Gates:** frontend 106/106 (one new `blipDelay` test), backend 166/166, tsc, eslint, detector at 0 red.

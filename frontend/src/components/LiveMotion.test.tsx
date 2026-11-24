@@ -101,3 +101,16 @@ describe('RumourCard: live change', () => {
     expect(screen.queryByTestId('delta-chip')).not.toBeInTheDocument()
   })
 })
+
+describe('RadarField: blips light as the sweep passes', () => {
+  it('times each blip to the moment the beam crosses it', async () => {
+    const { blipDelay } = await import('./live/RadarField')
+    const { cue, radarTurn } = await import('@/lib/tokens')
+    // The turn starts at heading−360°: a blip just clockwise of the heading is crossed almost at once…
+    expect(blipDelay(239, 238)).toBeLessThan(cue.radar + 10)
+    // …and one on the final heading lights as the sweep settles on it.
+    expect(blipDelay(238, 238)).toBe(cue.radar + radarTurn)
+    // Further round the turn lights later.
+    expect(blipDelay(100, 238)).toBeLessThan(blipDelay(200, 238))
+  })
+})
