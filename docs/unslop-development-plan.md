@@ -221,3 +221,26 @@ Closes the open issue where the meter's power-on sweep and entry transitions rep
 - Tests: frontend 105/105, backend 166/166 passing (271/271 total).
 - Linter & Typecheck: 0 errors.
 - Detector: 0 red findings.
+
+---
+
+## 9. Iteration 6 (2026-11-24): Brand Copy Alignment & Secondary Surface Polish
+
+Closes the remaining open UI and branding items across the codebase.
+
+### Brand Copy Alignment
+- Harmonized all occurrences of "Transfer Hub" to dynamically reference `BRAND.name` ("Smoke & Fire"):
+  - `RemoveAdsBanner.tsx`: "Remove ads from Smoke & Fire, forever."
+  - `AdSlot.tsx`: "Get the free Smoke & Fire weekly digest."
+  - `billing/success/page.tsx`: "Back to Smoke & Fire".
+  - `backend/src/routes/billing.ts`: Stripe product name updated to "Smoke & Fire — Remove Ads".
+
+### Secondary Surface Polish
+- **Network Page (`/network`):** Added `SectionKicker` ("Deal Ecosystem"), display typography `Transfer Network.`, and upgraded floating node legend, stats pill, and hover detail tooltips to the raea card face (`bg-card/95 shadow-card border-line/60`).
+- **Pricing Page (`/pricing`):** Added `SectionKicker` ("Access & Entitlements"), display typography `Tier Plans.`, and highlighted the "Supporter/Pro" plan with a pitch green border accent and "Popular" pill.
+- **Admin Page (`/admin`):** Added `SectionKicker` ("Operations Desk") and display typography `Operations Admin.`.
+
+### Verified
+- Tests: frontend 105/105, backend 166/166 passing (271/271 total).
+- Linter & Typecheck: 0 errors.
+- Detector: 0 red findings across both frontend and backend.

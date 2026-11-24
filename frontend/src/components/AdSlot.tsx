@@ -1,8 +1,10 @@
+import { BRAND } from '@/lib/brand'
+
 // Placeholder ad unit — no live ad network wired up yet. Styled to sit
 // quietly inside the rumour feed rather than interrupt it, and always
 // labeled so it reads as sponsored, not editorial.
 const PLACEHOLDERS = [
-  { title: 'Track every deal as it breaks', body: 'Get the free Transfer Hub weekly digest.' },
+  { title: 'Track every deal as it breaks', body: `Get the free ${BRAND.name} weekly digest.` },
   { title: 'Build your own club dashboard', body: 'Follow spend, incomings and outgoings in one view.' },
   { title: 'Never miss a "here we go"', body: 'Turn on live updates for your favourite clubs.' },
 ]

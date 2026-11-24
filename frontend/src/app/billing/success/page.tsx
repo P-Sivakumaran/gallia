@@ -2,6 +2,7 @@
 
 import { Suspense, useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
+import { BRAND } from '@/lib/brand'
 
 type Status = 'checking' | 'ok' | 'error'
 
@@ -42,7 +43,7 @@ function BillingSuccessContent() {
             href="/"
             className="inline-block rounded-lg bg-pitch-500 px-4 py-2 text-sm font-semibold text-ink-primary transition-colors hover:bg-pitch-600"
           >
-            Back to Transfer Hub
+            Back to {BRAND.name}
           </a>
         </>
       )}

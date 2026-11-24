@@ -224,11 +224,11 @@ export default function TransferGraph() {
       </div>
 
       {/* Graph canvas */}
-      <div className="relative overflow-hidden rounded-xl border border-line-subtle bg-surface-base">
+      <div className="relative overflow-hidden rounded-xl border border-line/60 bg-surface-base shadow-card">
         <div ref={containerRef} className="h-canvas-lg w-full" />
 
         {/* Node type legend */}
-        <div className="absolute bottom-4 left-4 flex flex-col gap-1.5 rounded-lg border border-line bg-surface-panel/90 px-3 py-2 text-xs backdrop-blur">
+        <div className="absolute bottom-4 left-4 flex flex-col gap-1.5 rounded-lg border border-line/60 bg-card/95 px-3 py-2 text-xs backdrop-blur shadow-card">
           <span className="flex items-center gap-2 text-ink-secondary">
             <span className="h-3 w-3 rounded-full bg-node-player" /> Player
           </span>
@@ -239,20 +239,20 @@ export default function TransferGraph() {
 
         {/* Stats */}
         {data && (
-          <div className="absolute bottom-4 right-4 rounded-lg border border-line bg-surface-panel/90 px-3 py-2 text-xs text-ink-secondary backdrop-blur">
+          <div className="absolute bottom-4 right-4 rounded-lg border border-line/60 bg-card/95 px-3 py-2 text-xs text-ink-secondary backdrop-blur shadow-card">
             {data.meta.nodeCount} nodes · {Math.round(data.meta.edgeCount / 2)} rumours
           </div>
         )}
 
         {/* Hover tooltip */}
         {hovered && (
-          <div className="absolute left-4 top-4 rounded-lg border border-line bg-surface-panel/95 px-3 py-2 text-sm backdrop-blur">
+          <div className="absolute left-4 top-4 rounded-lg border border-line/60 bg-card/95 px-3 py-2 text-sm backdrop-blur shadow-card">
             <p className="font-semibold text-ink-primary">{hovered.label}</p>
-            <p className="text-xs text-ink-secondary capitalize">{hovered.type}</p>
+            <p className="text-xs capitalize text-ink-secondary">{hovered.type}</p>
             {hovered.position && <p className="text-xs text-ink-muted">Position: {hovered.position}</p>}
             {hovered.league && <p className="text-xs text-ink-muted">{hovered.league}</p>}
             {hovered.marketValue && (
-              <p className="text-xs text-pitch-500 font-mono">€{hovered.marketValue}M</p>
+              <p className="font-mono text-xs text-pitch-500">€{hovered.marketValue}M</p>
             )}
           </div>
         )}

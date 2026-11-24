@@ -5,6 +5,7 @@ import { clsx } from 'clsx'
 import { api } from '@/lib/api'
 import type { AdminRumour, AdminSource, Player, RumourStatus } from '@/types'
 import StatusBadge from '@/components/StatusBadge'
+import SectionKicker from '@/components/SectionKicker'
 
 const STATUS_FILTERS: Array<RumourStatus | 'ALL'> = ['ALL', 'PENDING', 'HOT', 'COMPLETED', 'FAILED', 'DENIED']
 
@@ -273,9 +274,14 @@ export default function AdminPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-ink-primary">Admin</h1>
-        <p className="mt-1 text-sm text-ink-muted">Manually resolve rumours, review source reliability, trigger enrichment.</p>
+      <div className="space-y-2">
+        <SectionKicker>Operations Desk</SectionKicker>
+        <h1 className="text-3xl font-black tracking-display text-ink-primary sm:text-4xl">
+          Operations <span className="text-pitch-500">Admin.</span>
+        </h1>
+        <p className="max-w-2xl text-sm text-ink-secondary">
+          Manually resolve rumours, review source reliability scorecards, and trigger player profile enrichment.
+        </p>
       </div>
 
       <div className="flex gap-2 border-b border-line-subtle">
@@ -284,7 +290,7 @@ export default function AdminPage() {
             key={t}
             onClick={() => setTab(t)}
             className={clsx(
-              'border-b-2 px-4 py-2 text-sm font-medium capitalize transition-colors',
+              'border-b-2 px-4 py-2 text-sm font-semibold capitalize transition-colors',
               tab === t ? 'border-pitch-500 text-ink-primary' : 'border-transparent text-ink-muted hover:text-ink-soft',
             )}
           >

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { BRAND } from '@/lib/brand'
 
 export default function RemoveAdsBanner() {
   const [loading, setLoading] = useState(false)
@@ -22,7 +23,7 @@ export default function RemoveAdsBanner() {
 
   return (
     <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-line/60 bg-surface-raised/40 px-4 py-2.5 text-sm">
-      <span className="text-ink-secondary">Remove ads from Transfer Hub, forever.</span>
+      <span className="text-ink-secondary">Remove ads from {BRAND.name}, forever.</span>
       <div className="flex items-center gap-3">
         {error && <span className="text-xs text-failed-fg">{error}</span>}
         <button
