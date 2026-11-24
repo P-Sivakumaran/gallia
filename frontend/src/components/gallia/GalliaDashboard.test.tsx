@@ -116,4 +116,36 @@ describe('Gallia intelligence desk', () => {
     expect(screen.queryByText('0.142')).not.toBeInTheDocument()
     expect(screen.getByText(/No verified calibration records/)).toBeInTheDocument()
   })
+
+  it('shows live heuristic estimates, metrics and the resolved-call ledger, labelled as uncalibrated', async () => {
+    const user = userEvent.setup()
+    const live: GalliaWorkspace = {
+      mode: 'connected',
+      reason: 'Live records from the Gallia desk',
+      forecastBasis: 'heuristic',
+      generatedAt: '2026-11-24T12:00:00Z',
+      claims: [{ ...illustrativeClaims[0], id: 'r-1', league: 'Süper Lig', probability: 63, delta: 4 }],
+      metrics: { activeSignals: 5, newToday: 3, highConviction: 0, sourcesMonitored: 19, headlinesThisWeek: 194 },
+      ledger: {
+        rows: [{ id: 'r-9', player: 'Ismaila Sarr', route: 'Crystal Palace → Liverpool', peak: 60, scored: 55, trend: [50, 55], window: 'SUMMER ’26', outcome: 'Failed', brier: 0.3025, payout: -0.55 }],
+        brierScore: 0.271, scored: 63, excluded: 0,
+      },
+      ticker: [{ id: 'r-1', age: '6s ago' }],
+      leagues: ['Süper Lig'],
+    }
+    render(<GalliaDashboard workspace={live} />)
+    expect(screen.getByText('MODEL ESTIMATE · UNCALIBRATED')).toBeInTheDocument()
+    expect(screen.queryByText('CALIBRATED FORECAST')).not.toBeInTheDocument()
+    expect(screen.getAllByText('0.271').length).toBeGreaterThan(0)
+    expect(screen.getByText('BRIER SCORE · HEURISTIC MODEL')).toBeInTheDocument()
+    expect(screen.getByText('Ismaila Sarr')).toBeInTheDocument()
+    expect(screen.getByText('0.3025')).toBeInTheDocument()
+    expect(screen.getByText('194 headlines this week')).toBeInTheDocument()
+    expect(screen.getByText('6s ago')).toBeInTheDocument()
+    expect(screen.queryByText(/No verified calibration records/)).not.toBeInTheDocument()
+    expect(within(screen.getByRole('combobox', { name: 'League' })).getByRole('option', { name: 'Süper Lig' })).toBeInTheDocument()
+    await user.selectOptions(screen.getByRole('combobox', { name: 'League' }), 'Süper Lig')
+    const feed = screen.getByRole('heading', { name: 'On the radar' }).closest('section')!
+    expect(within(feed).getByText('Viktor Gyökeres')).toBeInTheDocument()
+  })
 })

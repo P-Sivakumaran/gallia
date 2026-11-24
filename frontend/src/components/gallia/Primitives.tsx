@@ -50,7 +50,9 @@ export function ProbabilityMeter({ value, range }: { value: number | null; range
   const probability = value === null ? null : Math.min(100, Math.max(0, value))
   const point = (percentage: number, radius: number) => {
     const angle = Math.PI + percentage / 100 * Math.PI
-    return { x: 120 + radius * Math.cos(angle), y: 122 + radius * Math.sin(angle) }
+    // Rounded so server and browser trig agree on the last digits (otherwise a hydration mismatch).
+    const round = (n: number) => Math.round(n * 1000) / 1000
+    return { x: round(120 + radius * Math.cos(angle)), y: round(122 + radius * Math.sin(angle)) }
   }
 
   return (

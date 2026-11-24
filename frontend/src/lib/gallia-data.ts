@@ -16,7 +16,26 @@ async function readTable<T>(name: string): Promise<T[]> {
   return rows as T[]
 }
 
+const API_URL = process.env.API_URL ?? process.env.NEXT_PUBLIC_API_URL
+
+// The Gallia backend (backend/src/routes/gallia.ts) serves the whole desk in one read. Tried first;
+// when it isn't reachable (e.g. Figma Make's preview has no backend) the Supabase read and then the
+// illustrative edition take over.
+async function readBackend(): Promise<GalliaWorkspace | null> {
+  if (!API_URL) return null
+  try {
+    const response = await fetch(`${API_URL}/gallia/workspace`, { next: { revalidate: 15 }, signal: AbortSignal.timeout(2500) })
+    if (!response.ok) return null
+    const workspace = (await response.json()) as GalliaWorkspace
+    return workspace?.mode === 'connected' && Array.isArray(workspace.claims) ? workspace : null
+  } catch {
+    return null
+  }
+}
+
 export async function loadGalliaWorkspace(): Promise<GalliaWorkspace> {
+  const live = await readBackend()
+  if (live) return live
   try {
     const [claims, evidence, players, clubs] = await Promise.all([
       readTable<Claim>('claims'), readTable<EvidenceItemData>('evidence_items'),

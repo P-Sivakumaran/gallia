@@ -37,3 +37,18 @@ inherit sample forecasts or calibration figures. Existing real-outcome/model
 gates and Supabase permissions remain in place. Authorized live data, ingestion,
 and deployment are separate integration work, not implied by this positioning
 change.
+
+### Live desk (owner decision, 2026-11-24)
+
+The owner chose to run the desk on live data, model estimates included ("theorised
+or not"). `GET /gallia/workspace` on the Express backend (backend/src/gallia/)
+serves stories, evidence, metrics and the resolved-call ledger; the frontend reads
+it first, then Supabase, then the illustrative edition. Rules that still hold:
+
+- Likelihoods on live records are the heuristic scoring engine's output and are
+  labelled "Model estimate · uncalibrated" everywhere (`forecastBasis: 'heuristic'`).
+  The calibrated pipeline's 200-outcome gate is unchanged.
+- The ledger scores each resolved story on its last pre-outcome estimate, never on
+  history written after the outcome.
+- Source tiers are derived from reliability at read time unless an editor set one.
+- Facts the data doesn't hold (representation, wages) stay "Not disclosed".
