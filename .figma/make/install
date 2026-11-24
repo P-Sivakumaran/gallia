@@ -1,0 +1,4 @@
+#!/usr/bin/env sh
+set -eu
+cd Projects/transfer-rumour-hub
+exec npm ci

@@ -1,38 +1,28 @@
 import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
+import { Inter, JetBrains_Mono } from 'next/font/google'
 import Link from 'next/link'
 import './globals.css'
 import { AuthProvider } from '@/components/AuthProvider'
-import AuthNav from '@/components/AuthNav'
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
+const mono = JetBrains_Mono({ subsets: ['latin'], variable: '--font-mono' })
 
 export const metadata: Metadata = {
-  title: 'Transfer Hub — Football Rumour Tracker',
-  description: 'Real-time transfer rumour probabilities and completion tracking.',
+  title: 'Gallia — Transfer intelligence, without the noise',
+  description: 'Evidence-first football transfer intelligence. Trace the source. Measure the signal.',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={inter.variable}>
-      <body className="min-h-screen bg-slate-950 font-sans text-white antialiased">
+    <html lang="en" className={`${inter.variable} ${mono.variable}`}>
+      <body className="min-h-screen font-sans antialiased">
         <AuthProvider>
-          <nav className="sticky top-0 z-50 border-b border-slate-800/60 bg-slate-950/80 backdrop-blur-sm">
-            <div className="mx-auto flex max-w-7xl items-center gap-6 px-4 py-3">
-              <Link href="/" className="flex items-center gap-2 text-lg font-bold">
-                <span className="inline-block h-3 w-3 rounded-full bg-pitch-500" />
-                Transfer Hub
-              </Link>
-              <div className="flex gap-5 text-sm text-slate-400">
-                <Link href="/" className="hover:text-white transition-colors">Rumours</Link>
-                <Link href="/clubs" className="hover:text-white transition-colors">Clubs</Link>
-                <Link href="/network" className="hover:text-white transition-colors">Network</Link>
-                <Link href="/admin" className="hover:text-white transition-colors">Admin</Link>
-              </div>
-              <AuthNav />
-            </div>
-          </nav>
-          <main className="mx-auto max-w-7xl px-4 py-8">{children}</main>
+          <header className="g-header">
+            <Link href="/" className="g-wordmark" aria-label="Gallia home"><span className="g-brand-icon" aria-hidden="true">G</span>GALLIA<span className="g-brand-dot" /></Link>
+            <span className="g-brand-caption">THE TRANSFER INTELLIGENCE TERMINAL</span>
+            <div className="g-header-right"><span className="g-edition">MILANO · EST. 2025</span><Link className="g-avatar" href="/login" aria-label="Sign in to your account">G</Link></div>
+          </header>
+          <main>{children}</main>
         </AuthProvider>
       </body>
     </html>

@@ -29,7 +29,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   useEffect(() => {
-    refresh().finally(() => setLoading(false))
+    refresh().catch(() => setUser(null)).finally(() => setLoading(false))
   }, [])
 
   async function submit(path: string, email: string, password: string): Promise<void> {

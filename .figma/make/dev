@@ -1,0 +1,4 @@
+#!/usr/bin/env sh
+set -eu
+cd Projects/transfer-rumour-hub/frontend
+exec npm run dev -- --hostname 0.0.0.0 --port "$PORT"

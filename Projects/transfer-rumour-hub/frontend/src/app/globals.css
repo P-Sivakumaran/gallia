@@ -5,14 +5,43 @@
 @layer base {
   :root {
     color-scheme: dark;
+    --surface-base: #0b0e11;
+    --surface-panel: #141922;
+    --surface-inset: #080a0d;
+    --ink-strong: #f8fafc;
+    --ink-muted: #adb8c5;
+    --ink-faint: #475569;
+    --signal-fire: #7de2ac;
+    --signal-hot: #f8c36b;
+    --signal-cold: #b0bac9;
+    --signal-denied: #ff969c;
+    --border-subtle: #252d35;
+    --space-unit: 8px;
   }
   html {
     @apply scroll-smooth;
   }
   body {
-    @apply bg-slate-950 text-slate-100;
+    background: var(--surface-base);
+    color: var(--ink-strong);
+    font-size: 14px;
+    line-height: 1.5;
+    font-family: var(--font-inter), -apple-system, sans-serif;
   }
 }
+
+.g-header {height:80px;display:flex;align-items:center;gap:28px;padding:0 40px;border-bottom:1px solid #252d35;background:#0d1115}
+.g-wordmark {display:flex;align-items:center;gap:13px;font-size:25px;font-weight:650;letter-spacing:5px;color:#f8fafc;text-decoration:none}
+.g-brand-icon {display:grid;place-items:center;width:33px;height:36px;border:1px solid #7de2ac;border-radius:2px 2px 12px 2px;color:#7de2ac;font-size:25px;font-weight:500;letter-spacing:-3px;padding-right:3px}
+.g-brand-dot {height:6px;width:6px;background:#7de2ac;border-radius:50%;margin-left:-5px;align-self:flex-start;margin-top:7px}
+.g-brand-caption,.g-edition {font-family:var(--font-mono),monospace;font-size:12px;letter-spacing:1.3px;color:#adb8c5}
+.g-brand-caption {border-left:1px solid #30383e;padding-left:28px}
+.g-header-right {margin-left:auto;display:flex;align-items:center;gap:24px}
+.g-avatar {width:34px;height:34px;display:grid;place-items:center;border:1px solid #46524e;background:#202d27;color:#bfe6cb;border-radius:50%;font-family:var(--font-mono),monospace;font-size:13px;text-decoration:none}
+:where(button,a,input,select,summary):focus-visible {outline:2px solid #b9edcc;outline-offset:4px}
+@media(max-width:768px){.g-header{height:68px;padding:0 24px}.g-brand-caption{display:none}.g-edition{letter-spacing:0;font-size:12px}}
+@media(max-width:480px){.g-header{padding:0 20px;height:64px}.g-wordmark{font-size:23px}.g-edition{display:none}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto!important}*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
 
 @layer utilities {
   .scrollbar-thin {

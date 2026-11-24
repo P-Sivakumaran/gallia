@@ -1,5 +1,11 @@
+import { fileURLToPath } from 'node:url'
+
 /** @type {import('next').NextConfig} */
 const config = {
+  // Make's connection metadata is shared at the repository root.
+  turbopack: {
+    root: fileURLToPath(new URL('../../../', import.meta.url)),
+  },
   async rewrites() {
     return [
       {
