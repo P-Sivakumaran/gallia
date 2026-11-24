@@ -9,7 +9,7 @@ const mono = JetBrains_Mono({ subsets: ['latin'], variable: '--font-mono' })
 
 export const metadata: Metadata = {
   title: 'Gallia — Transfer intelligence, without the noise',
-  description: 'Evidence-first football transfer intelligence. Trace the source. Measure the signal.',
+  description: 'An independent football transfer intelligence publication. Trace the source. Measure the signal.',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -23,7 +23,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               GALLIA<span className="g-brand-dot" />
             </Link>
             <span className="g-brand-caption"><span>TRANSFER INTELLIGENCE</span><span>CALCIOMERCATO, QUANTIFIED.</span></span>
-            <div className="g-header-right"><span className="g-edition">MILANO · EST. 2025</span><Link className="g-avatar" href="/login" aria-label="Sign in to your account">G</Link></div>
+            <div className="g-header-right"><span className="g-edition">MILANO · EST. 2025</span><Link className="g-public-link" href="/#about-gallia">About Gallia <span aria-hidden="true">↗</span></Link></div>
           </header>
           <main>{children}</main>
         </AuthProvider>
