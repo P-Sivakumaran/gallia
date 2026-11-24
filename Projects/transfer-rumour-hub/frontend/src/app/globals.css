@@ -43,18 +43,30 @@
   background: #0d1117;
 }
 .g-wordmark {
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 13px;
   color: var(--ink-strong);
   font-size: 25px;
-  font-weight: 600;
-  letter-spacing: 6px;
-  line-height: 1;
+  font-weight: 650;
+  letter-spacing: 5px;
+  line-height: 1.5;
   text-decoration: none;
 }
-.g-brand-icon { display: flex; color: var(--accent-heritage); margin-right: 2px; }
-.g-brand-dot { width: 5px; height: 5px; margin: 0 0 16px -12px; border-radius: 50%; background: var(--signal-fire); }
+.g-brand-icon {
+  display: grid;
+  place-items: center;
+  width: 33px;
+  height: 36px;
+  padding-right: 3px;
+  border: 1px solid var(--signal-fire);
+  border-radius: 2px 2px 12px 2px;
+  color: var(--signal-fire);
+  font-size: 25px;
+  font-weight: 500;
+  letter-spacing: -3px;
+}
+.g-brand-dot { width: 6px; height: 6px; margin: 7px 0 0 -5px; align-self: flex-start; border-radius: 50%; background: var(--signal-fire); }
 .g-brand-caption {
   display: grid;
   gap: 4px;
@@ -90,9 +102,7 @@
 @media (max-width: 640px) {
   :root { --page-gutter: 16px; }
   .g-header { height: 72px; }
-  .g-wordmark { font-size: 23px; gap: 12px; }
-  .g-brand-icon svg { width: 28px; height: 32px; }
-  .g-brand-dot { margin-left: -10px; }
+  .g-wordmark { font-size: 23px; }
   .g-edition { display: none; }
   .g-avatar { width: 40px; height: 40px; }
 }
