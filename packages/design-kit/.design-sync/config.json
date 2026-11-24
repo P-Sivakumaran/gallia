@@ -1,0 +1,10 @@
+{
+  "projectId": "3e613f44-b95b-4f6a-9119-ff735883fd66",
+  "shape": "package",
+  "pkg": "@transfer-hub/design-kit",
+  "globalName": "TransferHubDesignKit",
+  "buildCmd": "npm run build",
+  "cssEntry": "dist/styles.css",
+  "extraFonts": ["src/fonts/fonts.css"],
+  "readmeHeader": ".design-sync/conventions.md"
+}

@@ -1,0 +1,30 @@
+{
+  "name": "@transfer-hub/design-kit",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Generic UI primitives extracted from transfer-rumour-hub's frontend, for syncing to claude.ai/design. Not consumed by the app itself (yet) — see README.md.",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsup src/index.ts --format esm,cjs --dts --out-dir dist && npm run build:css",
+    "build:css": "tailwindcss -i ./src/styles.css -o ./dist/styles.css --minify"
+  },
+  "peerDependencies": {
+    "react": ">=18"
+  },
+  "dependencies": {
+    "clsx": "^2.1.0",
+    "recharts": "^2.12.2"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.0",
+    "autoprefixer": "^10.5.4",
+    "postcss": "^8.5.26",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "tailwindcss": "^3.4.19",
+    "tsup": "^8.0.0",
+    "typescript": "^5.4.0"
+  }
+}

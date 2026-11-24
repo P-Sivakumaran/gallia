@@ -2,7 +2,7 @@
 
 ## Preview
 
-- Application: `Projects/transfer-rumour-hub`, npm workspaces, Next.js 15 frontend and Express/Prisma backend.
+- Application: repo root, npm workspaces, Next.js 15 frontend and Express/Prisma backend.
 - `install` executes the imported lockfile with `npm ci`; it does not seed or migrate the database.
 - `dev` runs only the Next.js frontend on the supervisor's `$PORT`.
 - The new homepage can render without Express, Redis, or database credentials.

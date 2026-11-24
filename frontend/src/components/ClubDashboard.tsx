@@ -1,0 +1,104 @@
+'use client'
+
+import { useEffect, useState } from 'react'
+import type { ClubDetail } from '@/types'
+import RumourCard from './RumourCard'
+import SectionKicker from './SectionKicker'
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts'
+import { axisProps, tooltipStyle, chartColors, chartHeight } from '@/lib/chartTheme'
+import { position as POSITION_COLORS } from '@/lib/tokens'
+
+interface Props {
+  club: ClubDetail
+}
+
+export default function ClubDashboard({ club }: Props) {
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => { setMounted(true) }, [])
+
+  // Incoming fee distribution by position
+  const positionData = club.activeIn.reduce<Record<string, number>>((acc, r) => {
+    const pos = r.player.position
+    const fee = r.reportedFeeMax ?? r.reportedFeeMin ?? 0
+    acc[pos] = (acc[pos] ?? 0) + fee * (r.computedLikelihood / 100)
+    return acc
+  }, {})
+
+  const chartData = Object.entries(positionData)
+    .map(([position, value]) => ({ position, value: Math.round(value) }))
+    .sort((a, b) => b.value - a.value)
+
+  return (
+    <div className="space-y-8">
+      {/* Header stats */}
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+        {[
+          { label: 'Incoming Rumours', value: club.activeIn.length },
+          { label: 'Outgoing Rumours', value: club.activeOut.length },
+          { label: 'Squad Size', value: club.players.length },
+          { label: 'Expected Spend', value: `€${club.totalExpectedSpend}M` },
+        ].map(({ label, value }) => (
+          <div key={label} className="rounded-xl border border-line/60 bg-surface-raised/40 p-4">
+            <p className="text-xs font-medium uppercase tracking-widest text-ink-muted">{label}</p>
+            <p className="mt-1 text-2xl font-bold text-ink-primary">{value}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* Spend by position chart */}
+      {mounted && chartData.length > 0 && (
+        <div>
+          <SectionKicker as="h3" size="lg" className="mb-3">
+            Expected spend by position (€M)
+          </SectionKicker>
+          <ResponsiveContainer width="100%" height={chartHeight.club}>
+            <BarChart data={chartData} margin={{ top: 0, right: 0, bottom: 0, left: -20 }}>
+              <XAxis dataKey="position" {...axisProps} />
+              <YAxis {...axisProps} />
+              <Tooltip
+                contentStyle={tooltipStyle.contentStyle}
+                itemStyle={tooltipStyle.itemStyle}
+                formatter={(v: number) => [`€${v}M`]}
+              />
+              <Bar dataKey="value" radius={[4, 4, 0, 0]}>
+                {chartData.map(({ position }) => (
+                  <Cell key={position} fill={POSITION_COLORS[position] ?? chartColors.axis} />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      )}
+
+      {/* Incoming rumours */}
+      <div>
+        <SectionKicker as="h3" size="lg" className="mb-3">
+          Incoming ({club.activeIn.length})
+        </SectionKicker>
+        <div className="space-y-2">
+          {club.activeIn.map((r) => (
+            <RumourCard key={r.id} rumour={r} compact />
+          ))}
+          {club.activeIn.length === 0 && (
+            <p className="text-sm text-ink-muted italic">No active incoming rumours.</p>
+          )}
+        </div>
+      </div>
+
+      {/* Outgoing rumours */}
+      <div>
+        <SectionKicker as="h3" size="lg" className="mb-3">
+          Outgoing ({club.activeOut.length})
+        </SectionKicker>
+        <div className="space-y-2">
+          {club.activeOut.map((r) => (
+            <RumourCard key={r.id} rumour={r} compact />
+          ))}
+          {club.activeOut.length === 0 && (
+            <p className="text-sm text-ink-muted italic">No active outgoing rumours.</p>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}

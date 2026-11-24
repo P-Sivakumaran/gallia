@@ -1,0 +1,9 @@
+node_modules/
+dist/
+
+# design-sync machine state — regenerated per sync, not durable
+.ds-sync/
+ds-bundle/
+.design-sync/.cache/
+.design-sync/learnings/
+.design-sync/node_modules
