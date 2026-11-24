@@ -4,7 +4,8 @@ import Link from 'next/link'
 import './globals.css'
 import { AuthProvider } from '@/components/AuthProvider'
 import AuthNav from '@/components/AuthNav'
-import Wordmark from '@/components/Wordmark'
+import GalliaLogo from '@/components/gallia/GalliaLogo'
+import SiteMain from '@/components/SiteMain'
 import { BRAND } from '@/lib/brand'
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
@@ -16,8 +17,8 @@ const mono = JetBrains_Mono({ subsets: ['latin'], variable: '--font-mono', weigh
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'),
-  title: `${BRAND.name} — Football Transfer Rumours, Scored`,
-  description: BRAND.description,
+  title: `${BRAND.name} — Transfer intelligence, without the noise`,
+  description: 'An independent football transfer intelligence publication. Trace the source. Measure the signal.',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -26,28 +27,24 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         <script dangerouslySetInnerHTML={{ __html: INTRO_SCRIPT }} />
       </head>
-      <body className="min-h-screen bg-field-deep font-sans text-ink-primary antialiased">
-        {/* The pitch field (raea PitchBackground): a fixed layer, so it doesn't scroll-jank on iOS */}
-        <div aria-hidden className="pointer-events-none fixed inset-0 -z-10 bg-field">
-          <div className="absolute inset-0 bg-field-grid bg-grid" />
-        </div>
+      <body className="min-h-screen antialiased">
         <AuthProvider>
-          <nav className="sticky top-0 z-50 border-b border-pitch-500/15 bg-field-deep/85 backdrop-blur-md">
-            <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-x-8 gap-y-2 px-4 py-3 sm:px-8">
-              <Link href="/" aria-label={`${BRAND.name} home`}>
-                <Wordmark />
-              </Link>
-              <div className="order-last flex w-full gap-6 overflow-x-auto whitespace-nowrap text-sm font-medium text-ink-secondary sm:order-none sm:w-auto">
-                <Link href="/" className="transition-colors hover:text-ink-primary">Rumours</Link>
-                <Link href="/network" className="transition-colors hover:text-ink-primary">Network</Link>
-                <Link href="/scorecard" className="transition-colors hover:text-ink-primary">Scorecard</Link>
-                <Link href="/pricing" className="transition-colors hover:text-ink-primary">Pricing</Link>
-                <Link href="/admin" className="transition-colors hover:text-ink-primary">Admin</Link>
-              </div>
-              <AuthNav />
+          <header className="g-header">
+            <GalliaLogo />
+            <span className="g-brand-caption"><span>TRANSFER INTELLIGENCE</span><span>CALCIOMERCATO, QUANTIFIED.</span></span>
+            <div className="g-header-right"><span className="g-edition">MILANO · EST. 2025</span><Link className="g-public-link" href="/#about-gallia">About Gallia <span aria-hidden="true">↗</span></Link></div>
+          </header>
+          <nav className="g-site-nav" aria-label="Site sections">
+            <div className="flex gap-6 overflow-x-auto whitespace-nowrap text-sm font-medium text-ink-secondary">
+              <Link href="/rumours" className="transition-colors hover:text-ink-primary">Rumours</Link>
+              <Link href="/network" className="transition-colors hover:text-ink-primary">Network</Link>
+              <Link href="/scorecard" className="transition-colors hover:text-ink-primary">Scorecard</Link>
+              <Link href="/pricing" className="transition-colors hover:text-ink-primary">Pricing</Link>
+              <Link href="/admin" className="transition-colors hover:text-ink-primary">Admin</Link>
             </div>
+            <AuthNav />
           </nav>
-          <main className="mx-auto max-w-7xl px-4 py-10 sm:px-8">{children}</main>
+          <SiteMain>{children}</SiteMain>
         </AuthProvider>
       </body>
     </html>

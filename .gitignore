@@ -2,13 +2,31 @@ node_modules/
 .env
 .env.local
 .env.*.local
+.env*
+!.env.example
 *.log
+*-debug.log*
+logs/
 .next/
 dist/
 build/
+.cache/
+.vite/
+vite.config.*.timestamp-*
 .DS_Store
 prisma/dev.db
 *.sqlite
 *.tsbuildinfo
 .chap/
 .archify/
+.claude-replay.*
+.tmp-*
+/.tmp/
+/.figma/design-context/
+
+# Platform-managed agentplat state, not project source. In the
+# client-initiated single-repo workspace layout (make's `Path: "."` spec) the
+# repo root IS the workspace root, so these land inside this repo rather than
+# beside it.
+/.plugins/
+/.opencode-skills/
