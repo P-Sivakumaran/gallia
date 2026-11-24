@@ -27,7 +27,7 @@ public repo, and blocked normal clones, CI paths and deployment.
 - [ ] Update the Claude Code `autoMode` trust scope to the new repo name.
 - [ ] Rename the GitHub repo to `smoke-and-fire` (GitHub redirects old URLs).
 
-## Milestone 1 — Identity and the scorecard (this PR)
+## Milestone 1 — Identity and the scorecard (completed)
 
 - [x] Product name in one constant (`frontend/src/lib/brand.ts`), used in title and nav.
 - [x] Public `/scorecard` page: Brier score, calibration chart, honest labelling of synthetic or
@@ -35,8 +35,8 @@ public repo, and blocked normal clones, CI paths and deployment.
       which had no page.
 - [x] Nav: removed the dead `/clubs` link, added Scorecard and Pricing, fixed mobile overflow.
 - [x] Monospace font fallback (numbers rendered in a serif font in Chromium).
-- [ ] Landing page hero stating the positioning above the live feed.
-- [ ] Visual assets (Raea prompt drafted separately): vertical "rumour of the day" clip, hero loop, OG image.
+- [x] Landing page hero stating the positioning above the live feed with live SSE updates and radar sweep.
+- [x] Visual assets: dynamic OpenGraph image card (`/opengraph-image`), brand motion, and two-tone wordmark.
 
 ## Milestone 2 — Real outcomes
 

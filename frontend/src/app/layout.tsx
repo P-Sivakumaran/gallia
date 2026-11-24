@@ -15,6 +15,7 @@ const INTRO_SCRIPT = `try{var s=sessionStorage;if(!s.getItem('sf-intro')){s.setI
 const mono = JetBrains_Mono({ subsets: ['latin'], variable: '--font-mono', weight: ['500', '700', '800'] })
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'),
   title: `${BRAND.name} — Football Transfer Rumours, Scored`,
   description: BRAND.description,
 }
