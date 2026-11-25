@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { PrismaClient, RumourStatus } from '@prisma/client'
-import { detectOutcome, applyOutcome, resolveWindowOutcomes, isPastWindowGrace } from './outcomeDetector.js'
+import { detectOutcome, applyOutcome, resolveWindowOutcomes, isPastWindowGrace, recountSourceOutcomes } from './outcomeDetector.js'
 
 describe('outcomeDetector: detectOutcome', () => {
   it('detects completion phrases accurately', () => {
@@ -31,6 +31,7 @@ describe('outcomeDetector: applyOutcome', () => {
     rumour: {
       findUnique: vi.fn(),
       update: vi.fn(),
+      count: vi.fn(),
     },
     rumourHistory: {
       create: vi.fn(),
@@ -45,7 +46,7 @@ describe('outcomeDetector: applyOutcome', () => {
     vi.clearAllMocks()
   })
 
-  it('resolves a pending rumour to COMPLETED and blends source reliability', async () => {
+  it('resolves a pending rumour to COMPLETED and recounts the source from rumour statuses', async () => {
     vi.mocked(mockDb.rumour.findUnique).mockResolvedValue({
       sourceId: 10,
       status: RumourStatus.PENDING,
@@ -59,6 +60,8 @@ describe('outcomeDetector: applyOutcome', () => {
       missCount: 2,
       reliabilityScore: 0.7,
     } as any)
+    // After the update, the source has 6 completed and 2 failed rumours.
+    vi.mocked(mockDb.rumour.count).mockResolvedValueOnce(6).mockResolvedValueOnce(2)
 
     await applyOutcome(101, 'COMPLETED', mockDb)
 
@@ -100,11 +103,65 @@ describe('outcomeDetector: applyOutcome', () => {
       reliabilityScore: 0.72,
     } as any)
 
+    vi.mocked(mockDb.rumour.count).mockResolvedValueOnce(5).mockResolvedValueOnce(3)
     await applyOutcome(101, 'FAILED', mockDb, true)
     expect(mockDb.rumour.update).toHaveBeenCalledWith({
       where: { id: 101 },
       data: { status: RumourStatus.FAILED, computedLikelihood: 0 },
     })
+    // A correction moves the count across instead of adding a second outcome.
+    expect(mockDb.source.update).toHaveBeenCalledWith({
+      where: { id: 10 },
+      data: expect.objectContaining({ hitCount: 5, missCount: 3 }),
+    })
+  })
+
+  it('writes the terminal history row at knownAt when given', async () => {
+    vi.mocked(mockDb.rumour.findUnique).mockResolvedValue({
+      sourceId: 10,
+      status: RumourStatus.HOT,
+      computedLikelihood: 80,
+    } as any)
+    vi.mocked(mockDb.source.findUnique).mockResolvedValue({
+      id: 10, name: 'Sky Sports', hitCount: 6, missCount: 2, reliabilityScore: 0.72,
+    } as any)
+    vi.mocked(mockDb.rumour.count).mockResolvedValueOnce(7).mockResolvedValueOnce(2)
+
+    const knownAt = new Date('2026-08-20T09:00:00Z')
+    await applyOutcome(101, 'COMPLETED', mockDb, false, knownAt)
+
+    expect(mockDb.rumourHistory.create).toHaveBeenCalledWith({
+      data: { rumourId: 101, computedLikelihood: 100, status: RumourStatus.COMPLETED, recordedAt: knownAt },
+    })
+  })
+})
+
+describe('outcomeDetector: recountSourceOutcomes', () => {
+  function db(source: Record<string, number>, hits: number, misses: number) {
+    return {
+      source: {
+        findUnique: vi.fn().mockResolvedValue({ id: 1, ...source }),
+        update: vi.fn(),
+      },
+      rumour: { count: vi.fn().mockResolvedValueOnce(hits).mockResolvedValueOnce(misses) },
+    } as unknown as PrismaClient
+  }
+
+  it('does nothing when the stored counts already match', async () => {
+    const d = db({ hitCount: 3, missCount: 1, reliabilityScore: 0.7 }, 3, 1)
+    await recountSourceOutcomes(1, d)
+    expect(d.source.update).not.toHaveBeenCalled()
+  })
+
+  it('removes a wrongly counted miss and recovers the prior below full weight', async () => {
+    // Prior 0.6, 4 outcomes (3 hits): weight 0.2, score 0.6*0.8 + 0.75*0.2 = 0.63
+    const d = db({ hitCount: 3, missCount: 1, reliabilityScore: 0.63 }, 3, 0)
+    await recountSourceOutcomes(1, d)
+    const data = vi.mocked(d.source.update).mock.calls[0][0].data as { hitCount: number; missCount: number; reliabilityScore: number }
+    expect(data.hitCount).toBe(3)
+    expect(data.missCount).toBe(0)
+    // 3 outcomes, all hits: weight 0.15, 0.6*0.85 + 1*0.15 = 0.66
+    expect(data.reliabilityScore).toBeCloseTo(0.66, 4)
   })
 })
 
@@ -115,6 +172,7 @@ describe('outcomeDetector: resolveWindowOutcomes', () => {
         findMany: vi.fn(),
         findUnique: vi.fn(),
         update: vi.fn(),
+        count: vi.fn().mockResolvedValue(0),
       },
       rumourHistory: {
         create: vi.fn(),

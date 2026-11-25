@@ -1,6 +1,6 @@
 import { Router } from 'express'
 import { PrismaClient, RumourStatus } from '@prisma/client'
-import { applyOutcome, isPastWindowGrace } from '../ingestion/outcomeDetector.js'
+import { applyOutcome, detectOutcome, isPastWindowGrace } from '../ingestion/outcomeDetector.js'
 import { enrichQueue, playerSyncQueue } from '../queue/queues.js'
 import { broadcast } from '../sse/broadcaster.js'
 import { z } from 'zod'
@@ -43,6 +43,12 @@ router.use(requireAdmin(adminDb))
 
 const outcomeSchema = z.object({
   status: z.enum(['COMPLETED', 'FAILED', 'DENIED']),
+  // When the outcome became public (e.g. the club announcement). The ledger only
+  // scores estimates recorded before it. Defaults to now; never in the future.
+  knownAt: z.coerce
+    .date()
+    .refine((d) => d.getTime() <= Date.now(), { message: 'knownAt cannot be in the future' })
+    .optional(),
 })
 
 // PATCH /admin/rumours/:id/outcome — manually set transfer outcome
@@ -53,7 +59,7 @@ router.patch('/rumours/:id/outcome', async (req, res) => {
   const parsed = outcomeSchema.safeParse(req.body)
   if (!parsed.success) { res.status(400).json({ error: 'Invalid body', details: parsed.error.issues }); return }
 
-  await applyOutcome(id, parsed.data.status, prisma, true)
+  await applyOutcome(id, parsed.data.status, prisma, true, parsed.data.knownAt)
 
   const rumour = await prisma.rumour.findUnique({ where: { id } })
   broadcast('rumour:updated', { id, status: parsed.data.status, computedLikelihood: rumour?.computedLikelihood })
@@ -130,9 +136,12 @@ router.get('/rumours', async (req, res) => {
   res.json(rumours.map((r) => ({ ...r, evidence: evidenceByRumour.get(r.id) ?? [] })))
 })
 
-// GET /admin/rumours/awaiting-review — rumours past their window deadline that
-// the window-close job could not confirm. Resolve each with
-// PATCH /admin/rumours/:id/outcome once checked against an official source.
+// GET /admin/rumours/awaiting-review — open rumours that need an owner decision:
+// - window-closed: past the window deadline and not confirmed by the club sync
+// - text-signal: a linked article uses outcome wording ("here we go", "deal off").
+//   Wording is a lead to check against an official source, never a resolution.
+// Resolve each with PATCH /admin/rumours/:id/outcome, passing knownAt (the
+// suggestion is the earliest matching article) so the ledger cuts there.
 router.get('/rumours/awaiting-review', async (_req, res) => {
   const now = new Date()
   const open = await prisma.rumour.findMany({
@@ -145,7 +154,32 @@ router.get('/rumours/awaiting-review', async (_req, res) => {
       source: { select: { name: true } },
     },
   })
-  res.json(open.filter((r) => isPastWindowGrace(r, now)))
+  const signals = open.length
+    ? await prisma.rawSignal.findMany({
+        where: { rumourId: { in: open.map((r) => r.id) } },
+        orderBy: { publishedAt: 'asc' },
+        select: { rumourId: true, headline: true, link: true, publishedAt: true, sourceName: true, rawText: true },
+      })
+    : []
+
+  const hintsByRumour = new Map<number, { outcome: 'COMPLETED' | 'FAILED'; headline: string; link: string | null; publishedAt: Date; sourceName: string }[]>()
+  for (const sig of signals) {
+    const outcome = detectOutcome(`${sig.headline}\n${sig.rawText ?? ''}`)
+    if (!outcome || sig.rumourId === null) continue
+    const list = hintsByRumour.get(sig.rumourId) ?? []
+    list.push({ outcome, headline: sig.headline, link: sig.link, publishedAt: sig.publishedAt, sourceName: sig.sourceName })
+    hintsByRumour.set(sig.rumourId, list)
+  }
+
+  const queue = open.flatMap((r) => {
+    const reasons: string[] = []
+    if (isPastWindowGrace(r, now)) reasons.push('window-closed')
+    const hints = hintsByRumour.get(r.id) ?? []
+    if (hints.length) reasons.push('text-signal')
+    if (!reasons.length) return []
+    return [{ ...r, reasons, textSignals: hints, suggestedKnownAt: hints[0]?.publishedAt ?? null }]
+  })
+  res.json(queue)
 })
 
 const entitlementSchema = z.object({

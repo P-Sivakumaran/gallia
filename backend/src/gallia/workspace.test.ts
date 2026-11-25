@@ -85,6 +85,15 @@ describe('ledgerRow', () => {
     expect(row!.scored).toBe(65)
   })
 
+  it('ignores open rows recorded after the outcome became public (backdated terminal row)', () => {
+    const row = ledgerRow(rumour({
+      id: 6,
+      status: 'COMPLETED',
+      history: [h(55, 'PENDING', 50), h(100, 'COMPLETED', 40), h(92, 'HOT', 30)],
+    }))
+    expect(row!.scored).toBe(55)
+  })
+
   it('ignores open rumours', () => {
     expect(ledgerRow(rumour({ id: 4, history: [h(60, 'PENDING', 1)] }))).toBeNull()
   })

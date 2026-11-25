@@ -36,6 +36,12 @@ export async function applyOutcome(
   outcome: 'COMPLETED' | 'FAILED' | 'DENIED',
   db: PrismaClient,
   force = false,
+  /**
+   * When the outcome became public (e.g. the club announcement's date). The
+   * terminal history row is written at this time, so the ledger never scores
+   * an estimate recorded after the answer was known. Defaults to now.
+   */
+  knownAt?: Date,
 ): Promise<void> {
   const rumour = await db.rumour.findUnique({
     where: { id: rumourId },
@@ -45,8 +51,7 @@ export async function applyOutcome(
   if (rumour.status === outcome) return
 
   // Terminal status is sticky — don't let a later signal (or a stale re-ingest)
-  // flip an already-resolved rumour and double-count against source reliability.
-  // Admin corrections (force=true) are allowed through.
+  // flip an already-resolved rumour. Admin corrections (force=true) are allowed through.
   const TERMINAL: RumourStatus[] = [RumourStatus.COMPLETED, RumourStatus.FAILED, RumourStatus.DENIED]
   if (!force && TERMINAL.includes(rumour.status)) return
 
@@ -58,34 +63,62 @@ export async function applyOutcome(
     data: { status: outcome as RumourStatus, computedLikelihood: newLikelihood },
   })
   await db.rumourHistory.create({
-    data: { rumourId, computedLikelihood: newLikelihood, status: outcome as RumourStatus },
-  })
-
-  const isHit = outcome === 'COMPLETED'
-  const source = await db.source.findUnique({ where: { id: rumour.sourceId } })
-  if (!source) return
-
-  const newHitCount = source.hitCount + (isHit ? 1 : 0)
-  const newMissCount = source.missCount + (isHit ? 0 : 1)
-  const totalOutcomes = newHitCount + newMissCount
-
-  // Blend empirical hit rate into reliability score; weight grows with sample size (cap at 20)
-  const empiricalRate = newHitCount / totalOutcomes
-  const blendWeight = Math.min(totalOutcomes / 20, 1.0)
-  const newScore = source.reliabilityScore * (1 - blendWeight) + empiricalRate * blendWeight
-
-  await db.source.update({
-    where: { id: rumour.sourceId },
     data: {
-      hitCount: newHitCount,
-      missCount: newMissCount,
-      reliabilityScore: Math.max(0.1, Math.min(0.99, newScore)),
+      rumourId,
+      computedLikelihood: newLikelihood,
+      status: outcome as RumourStatus,
+      ...(knownAt ? { recordedAt: knownAt } : {}),
     },
   })
 
-  console.log(
-    `[outcome] Rumour ${rumourId} → ${outcome}. Source "${source.name}" reliability: ${source.reliabilityScore.toFixed(3)} → ${newScore.toFixed(3)}`,
-  )
+  await recountSourceOutcomes(rumour.sourceId, db)
+}
+
+type SourceCountDb = Pick<PrismaClient, 'rumour' | 'source'>
+
+const BLEND_FULL_WEIGHT_AT = 20
+
+function blendWeight(total: number): number {
+  return Math.min(total / BLEND_FULL_WEIGHT_AT, 1)
+}
+
+/**
+ * Recomputes a source's hitCount/missCount from the current terminal statuses
+ * of its rumours, then re-blends reliabilityScore. Idempotent, so corrections
+ * (a FAILED reopened or flipped to COMPLETED) leave no stale miss behind.
+ *
+ * reliabilityScore was built by repeated incremental blends and the source's
+ * original prior is not stored, so the prior is estimated by inverting one
+ * blend step from the stored counts. When the old counts already reached full
+ * weight the prior is unrecoverable and the current score stands in for it;
+ * at full weight it no longer affects the result anyway. This is an
+ * approximation, not an exact replay.
+ */
+export async function recountSourceOutcomes(sourceId: number, db: SourceCountDb): Promise<void> {
+  const source = await db.source.findUnique({ where: { id: sourceId } })
+  if (!source) return
+
+  const [hits, misses] = await Promise.all([
+    db.rumour.count({ where: { sourceId, status: RumourStatus.COMPLETED } }),
+    db.rumour.count({ where: { sourceId, status: { in: [RumourStatus.FAILED, RumourStatus.DENIED] } } }),
+  ])
+  if (hits === source.hitCount && misses === source.missCount) return
+
+  const oldTotal = source.hitCount + source.missCount
+  const oldWeight = blendWeight(oldTotal)
+  let prior = source.reliabilityScore
+  if (oldTotal > 0 && oldWeight < 1) {
+    const oldRate = source.hitCount / oldTotal
+    prior = Math.max(0, Math.min(1, (source.reliabilityScore - oldRate * oldWeight) / (1 - oldWeight)))
+  }
+
+  const total = hits + misses
+  const score = total === 0 ? prior : prior * (1 - blendWeight(total)) + (hits / total) * blendWeight(total)
+
+  await db.source.update({
+    where: { id: sourceId },
+    data: { hitCount: hits, missCount: misses, reliabilityScore: Math.max(0.1, Math.min(0.99, score)) },
+  })
 }
 
 export interface WindowOutcomeSummary {
