@@ -260,7 +260,7 @@ function mapRumour(r: RumourRow, signals: RawSignalRow[], sourcesByName: Map<str
     source: s.sourceName,
     tier: deriveTier(sourcesByName.get(s.sourceName)),
     title: s.headline,
-    excerpt: s.summary || s.headline,
+    excerpt: linkOnlyExcerpt(s.sourceName),
     time: relativeAge(s.publishedAt, now),
     url: safeUrl(s.link),
   }))
@@ -271,7 +271,8 @@ function mapRumour(r: RumourRow, signals: RawSignalRow[], sourcesByName: Map<str
       source: r.source.name,
       tier: deriveTier(r.source),
       title: `Reported by ${r.source.name}`,
-      excerpt: r.notes?.trim() || `${r.source.name} reported ${r.player.name}'s move to ${clubName(r.toClub)}. No article text was stored for this report.`,
+      // Never r.notes: it holds the source headline and owner review notes (VOID: ...).
+      excerpt: `${r.source.name} reported ${r.player.name}'s move to ${clubName(r.toClub)}. No article text was stored for this report.`,
       time: relativeAge(r.rumourDate, now),
     })
   }
@@ -307,7 +308,7 @@ function mapClaim(c: ClaimRow, now: Date): GalliaClaim {
     source: e.authorName || e.source.name,
     tier: deriveTier(e.source),
     title: e.title,
-    excerpt: e.rawExcerpt,
+    excerpt: linkOnlyExcerpt(e.source.name),
     time: relativeAge(e.publishedAt, now),
     url: safeUrl(e.canonicalUrl),
     parentId: e.parentEvidenceItemId ? `e-${e.parentEvidenceItemId}` : undefined,
@@ -422,6 +423,13 @@ export function buildGalliaWorkspace(input: WorkspaceInput): GalliaWorkspace {
   }
 }
 
+// Publisher terms (BBC, Guardian, L'Équipe, Mirror, Telegraph, Sky, Marca,
+// 90min; Google News) restrict commercial reuse of feed text. Gallia shows the
+// headline, source and link, never the publisher's description or article text.
+function linkOnlyExcerpt(sourceName: string): string {
+  return `Headline as published by ${sourceName}. Gallia does not republish article text; follow the link to read the original.`
+}
+
 // ── Loader ──────────────────────────────────────────────────────────────────
 
 const playerSelect = { id: true, name: true, age: true, position: true, nationality: true, contractEnd: true } as const
@@ -431,6 +439,8 @@ const sourceSelect = { id: true, name: true, tier: true, reliabilityScore: true 
 export async function loadGalliaWorkspace(prisma: PrismaClient, now = new Date()): Promise<GalliaWorkspace> {
   const [rumours, claims, sources, headlinesThisWeek] = await Promise.all([
     prisma.rumour.findMany({
+      // Voided rumours (wrong match, duplicate) are not public claims.
+      where: { OR: [{ notes: null }, { NOT: { notes: { startsWith: 'VOID:' } } }] },
       select: {
         id: true, status: true, computedLikelihood: true, reportedFeeMin: true, reportedFeeMax: true,
         window: true, rumourDate: true, createdAt: true, updatedAt: true, notes: true,

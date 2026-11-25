@@ -162,6 +162,19 @@ describe('buildGalliaWorkspace', () => {
     expect(w.claims[0].headline).toBe('Newer')
   })
 
+  it('never republishes the publisher description or the rumour notes', () => {
+    const w = buildGalliaWorkspace(input({
+      rumours: [rumour({ id: 1, notes: 'VOID: duplicate of #2' })],
+      rawSignals: [
+        { id: 12, rumourId: 1, sourceName: 'BBC', headline: 'H', summary: 'Full publisher description text', link: 'https://example.com/b', publishedAt: hoursAgo(1) },
+      ],
+    }))
+    const text = JSON.stringify(w)
+    expect(text).not.toContain('Full publisher description text')
+    expect(text).not.toContain('VOID:')
+    expect(w.claims[0].evidence[0].excerpt).toMatch(/does not republish article text/)
+  })
+
   it('falls back to the reporting source when no article was stored, without inventing text', () => {
     const w = buildGalliaWorkspace(input({ rumours: [rumour({ id: 1 })] }))
     expect(w.claims[0].evidence).toHaveLength(1)
