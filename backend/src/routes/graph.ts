@@ -1,3 +1,4 @@
+import { NOT_VOIDED } from '../ingestion/outcomeDetector.js'
 /**
  * GET /graph — returns nodes + edges for the Sigma.js transfer network.
  *
@@ -25,7 +26,7 @@ const NODE_COLORS = {
 
 router.get('/', async (_req: Request, res: Response) => {
   const rumours = await prisma.rumour.findMany({
-    where: { status: { in: [RumourStatus.PENDING, RumourStatus.HOT, RumourStatus.COMPLETED] } },
+    where: { status: { in: [RumourStatus.PENDING, RumourStatus.HOT, RumourStatus.COMPLETED] }, ...NOT_VOIDED },
     include: { player: true, fromClub: true, toClub: true, source: true },
     orderBy: { computedLikelihood: 'desc' },
     take: 200,

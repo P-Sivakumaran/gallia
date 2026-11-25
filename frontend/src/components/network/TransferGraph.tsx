@@ -1,11 +1,9 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import Graph from 'graphology'
 import Sigma from 'sigma'
 import forceAtlas2 from 'graphology-layout-forceatlas2'
-import { clsx } from 'clsx'
-import { chartColors } from '@/lib/chartTheme'
 
 interface GraphNode {
   id: string
@@ -48,12 +46,27 @@ interface HoveredNode {
   marketValue?: number
 }
 
+// Desk palette (gallia.css). Nodes stay quiet; status colour lives on the lines only.
+const DESK = {
+  player: '#9cdeb3',
+  club: '#46566a',
+  label: '#c3ccd6',
+  muted: '#26303b',
+  status: { HOT: '#f8c36b', PENDING: '#7d8c9b', COMPLETED: '#7de2ac', FAILED: '#ff969c', DENIED: '#ff969c' } as Record<string, string>,
+}
+
 const STATUS_LEGEND = [
-  { label: 'HOT (≥70%)', color: chartColors.hot },
-  { label: 'PENDING', color: chartColors.pending },
-  { label: 'COMPLETED', color: chartColors.success },
-  { label: 'FAILED', color: chartColors.danger },
+  { label: 'Hot (70%+)', color: DESK.status.HOT },
+  { label: 'Pending', color: DESK.status.PENDING },
+  { label: 'Completed', color: DESK.status.COMPLETED },
+  { label: 'Failed', color: DESK.status.FAILED },
 ]
+const FILTERS = [
+  { value: 'all', label: 'All' },
+  { value: 'HOT', label: 'Hot' },
+  { value: 'PENDING', label: 'Pending' },
+  { value: 'COMPLETED', label: 'Completed' },
+] as const
 
 export default function TransferGraph() {
   const containerRef = useRef<HTMLDivElement>(null)
@@ -90,7 +103,7 @@ export default function TransferGraph() {
         x: node.x,
         y: node.y,
         size: node.size,
-        color: node.color,
+        color: node.type === 'player' ? DESK.player : DESK.club,
         nodeType: node.type,   // stored as data attr, not Sigma type
         position: node.position,
         league: node.league,
@@ -102,7 +115,7 @@ export default function TransferGraph() {
     for (const edge of data.edges) {
       const visible = filter === 'all' || edge.status === filter
       graph.addEdgeWithKey(edge.id, edge.source, edge.target, {
-        color: visible ? edge.color : chartColors.track,
+        color: visible ? (DESK.status[edge.status] ?? DESK.status.PENDING) : DESK.muted,
         size: visible ? edge.size : 0.5,
         weight: edge.weight,
         status: edge.status,
@@ -132,7 +145,7 @@ export default function TransferGraph() {
       labelFont: 'Inter, sans-serif',
       labelSize: 12,
       labelWeight: '600',
-      labelColor: { color: chartColors.canvasLabel },
+      labelColor: { color: DESK.label },
       minCameraRatio: 0.1,
       maxCameraRatio: 10,
     })
@@ -173,91 +186,50 @@ export default function TransferGraph() {
     }
   }, [data, filter])
 
-  if (initError) {
-    return (
-      <div className="rounded-xl border border-failed-deep/40 bg-failed-deepest/20 p-6 text-sm">
-        <p className="font-semibold text-failed-fg mb-2">Graph init error</p>
-        <pre className="text-failed-soft/70 text-xs overflow-auto">{initError}</pre>
+  const frame = (body: ReactNode) => (
+    <section className="g-panel">
+      <div className="g-network-tools">
+        <nav className="g-feed-tabs" aria-label="Filter rumours by status">
+          {FILTERS.map((f) => (
+            <button key={f.value} type="button" className={filter === f.value ? 'active' : ''} aria-pressed={filter === f.value} onClick={() => setFilter(f.value)}>{f.label}</button>
+          ))}
+        </nav>
+        <div className="g-legend" aria-label="Line colour by rumour status">
+          {STATUS_LEGEND.map((l) => <span key={l.label}><i style={{ background: l.color }} />{l.label}</span>)}
+          <span><i className="dot" style={{ background: DESK.player }} />Player</span>
+          <span><i className="dot" style={{ background: DESK.club }} />Club</span>
+        </div>
       </div>
-    )
+      {body}
+      <div className="g-network-footer">
+        <span>Scroll to zoom · drag to pan · hover a node for detail</span>
+        {data && <span>{data.meta.nodeCount} nodes · {Math.round(data.meta.edgeCount / 2)} rumours</span>}
+      </div>
+    </section>
+  )
+
+  if (initError) {
+    return frame(<div className="g-network-state" role="alert">The network could not be drawn in this browser ({initError}).</div>)
   }
 
   if (loading) {
-    return (
-      <div className="flex h-canvas-md items-center justify-center rounded-xl border border-line/60 bg-card shadow-card">
-        <div className="text-center">
-          <div className="mx-auto mb-3 h-8 w-8 animate-spin rounded-full border-2 border-pitch-500 border-t-transparent" />
-          <p className="text-sm text-ink-muted">Building transfer network...</p>
-        </div>
-      </div>
-    )
+    return frame(<div className="g-network-state">Building the transfer network…</div>)
   }
 
-  return (
-    <div className="relative">
-      {/* Controls */}
-      <div className="mb-4 flex flex-wrap items-center gap-3">
-        <div className="flex gap-2">
-          {(['all', 'HOT', 'PENDING', 'COMPLETED'] as const).map((f) => (
-            <button
-              key={f}
-              onClick={() => setFilter(f)}
-              className={clsx(
-                'rounded-full border px-3 py-1 text-xs font-semibold transition-colors',
-                filter === f
-                  ? 'border-pitch-500 bg-pitch-500/20 text-pitch-500'
-                  : 'border-line text-ink-secondary hover:border-line-emphasis',
-              )}
-            >
-              {f}
-            </button>
-          ))}
+  if (!data) {
+    return frame(<div className="g-network-state">The network is unavailable right now. Is the backend running?</div>)
+  }
+
+  return frame(
+    <div className="g-network-canvas">
+      <div ref={containerRef} className="g-network-surface" />
+      {hovered && (
+        <div className="g-network-overlay" style={{ left: 16, top: 16 }}>
+          <strong>{hovered.label}</strong>
+          <span className="g-muted">{hovered.type}{hovered.position ? ` · ${hovered.position}` : ''}{hovered.league ? ` · ${hovered.league}` : ''}</span>
+          {hovered.marketValue ? <div className="g-ledger-fee">€{hovered.marketValue}M</div> : null}
         </div>
-        <div className="ml-auto flex gap-3 text-xs text-ink-muted">
-          {STATUS_LEGEND.map((l) => (
-            <span key={l.label} className="flex items-center gap-1.5">
-              <span className="h-2.5 w-2.5 rounded-full" style={{ background: l.color }} />
-              {l.label}
-            </span>
-          ))}
-        </div>
-      </div>
-
-      {/* Graph canvas */}
-      <div className="relative overflow-hidden rounded-xl border border-line/60 bg-surface-base shadow-card">
-        <div ref={containerRef} className="h-canvas-lg w-full" />
-
-        {/* Node type legend */}
-        <div className="absolute bottom-4 left-4 flex flex-col gap-1.5 rounded-lg border border-line/60 bg-card/95 px-3 py-2 text-xs backdrop-blur shadow-card">
-          <span className="flex items-center gap-2 text-ink-secondary">
-            <span className="h-3 w-3 rounded-full bg-node-player" /> Player
-          </span>
-          <span className="flex items-center gap-2 text-ink-secondary">
-            <span className="h-3 w-3 rounded-sm bg-node-club" /> Club
-          </span>
-        </div>
-
-        {/* Stats */}
-        {data && (
-          <div className="absolute bottom-4 right-4 rounded-lg border border-line/60 bg-card/95 px-3 py-2 text-xs text-ink-secondary backdrop-blur shadow-card">
-            {data.meta.nodeCount} nodes · {Math.round(data.meta.edgeCount / 2)} rumours
-          </div>
-        )}
-
-        {/* Hover tooltip */}
-        {hovered && (
-          <div className="absolute left-4 top-4 rounded-lg border border-line/60 bg-card/95 px-3 py-2 text-sm backdrop-blur shadow-card">
-            <p className="font-semibold text-ink-primary">{hovered.label}</p>
-            <p className="text-xs capitalize text-ink-secondary">{hovered.type}</p>
-            {hovered.position && <p className="text-xs text-ink-muted">Position: {hovered.position}</p>}
-            {hovered.league && <p className="text-xs text-ink-muted">{hovered.league}</p>}
-            {hovered.marketValue && (
-              <p className="font-mono text-xs text-pitch-500">€{hovered.marketValue}M</p>
-            )}
-          </div>
-        )}
-      </div>
-      <p className="mt-2 text-xs text-ink-faint">Scroll to zoom · drag to pan · hover nodes for detail</p>
-    </div>
+      )}
+    </div>,
   )
 }

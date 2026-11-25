@@ -160,6 +160,7 @@ export default function ModelCalibrationChart({ definition, isLoading = false, e
               isAnimationActive={false}
             />
             <Scatter
+              isAnimationActive={false}
               dataKey="empiricalRatePct"
               shape={(props: { cx?: number; cy?: number; payload: BinRow }) => (
                 <CalibrationDot {...props} maxN={maxN} />

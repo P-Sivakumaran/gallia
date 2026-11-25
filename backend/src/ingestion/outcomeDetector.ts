@@ -148,6 +148,9 @@ export { isPastWindowGrace }
  * are marked by a notes prefix so nothing resolves them automatically.
  */
 export const VOID_NOTE_PREFIX = 'VOID:'
+/** Prisma filter for public lists: leaves voided rumours out (NULL-safe). */
+export const NOT_VOIDED = { OR: [{ notes: null }, { NOT: { notes: { startsWith: VOID_NOTE_PREFIX } } }] }
+
 export function isVoided(r: { notes?: string | null }): boolean {
   return Boolean(r.notes?.startsWith(VOID_NOTE_PREFIX))
 }

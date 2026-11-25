@@ -12,7 +12,10 @@ import type { Rumour } from '@/types'
  */
 export function resolveDisplayOrigin(rumour: Rumour): { club: Rumour['fromClub']; unconfirmed: boolean } {
   const currentClub = rumour.player.currentClub
-  const mismatched = currentClub != null && currentClub.id !== rumour.fromClub.id
+  // Once the move has happened the player's current club is the destination,
+  // which says nothing about where he came from ("Arsenal → Arsenal").
+  const mismatched =
+    currentClub != null && currentClub.id !== rumour.fromClub.id && currentClub.id !== rumour.toClub.id
 
   if (rumour.fromClubInferred && mismatched) {
     return { club: currentClub, unconfirmed: true }

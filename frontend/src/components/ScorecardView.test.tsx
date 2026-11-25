@@ -39,4 +39,24 @@ describe('ScorecardView', () => {
     render(<ScorecardView health={null} error="API 500: /forecast/model-health" />)
     expect(screen.getByTestId('scorecard-error')).toHaveTextContent('API 500')
   })
+
+  it('scores the desk ledger when one is supplied', () => {
+    const ledger = {
+      brierScore: 0.204, scored: 2, excluded: 1,
+      rows: [
+        { id: 'r1', player: 'Ferran Torres', route: 'Barcelona → PSG', peak: 80, scored: 72, trend: [], window: 'Summer 2026', outcome: 'Completed' as const, brier: 0.0784, payout: 0.28 },
+        { id: 'r2', player: 'Julian Alvarez', route: 'Atlético → Arsenal', peak: 60, scored: 55, trend: [], window: 'Summer 2026', outcome: 'Failed' as const, brier: 0.3025, payout: -0.55 },
+      ],
+    }
+    render(<ScorecardView health={null} ledger={ledger} />)
+    expect(screen.getByTestId('scorecard-ledger')).toHaveTextContent('0.204')
+    expect(screen.getByText('Ferran Torres')).toBeInTheDocument()
+    expect(screen.getByText('1 left out: no pre-outcome estimate')).toBeInTheDocument()
+  })
+
+  it('says so when there is no ledger', () => {
+    render(<ScorecardView health={null} />)
+    expect(screen.getByTestId('scorecard-no-ledger')).toBeInTheDocument()
+  })
 })
+

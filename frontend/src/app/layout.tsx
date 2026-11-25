@@ -5,6 +5,7 @@ import './globals.css'
 import { AuthProvider } from '@/components/AuthProvider'
 import GalliaLogo from '@/components/gallia/GalliaLogo'
 import SiteMain from '@/components/SiteMain'
+import SiteNav from '@/components/desk/SiteNav'
 import { BRAND } from '@/lib/brand'
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
@@ -33,13 +34,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <span className="g-brand-caption"><span>TRANSFER INTELLIGENCE</span><span>CALCIOMERCATO, QUANTIFIED.</span></span>
             <div className="g-header-right"><span className="g-edition">MILANO · EST. 2025</span><Link className="g-public-link" href="/#about-gallia">About Gallia <span aria-hidden="true">↗</span></Link></div>
           </header>
-          <nav className="g-site-nav" aria-label="Site sections">
-            <div className="flex gap-6 overflow-x-auto whitespace-nowrap text-sm font-medium text-ink-secondary">
-              <Link href="/rumours" className="transition-colors hover:text-ink-primary">Rumours</Link>
-              <Link href="/network" className="transition-colors hover:text-ink-primary">Network</Link>
-              <Link href="/scorecard" className="transition-colors hover:text-ink-primary">Scorecard</Link>
-            </div>
-          </nav>
+          <SiteNav />
           <SiteMain>{children}</SiteMain>
         </AuthProvider>
       </body>
