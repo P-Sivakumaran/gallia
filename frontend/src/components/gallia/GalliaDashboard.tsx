@@ -239,7 +239,7 @@ export default function GalliaDashboard({ workspace }: { workspace: GalliaWorksp
           <EvidenceBalance evidence={selected.evidence} />
           <div className="g-evidence-tree">{selected.evidence.map((e) => <EvidenceNode key={e.id} evidence={e} />)}</div>
           {!selected.evidence.length && <div className="g-empty">No raw excerpts are available for this claim. We don’t invent the missing paper trail.</div>}
-          <p className="g-extraction-note"><Icon name="book" size={15} />{demo ? 'Crawl4AI extraction preview · no live crawl has been performed.' : heuristic ? 'Stored headlines and excerpts from monitored feeds, shown as received.' : 'Stored excerpts are shown as received. Extraction provider is not verified.'}</p>
+          <p className="g-extraction-note"><Icon name="book" size={15} />{demo ? 'Crawl4AI extraction preview · no live crawl has been performed.' : heuristic ? 'Headlines and links from monitored feeds. Article text is not republished.' : 'Stored excerpts are shown as received. Extraction provider is not verified.'}</p>
         </section>
       </Modal>
     )}
