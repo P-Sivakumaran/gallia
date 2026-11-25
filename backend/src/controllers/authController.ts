@@ -26,7 +26,18 @@ function issueSession(res: Response, userId: number): void {
   res.cookie('token', token, COOKIE_OPTS)
 }
 
+// Gallia is a public website with no reader accounts, so self-service
+// registration is off. Set ALLOW_PUBLIC_REGISTRATION=true only to create the
+// owner account on a fresh deploy (see docs/admin-operations.md), then unset it.
+export function isPublicRegistrationEnabled(env: NodeJS.ProcessEnv = process.env): boolean {
+  return env.ALLOW_PUBLIC_REGISTRATION === 'true'
+}
+
 export async function handleRegister(req: AuthedRequest, res: Response): Promise<void> {
+  if (!isPublicRegistrationEnabled()) {
+    res.status(404).json({ error: 'Not found' })
+    return
+  }
   const { email, password } = CredentialsSchema.parse(req.body)
 
   const existing = await findUserByEmail(email)

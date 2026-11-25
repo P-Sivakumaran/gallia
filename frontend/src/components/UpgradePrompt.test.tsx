@@ -25,9 +25,8 @@ describe('UpgradePrompt', () => {
     expect(screen.getByText(/same calibrated probability/)).toBeInTheDocument()
   })
 
-  it('links to /pricing rather than a checkout flow', () => {
+  it('has no pricing or checkout link', () => {
     render(<UpgradePrompt description="x" requiredTier="PRO" featureKey="UNLIMITED_WATCHLIST" />)
-    const link = screen.getByRole('link', { name: /See what's included/ })
-    expect(link).toHaveAttribute('href', '/pricing')
+    expect(screen.queryByRole('link')).not.toBeInTheDocument()
   })
 })
