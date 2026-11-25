@@ -348,6 +348,12 @@ export async function runWikidataClubSync(
     }))
 
     await db.$transaction([
+      // A rerun replaces this club's earlier unapplied Wikidata reading instead of piling up
+      // duplicates. Applied facts and other sources' facts are left alone.
+      db.sourcedFact.updateMany({
+        where: { entityType: 'CLUB', entityId: club.id, source: 'wikidata', applied: false, supersededAt: null },
+        data: { supersededAt: now },
+      }),
       db.sourcedFact.createMany({ data: facts }),
       db.club.update({
         where: { id: club.id },

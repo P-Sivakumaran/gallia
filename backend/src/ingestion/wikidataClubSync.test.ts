@@ -5,6 +5,7 @@ import {
   parsePoint,
   pickClub,
   scoreCandidate,
+  runWikidataClubSync,
   searchTerms,
   type WikidataClub,
 } from './wikidataClubSync.js'
@@ -98,5 +99,57 @@ describe('wikidata club matching', () => {
       cand({ qid: 'Q4523150', label: 'FC Sheriff-2 Tiraspol', country: 'Moldova', rank: 1 }),
     ])
     expect(sheriff.kind).toBe('matched')
+  })
+})
+
+describe('runWikidataClubSync reruns', () => {
+  // In-memory stand-in for the two tables the sync touches.
+  function fakeDb(clubs: { id: number; name: string; country: string; lat: number | null }[]) {
+    const facts: { entityId: number; source: string; applied: boolean; supersededAt: Date | null; field: string }[] = []
+    const db = {
+      club: {
+        findMany: async (args: { where?: { wikidataId?: unknown } }) =>
+          args.where && 'wikidataId' in args.where ? [] : clubs.filter((c) => c.lat == null),
+        update: async ({ where, data }: { where: { id: number }; data: { lat?: number } }) => {
+          const c = clubs.find((x) => x.id === where.id)!
+          if (data.lat != null) c.lat = data.lat
+          return c
+        },
+      },
+      sourcedFact: {
+        updateMany: async ({ where, data }: { where: { entityId: number }; data: { supersededAt: Date } }) => {
+          for (const f of facts) if (f.entityId === where.entityId && !f.applied && !f.supersededAt) f.supersededAt = data.supersededAt
+          return { count: 0 }
+        },
+        createMany: async ({ data }: { data: typeof facts }) => {
+          facts.push(...data.map((d) => ({ ...d, supersededAt: null })))
+          return { count: data.length }
+        },
+      },
+      $transaction: async (ops: Promise<unknown>[]) => {
+        for (const op of ops) await op
+        return []
+      },
+    }
+    return { db: db as never, facts, clubs }
+  }
+
+  // Search returns one weak candidate; SPARQL describes it as a Zambian club named differently.
+  const fetcher = async (url: string) => {
+    const body = url.includes('wbsearchentities')
+      ? { search: [{ id: 'Q9' }] }
+      : { results: { bindings: [{ c: { value: 'http://www.wikidata.org/entity/Q9' }, cLabel: { value: 'Sheriff Wanderers' }, countryLabel: { value: 'Zambia' }, coord: { value: 'Point(28 -15)' } }] } }
+    return new Response(JSON.stringify(body), { status: 200 })
+  }
+
+  it('supersedes the previous unapplied reading instead of duplicating it, and never moves the club', async () => {
+    const { db, facts, clubs } = fakeDb([{ id: 1, name: 'Sheriff', country: 'Moldova', lat: null }])
+    const opts = { fetcher: fetcher as never, sleep: async () => {} }
+    await runWikidataClubSync(db, opts)
+    await runWikidataClubSync(db, opts)
+    const live = facts.filter((f) => !f.supersededAt)
+    expect(new Set(live.map((f) => f.field)).size).toBe(live.length)
+    expect(facts.length).toBe(live.length * 2)
+    expect(clubs[0].lat).toBeNull()
   })
 })
