@@ -12,6 +12,7 @@ import playersRouter from './routes/players.js'
 import clubsRouter from './routes/clubs.js'
 import statsRouter from './routes/stats.js'
 import graphRouter from './routes/graph.js'
+import mapRouter from './routes/map.js'
 import claimsRouter from './routes/claims.js'
 import forecastRouter from './routes/forecast.js'
 import adminRouter from './routes/admin.js'
@@ -44,6 +45,7 @@ app.use('/clubs', clubsRouter)
 app.use('/stats', statsRouter)
 app.use('/gallia', galliaRouter)
 app.use('/graph', graphRouter)
+app.use('/map', mapRouter)
 // Additive — parallel provenance/evidence model, does not change /rumours'
 // existing contract. See docs/forecasting-audit.md.
 app.use('/claims', claimsRouter)

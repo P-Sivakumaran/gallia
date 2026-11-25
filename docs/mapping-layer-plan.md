@@ -1,6 +1,8 @@
 # Mapping layer and Gallia's own reference database — plan (draft, 2026-11-26)
 
-Status: DRAFT, awaiting owner approval. Schema changes need a CHAP attestation (start Claude Code inside the repo so the chap MCP loads).
+Status: APPROVED by the owner 2026-11-26. Phase 0 is PR #27. Phase 1 (schema, Wikidata club sync, GET /map) is the follow-up PR. The owner said to go ahead without a CHAP attestation, because CHAP was not loaded in this session.
+
+Running the sync: `npm run sync:wikidata-clubs` in backend/ (add `-- --limit 20` for a trial run). It skips clubs that are already placed or were checked in the last 30 days. Matches below 0.75 confidence, or within 0.1 of the runner-up, are stored as unapplied `sourced_facts` rows for review.
 
 ## Goal
 
