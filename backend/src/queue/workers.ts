@@ -9,10 +9,10 @@ import {
 import { fetchLatestRumours } from '../ingestion/sportmonks.js'
 import { fetchRSSSignals, RSS_FEEDS } from '../ingestion/sources/rss.js'
 import { fetchApiFootballTransfers } from '../ingestion/sources/apifootball.js'
-import { extractRumoursFromText, getEntities } from '../ingestion/entityMatcher.js'
+import { extractRumoursFromText } from '../ingestion/entityMatcher.js'
 import { computeScore } from '../scoring/likelihoodEngine.js'
 import { broadcast } from '../sse/broadcaster.js'
-import { detectOutcome, applyOutcome, resolveWindowOutcomes } from '../ingestion/outcomeDetector.js'
+import { applyOutcome, resolveWindowOutcomes } from '../ingestion/outcomeDetector.js'
 import { crawlUrl } from '../ingestion/sources/crawl4ai.js'
 import { runPlayerEnrichment } from '../ingestion/enrichment.js'
 import { runPlayerClubSyncWithPrisma } from '../ingestion/playerClubSync.js'
@@ -52,46 +52,6 @@ async function linkContradiction(newRumourId: number, playerId: number, toClubId
   })
   console.log(`[workers] Contradiction: rumour ${newRumourId} contradicts ${conflicting.id} (same player, different destination)`)
   return conflicting.id
-}
-
-// ─── Outcome fallback: handles confirmation headlines with only 1 club ───────
-// "Mastantuono joins Fiorentina on loan" → no fromClub → 0 candidates → this fires
-
-async function applyOutcomeFallback(
-  signal: import('../ingestion/sources/rss.js').RSSRumourSignal,
-  outcome: 'COMPLETED' | 'FAILED',
-): Promise<void> {
-  const { players, clubs } = await getEntities()
-  const lowerText = signal.rawText.toLowerCase()
-  const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
-
-  const mentionedPlayerIds = players
-    .filter((p) => {
-      const parts = p.name.toLowerCase().split(/\s+/)
-      return parts.some((part) => part.length >= 4 && lowerText.includes(part))
-    })
-    .map((p) => p.id)
-
-  const mentionedClubIds = clubs
-    .filter((c) => c.name.length >= 4 && lowerText.includes(c.name.toLowerCase()))
-    .map((c) => c.id)
-
-  if (!mentionedPlayerIds.length || !mentionedClubIds.length) return
-
-  const matching = await prisma.rumour.findMany({
-    where: {
-      playerId: { in: mentionedPlayerIds },
-      toClubId: { in: mentionedClubIds },
-      status: { in: [RumourStatus.PENDING, RumourStatus.HOT] },
-      rumourDate: { gte: thirtyDaysAgo },
-    },
-  })
-
-  for (const r of matching) {
-    await applyOutcome(r.id, outcome, prisma)
-    broadcast('rumour:updated', { id: r.id, status: outcome })
-    console.log(`[outcome:fallback] Applied ${outcome} to rumour ${r.id} via text mention`)
-  }
 }
 
 // ─── Ingest worker ─────────────────────────────────────────────────────────
@@ -145,8 +105,6 @@ async function processIngest(job: { data: IngestJobData }) {
         },
       })
 
-      // 2. Detect outcome signal (here we go, confirmed, deal off, etc.)
-      const detectedOutcome = detectOutcome(signal.rawText)
 
       // 3. Extract entities and match/create rumours
       const candidates = await extractRumoursFromText(signal.headline, signal.summary)
@@ -176,10 +134,6 @@ async function processIngest(job: { data: IngestJobData }) {
           await scoreQueue.add('score', { rumourId: existing.id })
 
           // Apply outcome to existing rumour if detected
-          if (detectedOutcome) {
-            await applyOutcome(existing.id, detectedOutcome, prisma)
-            broadcast('rumour:updated', { id: existing.id, status: detectedOutcome })
-          }
         } else {
           const rumour = await prisma.rumour.create({
             data: {
@@ -193,7 +147,8 @@ async function processIngest(job: { data: IngestJobData }) {
               rumourDate: signal.publishedAt,
               computedLikelihood: 0,
               notes: signal.headline,
-              // Always start PENDING; applyOutcome below handles status + hitCount
+              // Always start PENDING. Outcome wording in the text is a review signal
+              // (GET /admin/rumours/awaiting-review), never a resolution.
               status: RumourStatus.PENDING,
             },
           })
@@ -201,10 +156,6 @@ async function processIngest(job: { data: IngestJobData }) {
           await scoreQueue.add('score', { rumourId: rumour.id })
 
           // Apply outcome explicitly so hitCount/reliability are credited
-          if (detectedOutcome) {
-            await applyOutcome(rumour.id, detectedOutcome, prisma)
-            broadcast('rumour:updated', { id: rumour.id, status: detectedOutcome })
-          }
 
           // Check for contradictions with other rumours for the same player
           const contradictsId = await linkContradiction(rumour.id, candidate.playerId, candidate.toClubId)
@@ -236,9 +187,6 @@ async function processIngest(job: { data: IngestJobData }) {
 
       // Outcome fallback: confirmation headlines that only name destination club
       // produce 0 candidates (need 2 clubs for tuple extraction) — look up by mention
-      if (detectedOutcome && candidates.length === 0) {
-        await applyOutcomeFallback(signal, detectedOutcome)
-      }
 
       if (candidates.length > 0) {
         await prisma.rawSignal.update({
@@ -476,8 +424,6 @@ export async function processCrawl(job: { data: CrawlJobData }): Promise<{ match
     })
   }
 
-  // Check for outcome signals inside full article
-  const detectedOutcome = detectOutcome(articleMarkdown)
 
   // Extract entities from the deeper markdown text
   const candidates = await extractRumoursFromText(articleTitle, articleMarkdown.slice(0, 4000))
@@ -507,10 +453,6 @@ export async function processCrawl(job: { data: CrawlJobData }): Promise<{ match
         data: { distinctSourceCount: { increment: 1 } },
       })
       await scoreQueue.add('score', { rumourId: existing.id })
-      if (detectedOutcome) {
-        await applyOutcome(existing.id, detectedOutcome, prisma)
-        broadcast('rumour:updated', { id: existing.id, status: detectedOutcome })
-      }
     } else {
       const rumour = await prisma.rumour.create({
         data: {
@@ -528,10 +470,6 @@ export async function processCrawl(job: { data: CrawlJobData }): Promise<{ match
         },
       })
       await scoreQueue.add('score', { rumourId: rumour.id })
-      if (detectedOutcome) {
-        await applyOutcome(rumour.id, detectedOutcome, prisma)
-        broadcast('rumour:updated', { id: rumour.id, status: detectedOutcome })
-      }
 
       await linkContradiction(rumour.id, candidate.playerId, candidate.toClubId)
       broadcast('rumour:new', {

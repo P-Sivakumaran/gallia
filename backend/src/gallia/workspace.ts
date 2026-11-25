@@ -202,12 +202,15 @@ function downsample(values: number[], max = 20): number[] {
   return out
 }
 
-// History rows recorded while the rumour was still open. Rows written after it resolved carry
-// the outcome (likelihood forced to 0 or 100) and must never count as what we forecast.
+// History rows recorded while the rumour was still open, before the outcome was known. The
+// terminal row is written at the time the outcome became public (applyOutcome's knownAt), so an
+// open row recorded after it was scored with the answer already out and must not count.
 export function preResolutionHistory(history: HistoryRow[]): HistoryRow[] {
-  return history
-    .filter((h) => ACTIVE.includes(h.status))
-    .sort((a, b) => a.recordedAt.getTime() - b.recordedAt.getTime())
+  const sorted = [...history].sort((a, b) => a.recordedAt.getTime() - b.recordedAt.getTime())
+  const firstTerminal = sorted.find((h) => !ACTIVE.includes(h.status))
+  return sorted.filter(
+    (h) => ACTIVE.includes(h.status) && (!firstTerminal || h.recordedAt.getTime() < firstTerminal.recordedAt.getTime()),
+  )
 }
 
 function trendOf(history: HistoryRow[], end: Date): number[] {
