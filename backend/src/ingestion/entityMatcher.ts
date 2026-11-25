@@ -99,7 +99,7 @@ function resolveAlias(text: string): string {
 // ─── DB entity cache ─────────────────────────────────────────────────────────
 
 interface EntityCache {
-  players: Array<{ id: number; name: string; position: string | null }>
+  players: Array<{ id: number; name: string; position: string | null; currentClubId?: number | null }>
   clubs: Array<{ id: number; name: string; shortName: string | null; league: string }>
 }
 
@@ -110,7 +110,7 @@ const CACHE_TTL_MS = 5 * 60 * 1000
 async function getEntities(): Promise<EntityCache> {
   if (cache && Date.now() - cacheAt < CACHE_TTL_MS) return cache
   const [players, clubs] = await Promise.all([
-    prisma.player.findMany({ select: { id: true, name: true, position: true } }),
+    prisma.player.findMany({ select: { id: true, name: true, position: true, currentClubId: true } }),
     prisma.club.findMany({ select: { id: true, name: true, shortName: true, league: true } }),
   ])
   cache = { players, clubs }
@@ -406,6 +406,19 @@ const TO_INFINITIVE_VERBS =
 // "signs from Club" also matches this unrelated construction.
 const FROM_ATTRIBUTION_PRECEDING = /\b(reports?|news|sources?|according)\s*$/i
 
+// "bid/offer/interest **from** X" names X as the buying club, not the origin:
+// "Newcastle reject first bid from Arsenal for captain Bruno Guimarães" had
+// Arsenal stored as the selling club (rumour 179), and "Man City accept bid
+// from Barcelona for ... Rodri" reversed rumour 147. When X follows one of
+// these nouns it fills the destination slot instead.
+const BUYER_BEFORE_FROM = /\b(bids?|offers?|approach(es)?|interest|proposals?|enquir(y|ies)|inquir(y|ies)|advances?|attempts?)\s*$/i
+
+// "respond/reply/react **to** X", "warning to X": a club answering another
+// club, not a destination. "Arsenal respond to Galatasaray warning over
+// Victor Osimhen transfer" stored Galatasaray as Osimhen's destination
+// (rumour 156); he plays for Galatasaray.
+const NOT_DESTINATION_BEFORE_TO = /\b(respond(s|ed)?|repl(y|ies|ied)|react(s|ed)?|response|warning|message)\s*$/i
+
 // Only assigns a from/to club when the text gives an explicit directional cue
 // ("joins X", "from Y") near a club mention. When neither slot resolves this
 // way, we return null rather than guess from mention order — a rumour with a
@@ -415,6 +428,7 @@ export function resolveDirection(
   text: string,
   clubs: EntityCache['clubs'],
   mentionedClubs: Array<{ id: number; name: string; score: number }>,
+  currentClubId: number | null = null,
 ): {
   fromClub: (typeof mentionedClubs)[0] | null
   toClub: (typeof mentionedClubs)[0] | null
@@ -472,6 +486,7 @@ export function resolveDirection(
       if (idx === -1) continue
       const afterPrep = text.slice(idx + prep.length, idx + prep.length + 40)
       if (prep === ' to ' && TO_INFINITIVE_VERBS.test(afterPrep)) continue
+      if (prep === ' to ' && NOT_DESTINATION_BEFORE_TO.test(lower.slice(Math.max(0, idx - 20), idx))) continue
       const best = findBestClub(afterPrep, candidateClubs)
       if (best) { toClub = { id: best.id, name: best.name, score: best.score }; break }
     }
@@ -484,6 +499,14 @@ export function resolveDirection(
       if (prep === ' from ' && FROM_ATTRIBUTION_PRECEDING.test(lower.slice(Math.max(0, idx - 20), idx))) continue
       const afterPrep = text.slice(idx + prep.length, idx + prep.length + 40)
       const best = findBestClub(afterPrep, candidateClubs)
+      if (prep === ' from ' && best && BUYER_BEFORE_FROM.test(lower.slice(Math.max(0, idx - 20), idx))) {
+        // "interest from Spurs and Man City": both clubs are suitors, so
+        // neither is the origin. Give up rather than pair them.
+        const others = candidateClubs.filter((c) => c.id !== best.id)
+        if (others.some((c) => findBestClub(afterPrep, [c]))) return { fromClub: null, toClub: null, fromClubInferred: false }
+        if (!toClub) toClub = { id: best.id, name: best.name, score: best.score }
+        continue
+      }
       if (best) { fromClub = { id: best.id, name: best.name, score: best.score }; break }
     }
   }
@@ -503,6 +526,23 @@ export function resolveDirection(
       fromClubInferred = fromClub !== null
     }
     if (fromClub && !toClub) toClub = mentionedClubs.find((c) => c.id !== fromClub!.id) ?? null
+  }
+
+  // The player's known club beats a guess. When it is one of the clubs in
+  // the text and not the destination, it is the origin: replace an
+  // elimination-derived origin, or fill both slots when no cue resolved.
+  // An explicit "from X" cue is kept: the stored club can be stale.
+  // toClub === current club is left alone, since articles about a finished
+  // move are often ingested after the sync has already moved the player.
+  const current = currentClubId != null ? mentionedClubs.find((c) => c.id === currentClubId) : undefined
+  if (current) {
+    if (toClub && toClub.id !== current.id && (!fromClub || fromClubInferred)) {
+      fromClub = current
+      fromClubInferred = false
+    } else if (!toClub && !fromClub && mentionedClubs.length === 2) {
+      fromClub = current
+      toClub = mentionedClubs.find((c) => c.id !== current.id) ?? null
+    }
   }
 
   return { fromClub, toClub, fromClubInferred }
@@ -646,7 +686,7 @@ export async function extractRumoursFromText(
 
     if (mentionedClubs.length < 2) continue
 
-    const { fromClub, toClub, fromClubInferred } = resolveDirection(windowLower, windowText, clubs, mentionedClubs)
+    const { fromClub, toClub, fromClubInferred } = resolveDirection(windowLower, windowText, clubs, mentionedClubs, player.currentClubId ?? null)
     if (!fromClub || !toClub || fromClub.id === toClub.id) continue
 
     results.push({

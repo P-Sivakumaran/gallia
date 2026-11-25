@@ -145,7 +145,12 @@ router.get('/rumours', async (req, res) => {
 router.get('/rumours/awaiting-review', async (_req, res) => {
   const now = new Date()
   const open = await prisma.rumour.findMany({
-    where: { status: { in: [RumourStatus.PENDING, RumourStatus.HOT] } },
+    // Voided rumours (notes start with VOID:) are already reviewed.
+    // A bare NOT would also drop rows whose notes are NULL (SQL NULL logic).
+    where: {
+      status: { in: [RumourStatus.PENDING, RumourStatus.HOT] },
+      OR: [{ notes: null }, { NOT: { notes: { startsWith: 'VOID:' } } }],
+    },
     orderBy: { rumourDate: 'asc' },
     include: {
       player: { select: { name: true, currentClubId: true } },

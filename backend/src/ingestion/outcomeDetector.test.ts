@@ -245,6 +245,31 @@ describe('outcomeDetector: resolveWindowOutcomes', () => {
     })
   })
 
+  it('never resolves a voided rumour, even on a club match', async () => {
+    const mockDb = {
+      rumour: {
+        findMany: vi.fn().mockResolvedValue([
+          {
+            id: 9,
+            window: 'SUMMER',
+            rumourDate: new Date('2026-07-15T12:00:00Z'),
+            toClubId: 300,
+            notes: 'VOID: duplicate of #146',
+            player: { currentClubId: 300 },
+          },
+        ]),
+        update: vi.fn(),
+      },
+    } as unknown as PrismaClient
+
+    const summary = await resolveWindowOutcomes(mockDb, new Date('2026-09-10T12:00:00Z'), {
+      summerCutoffMonthDay: '09-02',
+      winterCutoffMonthDay: '02-02',
+    })
+    expect(summary.completed).toBe(0)
+    expect(mockDb.rumour.update).not.toHaveBeenCalled()
+  })
+
   it('leaves rumours pending when the window is still open', async () => {
     const mockDb = {
       rumour: {

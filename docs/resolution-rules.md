@@ -60,7 +60,9 @@ A rumour is left unscored (open, excluded from the ledger) when:
 - the rumour duplicates another rumour about the same move,
 - or the claim was never a forecast (for example, a report of a move already announced).
 
-Until a VOID status exists, the owner leaves such rumours open and notes why.
+Until a VOID status exists, such rumours stay open with notes starting `VOID: <reason>`.
+Window-close resolution skips them and the review queue hides them, so a voided duplicate
+can never be auto-completed by a club match.
 
 ## Corrections
 
