@@ -1,5 +1,8 @@
 # Roadmap — Smoke & Fire
 
+> **Superseded 2026-11-25** by `docs/gallia-dev-plan.md`. Kept as history. Stripe checkout,
+> paid tiers and entitlement alerts below are retired: Gallia is a public website.
+
 Written 2026-11-23. The backend is further along than the product around it: auth, roles,
 entitlements, Research API keys, retention, a calibrated forecasting pipeline and least-privilege
 DB roles all exist. What's missing is identity, a public face for the forecasting work, and
