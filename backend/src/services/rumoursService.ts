@@ -1,3 +1,4 @@
+import { NOT_VOIDED } from '../ingestion/outcomeDetector.js'
 import { PrismaClient, type Prisma, RumourStatus } from '@prisma/client'
 
 const prisma = new PrismaClient()
@@ -22,6 +23,24 @@ export interface RumourFilters {
   playerIds?: number[]
 }
 
+/**
+ * notes holds the source headline, prefixed by owner review tags once a row
+ * has been reviewed ("VOID: duplicate of #146 (2026-11-25). [clubs corrected
+ * ...] <headline>"). The public API returns the headline only.
+ */
+export function publicNotes(notes: string | null): string | null {
+  if (!notes) return notes
+  const stripped = notes
+    .replace(/^VOID:.*?\(\d{4}-\d{2}-\d{2}\)\.\s*/, '')
+    .replace(/^\[[^\]]*\]\s*/, '')
+    .trim()
+  return stripped || null
+}
+
+function withPublicNotes<T extends { notes: string | null }>(r: T): T {
+  return { ...r, notes: publicNotes(r.notes) }
+}
+
 export async function listRumours(filters: RumourFilters): Promise<{
   data: RumourWithRelations[]
   total: number
@@ -32,7 +51,9 @@ export async function listRumours(filters: RumourFilters): Promise<{
   const limit = Math.min(filters.limit ?? 20, 100)
   const skip = (page - 1) * limit
 
-  const where: Prisma.RumourWhereInput = {}
+  // Voided rumours (wrong match, duplicate) are not public. AND keeps it apart
+  // from the OR used by the club and league filters below.
+  const where: Prisma.RumourWhereInput = { AND: [NOT_VOIDED] }
 
   if (filters.status) where.status = filters.status
   if (filters.window) where.window = filters.window as any
@@ -63,11 +84,12 @@ export async function listRumours(filters: RumourFilters): Promise<{
     prisma.rumour.count({ where }),
   ])
 
-  return { data, total, page, limit }
+  return { data: data.map(withPublicNotes), total, page, limit }
 }
 
 export async function getRumourById(id: number): Promise<RumourWithRelations | null> {
-  return prisma.rumour.findUnique({ where: { id }, include: rumourInclude })
+  const rumour = await prisma.rumour.findUnique({ where: { id }, include: rumourInclude })
+  return rumour && withPublicNotes(rumour)
 }
 
 export async function getRumourHistory(

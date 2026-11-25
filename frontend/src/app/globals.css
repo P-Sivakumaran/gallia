@@ -84,16 +84,7 @@
 }
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto!important}*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
 
-.g-site-nav {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px 24px;
-  padding-block: 10px;
-  padding-inline: max(var(--page-gutter), calc((100vw - 1600px) / 2 + var(--page-gutter)));
-  border-bottom: 1px solid var(--border-subtle);
-  background: var(--surface-inset);
-}
+/* .g-site-nav lives in components/desk/desk.css with the rest of the desk navigation. */
 
 @layer utilities {
   .scrollbar-thin {

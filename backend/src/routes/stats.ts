@@ -1,3 +1,4 @@
+import { NOT_VOIDED } from '../ingestion/outcomeDetector.js'
 import { Router, type Request, type Response } from 'express'
 import { PrismaClient } from '@prisma/client'
 
@@ -14,9 +15,9 @@ router.get('/sources', async (_req: Request, res: Response) => {
 
 router.get('/overview', async (_req: Request, res: Response) => {
   const [totalRumours, hotRumours, completedRumours] = await Promise.all([
-    prisma.rumour.count(),
-    prisma.rumour.count({ where: { status: 'HOT' } }),
-    prisma.rumour.count({ where: { status: 'COMPLETED' } }),
+    prisma.rumour.count({ where: NOT_VOIDED }),
+    prisma.rumour.count({ where: { status: 'HOT', ...NOT_VOIDED } }),
+    prisma.rumour.count({ where: { status: 'COMPLETED', ...NOT_VOIDED } }),
   ])
   res.json({ totalRumours, hotRumours, completedRumours })
 })

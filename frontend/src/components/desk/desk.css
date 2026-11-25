@@ -1,0 +1,110 @@
+/* Pages outside the home desk, in the desk's own vocabulary (gallia.css). */
+
+/* ── Site navigation: one row, desk tab style, active page underlined ── */
+.g-site-nav{display:flex;align-items:stretch;height:48px;padding-inline:max(var(--page-gutter),calc((100vw - 1600px)/2 + var(--page-gutter)));border-bottom:1px solid var(--border-subtle);background:#0b0e11}
+.g-site-tabs{display:flex;align-items:stretch;gap:32px;overflow-x:auto;scrollbar-width:none}
+.g-site-tabs>a{display:flex;align-items:center;border-bottom:2px solid transparent;color:var(--ink-muted);font-size:13px;font-weight:500;white-space:nowrap;transition:color .16s,border-color .16s}
+.g-site-tabs>a:hover{color:#e8eff2}
+.g-site-tabs>a[aria-current="page"]{color:var(--signal-fire);border-bottom-color:var(--signal-fire)}
+
+/* ── Page shell ── */
+.g-desk-page{padding-bottom:64px}
+.g-desk-page .g-page-heading{align-items:flex-end}
+.g-desk-page .g-page-heading p{max-width:640px}
+.g-heading-actions{display:flex;gap:8px;flex-shrink:0}
+
+/* ── Rumour ledger table ── */
+.g-ledger-tools{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px 16px;padding:12px 24px;border-bottom:1px solid var(--g-line)}
+.g-ledger-tools .g-feed-tabs{min-height:32px}
+.g-ledger-tools .g-feed-tabs>a{display:flex;align-items:center;font-size:12px;font-weight:500;color:#adb8c5;border-bottom:2px solid transparent;white-space:nowrap}
+.g-ledger-tools .g-feed-tabs>a:hover{color:#e8eff2}
+.g-ledger-tools .g-feed-tabs>a[aria-current="true"]{color:#def1e4;border-bottom-color:#9cdeb3}
+.g-ledger-tools select{height:34px;font-size:12px}
+.g-ledger-columns,.g-ledger-row{display:grid;grid-template-columns:minmax(220px,1fr) minmax(120px,180px) 96px 104px 112px;align-items:center;gap:16px;padding:0 24px}
+.g-ledger-columns{font:12px/16px var(--font-mono),monospace;color:#b3c0cd;letter-spacing:.2px;min-height:40px;background:var(--g-inset);border-bottom:1px solid var(--g-line)}
+.g-ledger-columns>span:nth-child(4),.g-ledger-columns>span:nth-child(5){text-align:right}
+.g-ledger-row{min-height:80px;border-bottom:1px solid var(--g-line);transition:background .16s,box-shadow .16s}
+.g-ledger-row:last-child{border-bottom:0}
+.g-ledger-row:hover,.g-ledger-row:focus-within{background:var(--g-hover);box-shadow:inset 0 0 0 1px #ffffff1f}
+.g-ledger-row .g-feed-player{padding:14px 0}
+.g-ledger-row .g-player-name a:hover{text-decoration:underline;text-underline-offset:4px}
+.g-ledger-source{display:grid;gap:4px;min-width:0;font-size:12px;line-height:18px;color:#c3ccd6}
+.g-ledger-source>span:last-child{color:var(--g-muted);font:12px var(--font-mono),monospace}
+.g-ledger-fee{font:12px/18px var(--font-mono),monospace;color:#c3ccd6;white-space:nowrap}
+.g-ledger-status{display:flex;justify-content:flex-end}
+.g-ledger-row .g-row-prob{align-items:flex-end}
+.g-live-change{font:12px var(--font-mono),monospace;color:var(--g-green)}
+.g-live-change.negative{color:var(--signal-denied)}
+.g-pagination{display:flex;justify-content:center;gap:8px;padding:16px 24px;border-top:1px solid var(--g-line);background:var(--g-inset)}
+.g-pagination a{display:grid;place-items:center;min-width:32px;height:32px;padding:0 8px;border:1px solid #36414e;border-radius:4px;font:12px var(--font-mono),monospace;color:#c3ccd6}
+.g-pagination a:hover{border-color:#62716c;color:#fff}
+.g-pagination a[aria-current="page"]{border-color:#65836e;background:#19271f;color:#c3edcf}
+
+/* ── Network ── */
+.g-network-tools{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px 24px;padding:0 24px;min-height:56px;border-bottom:1px solid var(--g-line)}
+.g-network-tools .g-feed-tabs{align-self:stretch}
+.g-legend{display:flex;flex-wrap:wrap;gap:16px;font:12px var(--font-mono),monospace;color:#b3c0cd}
+.g-legend>span{display:flex;align-items:center;gap:6px}
+.g-legend i{display:inline-block;width:12px;height:2px;border-radius:1px}
+.g-legend i.dot{width:8px;height:8px;border-radius:50%}
+.g-legend i.square{width:8px;height:8px;border-radius:2px}
+.g-network-canvas{position:relative;background:var(--g-inset)}
+.g-network-canvas>.g-network-surface{height:640px;width:100%}
+.g-network-overlay{position:absolute;padding:8px 12px;border:1px solid var(--g-line);border-radius:5px;background:#10161fef;font-size:12px;color:#c3ccd6}
+.g-network-overlay strong{display:block;font-size:13px;font-weight:550;color:#edf1f5}
+.g-network-footer{display:flex;justify-content:space-between;gap:16px;padding:12px 24px;border-top:1px solid var(--g-line);font:12px var(--font-mono),monospace;color:var(--g-muted)}
+.g-network-state{display:grid;place-items:center;height:640px;color:var(--g-muted);font-size:13px}
+
+/* ── Scorecard ── */
+.g-score-grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:24px;margin-bottom:24px;align-items:start}
+.g-score-grid>.g-span-8{grid-column:span 8}
+.g-score-grid>.g-span-4{grid-column:span 4}
+.g-score-grid>.g-span-12{grid-column:span 12}
+.g-panel-body{padding:20px 24px}
+.g-panel-body p{font-size:13px;line-height:21px;color:#bdcbd5}
+.g-panel-body p+p{margin-top:12px}
+.g-scale-legend{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border-top:1px solid var(--g-line)}
+.g-scale-legend>div{display:grid;gap:8px;padding:16px 24px;border-right:1px solid var(--g-line)}
+.g-scale-legend>div:last-child{border-right:0}
+.g-scale-legend strong{font-size:13px;font-weight:550}
+.g-scale-legend span.g-muted{font-size:12px;line-height:18px}
+.g-scale-track{position:relative;height:6px;margin:20px 24px 28px;border-radius:3px;background:linear-gradient(90deg,#ff969c55,#b0bac955 45%,#f8c36b55 70%,#7de2ac55)}
+.g-scale-track>span{position:absolute;top:12px;transform:translateX(-50%);font:12px var(--font-mono),monospace;color:var(--g-muted)}
+.g-scale-track>i{position:absolute;top:-4px;width:2px;height:14px;background:#e8eff2;transform:translateX(-1px)}
+.g-app p.g-callout,.g-callout{display:flex;gap:12px;padding:12px 16px;margin:0 24px 20px;border:1px solid #6b5a32;border-radius:5px;background:#2a2416;color:#f2d89a;font-size:12px;line-height:19px}
+.g-callout.ok{border-color:#355f46;background:#183025;color:#c3edcf}
+.g-callout.none{border-color:var(--g-line);background:var(--g-inset);color:#c3ccd6}
+.g-stat-row{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));margin:0 24px 20px;border:1px solid var(--g-line);border-radius:5px;background:var(--g-inset);padding:14px 0}
+.g-stat-row>div{display:grid;gap:6px;padding:0 16px;border-right:1px solid var(--g-line)}
+.g-stat-row>div:last-child{border-right:0}
+.g-stat-row strong{font:13px var(--font-mono),monospace;color:#e6ecf1}
+.g-ledger-mini{width:100%;border-collapse:collapse;font-size:12px}
+.g-ledger-mini th{font:12px var(--font-mono),monospace;color:#b3c0cd;text-align:left;font-weight:400;padding:10px 24px;background:var(--g-inset);border-bottom:1px solid var(--g-line)}
+.g-ledger-mini td{padding:12px 24px;border-bottom:1px solid var(--g-line);color:#d6dee6}
+.g-ledger-mini tr:last-child td{border-bottom:0}
+.g-ledger-mini td.num,.g-ledger-mini th.num{text-align:right;font-family:var(--font-mono),monospace;font-variant-numeric:tabular-nums}
+.g-chart-frame{padding:0 24px 20px}
+
+@media (max-width:1100px){
+  .g-score-grid>.g-span-8,.g-score-grid>.g-span-4{grid-column:span 12}
+  .g-ledger-columns,.g-ledger-row{grid-template-columns:minmax(0,1fr) 96px 112px}
+  .g-ledger-columns>span:nth-child(2),.g-ledger-columns>span:nth-child(3),.g-ledger-row>.g-ledger-source,.g-ledger-row>.g-ledger-fee{display:none}
+}
+@media (max-width:720px){
+  .g-desk-page .g-page-heading{flex-direction:column;align-items:flex-start}
+  .g-ledger-columns,.g-ledger-row{grid-template-columns:minmax(0,1fr) 88px;padding:0 16px;gap:12px}
+  .g-ledger-columns>span:nth-child(5),.g-ledger-row>.g-ledger-status{display:none}
+  .g-ledger-tools,.g-network-tools{padding:12px 16px}
+  .g-scale-legend,.g-stat-row{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .g-scale-legend>div:nth-child(2){border-right:0}
+  .g-stat-row>div:nth-child(2){border-right:0}
+  .g-network-canvas>.g-network-surface,.g-network-state{height:440px}
+  .g-ledger-mini th,.g-ledger-mini td{padding:10px 16px}
+  .g-ledger-mini th:last-child,.g-ledger-mini td:last-child{display:none}
+  .g-metrics[data-testid="scorecard-ledger"],.g-desk-page .g-metrics{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+}
+
+/* The calibration chart brings its own card; inside a desk panel it sits flush. */
+.g-chart-frame>div{border:0;box-shadow:none;background:transparent;padding:0}
+
+.g-app p.g-connection-notice{margin-bottom:24px}
