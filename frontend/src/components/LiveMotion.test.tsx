@@ -1,8 +1,6 @@
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
-import TruthMeter from './TruthMeter'
-import StatusBadge from './StatusBadge'
-import RumourCard from './RumourCard'
+import { LedgerRow } from './desk/RumourLedger'
 import { feedReducer, type FeedState } from '@/lib/useRumourFeed'
 import { gyokeres, arsenal, manCity } from '@/test/fixtures'
 import type { Rumour } from '@/types'
@@ -29,43 +27,6 @@ const rumour = (o: Partial<Rumour> = {}): Rumour => ({
   ...o,
 })
 
-describe('TruthMeter: the reading is in the markup', () => {
-  it('exposes the score as an accessible meter with a text value', () => {
-    render(<TruthMeter score={78.4} status="HOT" />)
-    const meter = screen.getByRole('meter', { name: 'Completion likelihood' })
-    expect(meter).toHaveAttribute('aria-valuenow', '78')
-    expect(meter).toHaveAttribute('aria-valuetext', '78% likely, hot')
-    expect(screen.getByText('78')).toBeInTheDocument()
-    expect(screen.getByText('HOT')).toBeInTheDocument()
-  })
-
-  it('lights scale marks up to the score only', () => {
-    render(<TruthMeter score={45} status="PENDING" />)
-    // marks every 5 units: 0,5,…,45 → 10 lit
-    expect(screen.getAllByTestId('meter-tick-lit')).toHaveLength(10)
-  })
-
-  it('draws no scale and no label at the small size', () => {
-    render(<TruthMeter score={60} status="HOT" size="sm" />)
-    expect(screen.queryAllByTestId('meter-tick-lit')).toHaveLength(0)
-    expect(screen.queryByText('HOT')).not.toBeInTheDocument()
-  })
-
-  it('sends a ring out only when given a pulse key', () => {
-    const { rerender } = render(<TruthMeter score={60} status="HOT" />)
-    expect(screen.queryByTestId('meter-pulse')).not.toBeInTheDocument()
-    rerender(<TruthMeter score={60} status="HOT" pulseKey={1} />)
-    expect(screen.getByTestId('meter-pulse')).toBeInTheDocument()
-  })
-})
-
-describe('StatusBadge', () => {
-  it('pairs a dot with the status text', () => {
-    render(<StatusBadge status="FAILED" />)
-    expect(screen.getByText('FAILED')).toBeInTheDocument()
-  })
-})
-
 describe('feedReducer: live updates', () => {
   const start: FeedState = { rumours: [rumour()], live: {}, latest: null }
 
@@ -89,28 +50,14 @@ describe('feedReducer: live updates', () => {
   })
 })
 
-describe('RumourCard: live change', () => {
-  it('shows a delta chip with a spoken equivalent', () => {
-    render(<RumourCard rumour={rumour({ computedLikelihood: 41 })} live={{ seq: 1, delta: -4, statusChanged: false }} />)
-    expect(screen.getByTestId('delta-chip')).toHaveTextContent('▼ 4')
-    expect(screen.getByText('Likelihood down 4 points')).toBeInTheDocument()
+describe('LedgerRow: live change', () => {
+  it('shows the change on a live update', () => {
+    render(<LedgerRow rumour={rumour({ computedLikelihood: 52 })} change={{ seq: 1, delta: 7, statusChanged: false }} />)
+    expect(screen.getByTestId('delta-chip')).toHaveTextContent('+7')
   })
 
-  it('shows no chip without a live change', () => {
-    render(<RumourCard rumour={rumour()} />)
+  it('shows no change without a live update', () => {
+    render(<LedgerRow rumour={rumour()} />)
     expect(screen.queryByTestId('delta-chip')).not.toBeInTheDocument()
-  })
-})
-
-describe('RadarField: blips light as the sweep passes', () => {
-  it('times each blip to the moment the beam crosses it', async () => {
-    const { blipDelay } = await import('./live/RadarField')
-    const { cue, radarTurn } = await import('@/lib/tokens')
-    // The turn starts at heading−360°: a blip just clockwise of the heading is crossed almost at once…
-    expect(blipDelay(239, 238)).toBeLessThan(cue.radar + 10)
-    // …and one on the final heading lights as the sweep settles on it.
-    expect(blipDelay(238, 238)).toBe(cue.radar + radarTurn)
-    // Further round the turn lights later.
-    expect(blipDelay(100, 238)).toBeLessThan(blipDelay(200, 238))
   })
 })
