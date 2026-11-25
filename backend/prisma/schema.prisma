@@ -16,6 +16,15 @@ model Club {
   country     String   @default("Unknown")
   logoUrl     String?
   autoCreated Boolean  @default(false)
+  /// Data-feed stand-in such as "TBC" (destination not known); never placed on the map
+  isPlaceholder Boolean @default(false)
+  city        String?
+  stadium     String?
+  lat         Float?
+  lng         Float?
+  wikidataId  String?  @unique
+  /// When the Wikidata club sync last looked at this row
+  geoCheckedAt DateTime?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -49,8 +58,80 @@ model Player {
   rumours       Rumour[]
   watchlistedBy WatchlistPlayer[]
   claims        Claim[]
+  agents        PlayerAgent[]
 
   @@map("players")
+}
+
+enum AgentKind {
+  PERSON
+  AGENCY
+}
+
+/// A licensed football agent or an agency. Every fact about one is backed by SourcedFact rows.
+model Agent {
+  id          Int       @id @default(autoincrement())
+  name        String
+  kind        AgentKind
+  agencyId    Int?
+  agency      Agent?    @relation("AgencyMembers", fields: [agencyId], references: [id])
+  members     Agent[]   @relation("AgencyMembers")
+  /// Licence number from the FIFA Agent Platform register; only set from that register
+  fifaLicence String?   @unique
+  wikidataId  String?   @unique
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  players     PlayerAgent[]
+
+  @@map("agents")
+}
+
+enum PlayerAgentRole {
+  REPRESENTS
+  NEGOTIATED_DEAL
+}
+
+model PlayerAgent {
+  id        Int             @id @default(autoincrement())
+  playerId  Int
+  agentId   Int
+  role      PlayerAgentRole
+  /// Set when the link is about one deal
+  rumourId  Int?
+  validFrom DateTime?
+  validTo   DateTime?
+  createdAt DateTime        @default(now())
+
+  player    Player          @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  agent     Agent           @relation(fields: [agentId], references: [id], onDelete: Cascade)
+
+  @@unique([playerId, agentId, role, rumourId])
+  @@index([agentId])
+  @@map("player_agents")
+}
+
+/// One claim about one field of one entity, from one source. Columns on Club,
+/// Player and Agent hold the current best value; these rows are the evidence
+/// behind it, so sources can be compared and disagreements reviewed.
+model SourcedFact {
+  id           Int       @id @default(autoincrement())
+  entityType   String // CLUB | PLAYER | AGENT | PLAYER_AGENT
+  entityId     Int
+  field        String // lat, lng, city, stadium, wikidataId, agent, …
+  value        String
+  source       String // wikidata | fifa-agent-register | thestatsapi | news:<sourceId> | manual
+  sourceUrl    String?
+  licence      String // CC0 | public-register | api-paid | quote-only | manual
+  confidence   Float // 0–1
+  /// true when this value was written to the entity's column
+  applied      Boolean   @default(false)
+  retrievedAt  DateTime  @default(now())
+  supersededAt DateTime?
+
+  @@index([entityType, entityId, field])
+  @@index([source])
+  @@map("sourced_facts")
 }
 
 model User {

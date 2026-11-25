@@ -32,8 +32,8 @@ const GRAPH_STATUSES = [RumourStatus.PENDING, RumourStatus.HOT, RumourStatus.COM
 /** Data-feed stand-ins for "destination not known yet" (Sportmonks uses a club called TBC). */
 const PLACEHOLDER_CLUB = /^(tbc|tba|unknown|to be confirmed|to be announced)$/i
 
-export function isPlaceholderClub(club: { name: string }): boolean {
-  return PLACEHOLDER_CLUB.test(club.name.trim())
+export function isPlaceholderClub(club: { name: string; isPlaceholder?: boolean }): boolean {
+  return club.isPlaceholder === true || PLACEHOLDER_CLUB.test(club.name.trim())
 }
 
 /** Rumours whose only source is a structured transfer feed, not a news report. */
