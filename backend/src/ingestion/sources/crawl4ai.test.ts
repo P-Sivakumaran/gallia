@@ -9,8 +9,8 @@ describe('crawl4ai source adapter', () => {
     expect(result.errorMessage).toBeDefined()
   }, 10_000)
 
-  it('scrapes localhost test server successfully into markdown', async () => {
-    // Port 3000 is our running Next.js server
+  // Needs the Next.js dev server on :3000 and a local crawl4ai install.
+  it.skipIf(!process.env.CRAWL4AI_LIVE_TEST)('scrapes localhost test server successfully into markdown', async () => {
     const result = await crawlUrl('http://localhost:3000', { wordCountThreshold: 5, timeoutMs: 10000 })
     expect(result.success).toBe(true)
     expect(result.url).toBe('http://localhost:3000')
