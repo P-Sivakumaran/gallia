@@ -1,4 +1,5 @@
 import type {
+  AdminReviewItem,
   AdminRumour,
   AdminSource,
   ClubDetail,
@@ -161,8 +162,9 @@ export const api = {
   admin: {
     rumours: (status?: RumourStatus) => getFresh<AdminRumour[]>('/admin/rumours', status ? { status } : undefined),
     sources: () => getFresh<AdminSource[]>('/admin/sources'),
-    setOutcome: (id: number, status: 'COMPLETED' | 'FAILED' | 'DENIED') =>
-      send<{ id: number; status: string }>('PATCH', `/admin/rumours/${id}/outcome`, { status }),
+    reviewQueue: () => getFresh<AdminReviewItem[]>('/admin/rumours/awaiting-review'),
+    setOutcome: (id: number, status: 'COMPLETED' | 'FAILED' | 'DENIED', knownAt?: string) =>
+      send<{ id: number; status: string }>('PATCH', `/admin/rumours/${id}/outcome`, knownAt ? { status, knownAt } : { status }),
     enrichPlayer: (playerId: number) =>
       send<{ queued: boolean; playerId: number; playerName: string }>('POST', `/admin/players/${playerId}/enrich`),
   },

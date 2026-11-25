@@ -96,6 +96,33 @@ export interface AdminRumour {
   evidence: EvidenceItem[]
 }
 
+export type ReviewReason = 'window-closed' | 'text-signal'
+
+export interface ReviewTextSignal {
+  outcome: 'COMPLETED' | 'FAILED'
+  headline: string
+  link: string
+  publishedAt: string
+  sourceName: string
+}
+
+/** GET /admin/rumours/awaiting-review — see docs/resolution-rules.md. */
+export interface AdminReviewItem {
+  id: number
+  status: RumourStatus
+  computedLikelihood: number
+  window: string
+  rumourDate: string
+  notes: string | null
+  player: { name: string; currentClubId: number | null }
+  fromClub: { name: string }
+  toClub: { name: string }
+  source: { name: string }
+  reasons: ReviewReason[]
+  textSignals: ReviewTextSignal[]
+  suggestedKnownAt: string | null
+}
+
 export interface AdminSource {
   id: number
   name: string
