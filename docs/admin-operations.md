@@ -18,8 +18,10 @@ BOOTSTRAP_ADMIN_EMAIL=you@example.com
 
 **Ordering matters — this is not a one-shot flow:**
 
-1. Register the account normally (`POST /auth/register`), or it must
-   already exist.
+1. Register the account (`POST /auth/register`), or it must already exist.
+   Public registration is off by default: set `ALLOW_PUBLIC_REGISTRATION=true`,
+   register, then remove the variable and restart. While it is unset,
+   `POST /auth/register` returns 404.
 2. Set `BOOTSTRAP_ADMIN_EMAIL` in the environment.
 3. Restart the server. `admin/bootstrap.ts` runs once at boot: if a `User`
    with that email exists, it's promoted to `ADMIN` (idempotent — safe to

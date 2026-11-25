@@ -15,7 +15,6 @@ import graphRouter from './routes/graph.js'
 import claimsRouter from './routes/claims.js'
 import forecastRouter from './routes/forecast.js'
 import adminRouter from './routes/admin.js'
-import billingRouter from './routes/billing.js'
 import authRouter from './routes/auth.js'
 import watchlistRouter from './routes/watchlist.js'
 import researchRouter from './routes/research.js'
@@ -50,7 +49,6 @@ app.use('/graph', graphRouter)
 app.use('/claims', claimsRouter)
 app.use('/forecast', forecastRouter)
 app.use('/admin', adminRouter)
-app.use('/billing', billingRouter)
 app.use('/auth', authRouter)
 app.use('/watchlist', watchlistRouter)
 // Research/API tier stubs — see docs/monetisation-proposal.md.
