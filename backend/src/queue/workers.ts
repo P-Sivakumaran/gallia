@@ -423,7 +423,7 @@ async function processMaintenance(job: { data: MaintenanceJobData }) {
   if (job.data.task === 'resolve-window-outcomes') {
     const summary = await resolveWindowOutcomes(prisma)
     console.log(
-      `[worker:maintenance] Window outcome resolution: checked=${summary.checked}, resolved=${summary.resolved} (${summary.completed} completed, ${summary.failed} failed)`,
+      `[worker:maintenance] Window outcome resolution: checked=${summary.checked}, resolved=${summary.resolved} (${summary.completed} completed, ${summary.awaitingReview} awaiting owner review)`,
     )
     return summary
   }

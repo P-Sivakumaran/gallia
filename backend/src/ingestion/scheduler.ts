@@ -3,6 +3,7 @@ import { PrismaClient, RumourStatus } from '@prisma/client'
 import { fetchLatestRumours } from './sportmonks.js'
 import { computeScore } from '../scoring/likelihoodEngine.js'
 import { broadcast } from '../sse/broadcaster.js'
+import { isPastWindowGrace } from '../forecasting/windowCutoff.js'
 
 const prisma = new PrismaClient()
 
@@ -17,7 +18,12 @@ async function recomputeAllLikelihoods(): Promise<void> {
     },
   })
 
+  const checkedAt = new Date()
   for (const r of rumours) {
+    // Past its window deadline and still unconfirmed: freeze the estimate.
+    // A recompute now would score information that arrived after the deadline.
+    if (isPastWindowGrace(r, checkedAt)) continue
+
     const now = new Date()
     const contractEnd = r.player.contractEnd
     const monthsToExpiry = contractEnd

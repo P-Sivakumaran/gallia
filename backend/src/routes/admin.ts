@@ -1,6 +1,6 @@
 import { Router } from 'express'
 import { PrismaClient, RumourStatus } from '@prisma/client'
-import { applyOutcome } from '../ingestion/outcomeDetector.js'
+import { applyOutcome, isPastWindowGrace } from '../ingestion/outcomeDetector.js'
 import { enrichQueue, playerSyncQueue } from '../queue/queues.js'
 import { broadcast } from '../sse/broadcaster.js'
 import { z } from 'zod'
@@ -128,6 +128,24 @@ router.get('/rumours', async (req, res) => {
   }
 
   res.json(rumours.map((r) => ({ ...r, evidence: evidenceByRumour.get(r.id) ?? [] })))
+})
+
+// GET /admin/rumours/awaiting-review — rumours past their window deadline that
+// the window-close job could not confirm. Resolve each with
+// PATCH /admin/rumours/:id/outcome once checked against an official source.
+router.get('/rumours/awaiting-review', async (_req, res) => {
+  const now = new Date()
+  const open = await prisma.rumour.findMany({
+    where: { status: { in: [RumourStatus.PENDING, RumourStatus.HOT] } },
+    orderBy: { rumourDate: 'asc' },
+    include: {
+      player: { select: { name: true, currentClubId: true } },
+      fromClub: { select: { name: true } },
+      toClub: { select: { name: true } },
+      source: { select: { name: true } },
+    },
+  })
+  res.json(open.filter((r) => isPastWindowGrace(r, now)))
 })
 
 const entitlementSchema = z.object({

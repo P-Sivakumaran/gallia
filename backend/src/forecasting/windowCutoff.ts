@@ -47,3 +47,30 @@ export function resolveWindowCutoff(
   if (window === 'WINTER') return nextOccurrenceOnOrAfter(config.winterCutoffMonthDay, referenceDate)
   return null
 }
+
+export const DEFAULT_CUTOFF_CONFIG: CutoffConfig = {
+  summerCutoffMonthDay: '09-02',
+  winterCutoffMonthDay: '02-02',
+}
+
+// 48h administrative buffer after the window closes before a rumour is
+// treated as past its deadline.
+export const WINDOW_GRACE_MS = 48 * 60 * 60 * 1000
+
+/** End of the window plus the grace period, or null when there is no cutoff (FREE_AGENT). */
+export function windowGraceEnd(
+  rumour: { window: string | null; rumourDate: Date },
+  config: CutoffConfig = DEFAULT_CUTOFF_CONFIG,
+): Date | null {
+  const cutoff = resolveWindowCutoff(rumour.window, rumour.rumourDate, config)
+  return cutoff ? new Date(cutoff.getTime() + WINDOW_GRACE_MS) : null
+}
+
+export function isPastWindowGrace(
+  rumour: { window: string | null; rumourDate: Date },
+  now: Date,
+  config: CutoffConfig = DEFAULT_CUTOFF_CONFIG,
+): boolean {
+  const end = windowGraceEnd(rumour, config)
+  return end !== null && now.getTime() > end.getTime()
+}
