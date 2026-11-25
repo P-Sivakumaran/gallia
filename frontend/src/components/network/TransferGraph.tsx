@@ -35,7 +35,7 @@ interface GraphEdge {
 interface GraphData {
   nodes: GraphNode[]
   edges: GraphEdge[]
-  meta: { nodeCount: number; edgeCount: number }
+  meta: { nodeCount: number; edgeCount: number; rumourCount?: number; feedHidden?: number }
 }
 
 interface HoveredNode {
@@ -66,7 +66,9 @@ const FILTERS = [
   { value: 'HOT', label: 'Hot' },
   { value: 'PENDING', label: 'Pending' },
   { value: 'COMPLETED', label: 'Completed' },
+  { value: 'FAILED', label: 'Failed' },
 ] as const
+type StatusFilter = (typeof FILTERS)[number]['value']
 
 export default function TransferGraph() {
   const containerRef = useRef<HTMLDivElement>(null)
@@ -76,18 +78,20 @@ export default function TransferGraph() {
   const [loading, setLoading] = useState(true)
   const [initError, setInitError] = useState<string | null>(null)
   const [hovered, setHovered] = useState<HoveredNode | null>(null)
-  const [filter, setFilter] = useState<'all' | 'HOT' | 'PENDING' | 'COMPLETED'>('all')
+  const [filter, setFilter] = useState<StatusFilter>('all')
+  const [includeFeed, setIncludeFeed] = useState(false)
 
   // Fetch graph data
   useEffect(() => {
-    fetch(`${process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001'}/graph`)
+    setLoading(true)
+    fetch(`${process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001'}/graph${includeFeed ? '?include=feed' : ''}`)
       .then((r) => r.json())
       .then((d: GraphData) => {
         setData(d)
         setLoading(false)
       })
       .catch(() => setLoading(false))
-  }, [])
+  }, [includeFeed])
 
   // Build and render graph
   useEffect(() => {
@@ -194,6 +198,10 @@ export default function TransferGraph() {
             <button key={f.value} type="button" className={filter === f.value ? 'active' : ''} aria-pressed={filter === f.value} onClick={() => setFilter(f.value)}>{f.label}</button>
           ))}
         </nav>
+        <nav className="g-feed-tabs" aria-label="Which deals to include">
+          <button type="button" className={includeFeed ? '' : 'active'} aria-pressed={!includeFeed} onClick={() => setIncludeFeed(false)}>News rumours</button>
+          <button type="button" className={includeFeed ? 'active' : ''} aria-pressed={includeFeed} onClick={() => setIncludeFeed(true)}>+ Feed transfers</button>
+        </nav>
         <div className="g-legend" aria-label="Line colour by rumour status">
           {STATUS_LEGEND.map((l) => <span key={l.label}><i style={{ background: l.color }} />{l.label}</span>)}
           <span><i className="dot" style={{ background: DESK.player }} />Player</span>
@@ -203,7 +211,12 @@ export default function TransferGraph() {
       {body}
       <div className="g-network-footer">
         <span>Scroll to zoom · drag to pan · hover a node for detail</span>
-        {data && <span>{data.meta.nodeCount} nodes · {Math.round(data.meta.edgeCount / 2)} rumours</span>}
+        {data && (
+          <span>
+            {data.meta.nodeCount} nodes · {data.meta.rumourCount ?? Math.round(data.meta.edgeCount / 2)} rumours
+            {!includeFeed && data.meta.feedHidden ? ` · ${data.meta.feedHidden} feed-only transfers hidden` : ''}
+          </span>
+        )}
       </div>
     </section>
   )
