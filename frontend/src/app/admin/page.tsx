@@ -6,6 +6,7 @@ import { api } from '@/lib/api'
 import type { AdminRumour, AdminSource, Player, RumourStatus } from '@/types'
 import StatusBadge from '@/components/StatusBadge'
 import SectionKicker from '@/components/SectionKicker'
+import ReviewQueue from '@/components/admin/ReviewQueue'
 
 const STATUS_FILTERS: Array<RumourStatus | 'ALL'> = ['ALL', 'PENDING', 'HOT', 'COMPLETED', 'FAILED', 'DENIED']
 
@@ -270,7 +271,7 @@ function EnrichPanel() {
 }
 
 export default function AdminPage() {
-  const [tab, setTab] = useState<'rumours' | 'sources' | 'enrich'>('rumours')
+  const [tab, setTab] = useState<'review' | 'rumours' | 'sources' | 'enrich'>('review')
 
   return (
     <div className="space-y-6">
@@ -280,12 +281,12 @@ export default function AdminPage() {
           Operations <span className="text-pitch-500">Admin.</span>
         </h1>
         <p className="max-w-2xl text-sm text-ink-secondary">
-          Manually resolve rumours, review source reliability scorecards, and trigger player profile enrichment.
+          Review rumours awaiting an outcome, resolve rumours, check source reliability, and trigger player profile enrichment.
         </p>
       </div>
 
       <div className="flex gap-2 border-b border-line-subtle">
-        {(['rumours', 'sources', 'enrich'] as const).map((t) => (
+        {(['review', 'rumours', 'sources', 'enrich'] as const).map((t) => (
           <button
             key={t}
             onClick={() => setTab(t)}
@@ -299,6 +300,7 @@ export default function AdminPage() {
         ))}
       </div>
 
+      {tab === 'review' && <ReviewQueue />}
       {tab === 'rumours' && <RumoursPanel />}
       {tab === 'sources' && <SourcesPanel />}
       {tab === 'enrich' && <EnrichPanel />}
