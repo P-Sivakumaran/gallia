@@ -142,6 +142,16 @@ export { isPastWindowGrace }
  * stay unresolved and are counted as awaitingReview; the owner resolves them
  * through PATCH /admin/rumours/:id/outcome.
  */
+/**
+ * Void rumours (wrong match, duplicate, never a forecast) stay open and
+ * unscored until a VOID status exists; see docs/resolution-rules.md. They
+ * are marked by a notes prefix so nothing resolves them automatically.
+ */
+export const VOID_NOTE_PREFIX = 'VOID:'
+export function isVoided(r: { notes?: string | null }): boolean {
+  return Boolean(r.notes?.startsWith(VOID_NOTE_PREFIX))
+}
+
 export async function resolveWindowOutcomes(
   db: PrismaClient,
   now = new Date(),
@@ -161,6 +171,7 @@ export async function resolveWindowOutcomes(
 
   for (const r of pendingRumours) {
     if (!isPastWindowGrace(r, now, config)) continue
+    if (isVoided(r)) continue
 
     const isCompleted = Boolean(r.player && r.player.currentClubId === r.toClubId)
     if (isCompleted) {
