@@ -154,7 +154,14 @@ Decided 2026-11-25 (owner, in chat: "approve, render, add sportmonks leagues, re
 routes"):
 
 - **D1 Hosting: Render.** Plan for about US$60–80/month; size the ml-service before launch.
-- **D2 Outcome feed: add domestic leagues to the existing Sportmonks plan.** Owner makes the
+- **D2 revised 2026-11-25: TheStatsAPI, not Sportmonks.** The owner is not using Sportmonks.
+  The player-sync job uses TheStatsAPI (`STATS_API_KEY`, the key Overround already holds) to
+  set each open-rumour player's current club. It covers about 150 competitions but has no
+  transfer history, so it confirms where a player is now, never when he moved. Club mismatches
+  still go to owner review. The key's 12 requests/minute are shared with Overround, so the sync
+  spaces calls 6 s apart and stops on a 429. Open question: do its terms allow public display?
+  The original D2 text follows for the record.
+- **D2 (superseded) Outcome feed: add domestic leagues to the existing Sportmonks plan.** Owner makes the
   change on the Sportmonks account. `TARGET_LEAGUES` becomes configurable so new league IDs
   need no code change; verify with a read-only `GET /leagues` afterwards. Which leagues to add
   should follow where Gallia's rumoured clubs actually play, not an assumed top 5. The €29/€99
