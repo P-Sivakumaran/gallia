@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation'
 import { cookies } from 'next/headers'
-import Link from 'next/link'
+import DeskPage from '@/components/desk/DeskPage'
 import { api, ApiError } from '@/lib/api'
 import ForecastCard from '@/components/ForecastCard'
 import WhyThisForecast from '@/components/WhyThisForecast'
@@ -39,8 +39,13 @@ export default async function ClaimDetailPage({ params }: { params: Promise<{ id
   }
 
   return (
-    <div className="mx-auto max-w-3xl space-y-8">
-      <ClaimHeader claim={claim} />
+    <DeskPage
+      eyebrow={`CLAIM · C-${claim.id}`}
+      title={claim.player?.name ?? `Claim #${claim.id}`}
+      intro={claimIntro(claim)}
+      actions={<span className="g-count-label">{claim.claimStatus}</span>}
+    >
+    <div className="g-claim-stack g-stack">
 
       <ForecastCard forecast={forecast} error={forecastError} />
 
@@ -57,39 +62,13 @@ export default async function ClaimDetailPage({ params }: { params: Promise<{ id
 
       <ProvenanceGraph claim={claim} />
     </div>
+    </DeskPage>
   )
 }
 
-function ClaimHeader({ claim }: { claim: ClaimDetail }) {
-  return (
-    <div className="flex flex-wrap items-start justify-between gap-4">
-      <div>
-        <h1 className="text-4xl font-black tracking-display text-ink-primary">
-          {claim.player ? (
-            <Link href={`/player/${claim.player.id}`} className="hover:text-pitch-500">
-              {claim.player.name}
-            </Link>
-          ) : (
-            `Claim #${claim.id}`
-          )}
-        </h1>
-        <div className="mt-1.5 flex flex-wrap items-center gap-1.5 text-sm text-ink-secondary">
-          {claim.fromClub && <span>{claim.fromClub.shortName ?? claim.fromClub.name}</span>}
-          {claim.fromClub && claim.toClub && <span aria-hidden>→</span>}
-          {claim.toClub && <span>{claim.toClub.shortName ?? claim.toClub.name}</span>}
-          <span className="text-ink-faint">·</span>
-          <span>{claim.transferType}</span>
-          {claim.window && (
-            <>
-              <span className="text-ink-faint">·</span>
-              <span>{claim.window}</span>
-            </>
-          )}
-        </div>
-      </div>
-      <span className="rounded-full border border-line px-3 py-1 text-xs font-semibold uppercase tracking-wide text-ink-secondary">
-        {claim.claimStatus}
-      </span>
-    </div>
-  )
+function claimIntro(claim: ClaimDetail): string {
+  const from = claim.fromClub ? claim.fromClub.name : null
+  const to = claim.toClub ? claim.toClub.name : null
+  const route = from && to ? `${from} to ${to}` : from ? `Leaving ${from}` : to ? `Joining ${to}` : 'Route not yet reported'
+  return [route, claim.transferType.toLowerCase().replace(/_/g, ' '), claim.window?.toLowerCase()].filter(Boolean).join(' · ')
 }

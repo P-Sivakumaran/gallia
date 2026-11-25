@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation'
 import { api } from '@/lib/api'
 import ClubDashboard from '@/components/ClubDashboard'
+import DeskPage from '@/components/desk/DeskPage'
 
 export default async function ClubPage({ params }: { params: Promise<{ id: string }> }) {
   const { id: rawId } = await params
@@ -8,13 +9,10 @@ export default async function ClubPage({ params }: { params: Promise<{ id: strin
   const club = await api.clubs.get(id).catch(() => null)
   if (!club) notFound()
 
+  const where = [club.league, club.country].filter((v) => v && v !== 'Unknown').join(' · ')
   return (
-    <div className="space-y-8">
-      <div>
-        <p className="text-sm text-ink-muted">{club.league} · {club.country}</p>
-        <h1 className="text-4xl font-black tracking-display">{club.name}</h1>
-      </div>
+    <DeskPage eyebrow={where ? `CLUB · ${where.toUpperCase()}` : 'CLUB'} title={club.name} intro="Rumoured arrivals and departures, with the spend they would add up to if each went through at its current likelihood.">
       <ClubDashboard club={club} />
-    </div>
+    </DeskPage>
   )
 }

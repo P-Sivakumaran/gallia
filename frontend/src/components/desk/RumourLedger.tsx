@@ -6,6 +6,7 @@ import { useCallback } from 'react'
 import { useFeed } from '@/components/live/RumourFeedProvider'
 import { feeLabel } from '@/lib/format'
 import { resolveDisplayOrigin } from '@/lib/rumourOrigin'
+import type { LiveChange } from '@/lib/useRumourFeed'
 import type { Rumour, RumourStatus } from '@/types'
 
 const STATUS_TABS: Array<{ value: RumourStatus | null; label: string }> = [
@@ -86,9 +87,8 @@ export function LedgerTools() {
   )
 }
 
-function LedgerRow({ rumour }: { rumour: Rumour }) {
-  const { live } = useFeed()
-  const change = live[rumour.id]
+/** One rumour as a desk table row. `change` is the last live update, when on a live feed. */
+export function LedgerRow({ rumour, change }: { rumour: Rumour; change?: LiveChange }) {
   const origin = resolveDisplayOrigin(rumour)
   const likelihood = Math.round(rumour.computedLikelihood)
   const confirmed = rumour.status === 'COMPLETED'
@@ -128,7 +128,7 @@ function LedgerRow({ rumour }: { rumour: Rumour }) {
 }
 
 export default function RumourLedger({ total, page, totalPages }: { total: number; page: number; totalPages: number }) {
-  const { rumours } = useFeed()
+  const { rumours, live } = useFeed()
   const params = useSearchParams()
   const pageHref = (p: number) => {
     const next = new URLSearchParams(params.toString())
@@ -145,7 +145,7 @@ export default function RumourLedger({ total, page, totalPages }: { total: numbe
       <div className="g-ledger-columns" aria-hidden="true">
         <span>PLAYER / TRANSFER ROUTE</span><span>SOURCE</span><span>FEE</span><span>LIKELIHOOD</span><span>STATUS</span>
       </div>
-      {rumours.map((r) => <LedgerRow key={r.id} rumour={r} />)}
+      {rumours.map((r) => <LedgerRow key={r.id} rumour={r} change={live[r.id]} />)}
       {rumours.length === 0 && <p className="g-empty" style={{ padding: 24 }}>No rumours match these filters.</p>}
       {totalPages > 1 && (
         <nav className="g-pagination" aria-label="Pages">
@@ -154,6 +154,25 @@ export default function RumourLedger({ total, page, totalPages }: { total: numbe
           ))}
         </nav>
       )}
+    </section>
+  )
+}
+
+/** A titled panel of rumour rows without filters or live updates (player and club pages). */
+export function RumourRowsPanel({ title, rumours, empty }: { title: string; rumours: Rumour[]; empty: string }) {
+  return (
+    <section className="g-panel" aria-label={title}>
+      <div className="g-panel-heading">
+        <h2>{title}</h2>
+        <span className="g-count-label">{rumours.length} RUMOUR{rumours.length === 1 ? '' : 'S'}</span>
+      </div>
+      {rumours.length > 0 && (
+        <div className="g-ledger-columns" aria-hidden="true">
+          <span>PLAYER / TRANSFER ROUTE</span><span>SOURCE</span><span>FEE</span><span>LIKELIHOOD</span><span>STATUS</span>
+        </div>
+      )}
+      {rumours.map((r) => <LedgerRow key={r.id} rumour={r} />)}
+      {rumours.length === 0 && <p className="g-empty" style={{ padding: 24 }}>{empty}</p>}
     </section>
   )
 }
