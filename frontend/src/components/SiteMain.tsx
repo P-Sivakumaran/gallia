@@ -5,7 +5,7 @@ import type { ReactNode } from 'react'
 
 // Desk pages lay themselves out edge to edge (DeskPage / GalliaDashboard);
 // every other page keeps the centred column.
-const DESK_PAGES = ['/', '/rumours', '/network', '/scorecard']
+const DESK_PAGES = ['/', '/rumours', '/network', '/scorecard', '/admin', '/login', '/watchlist']
 const DESK_PREFIXES = ['/rumour/', '/player/', '/club/', '/claim/']
 
 export default function SiteMain({ children }: { children: ReactNode }) {

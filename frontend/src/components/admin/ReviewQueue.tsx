@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { api } from '@/lib/api'
 import type { AdminReviewItem, ReviewReason } from '@/types'
-import StatusBadge from '@/components/StatusBadge'
+import DeskStatus from '@/components/desk/DeskStatus'
 
 type Outcome = 'COMPLETED' | 'FAILED' | 'DENIED'
 
@@ -13,9 +13,9 @@ const REASON_LABEL: Record<ReviewReason, string> = {
 }
 
 const OUTCOME_BUTTON: Record<Outcome, { label: string; className: string }> = {
-  COMPLETED: { label: 'Completed', className: 'border-completed/40 bg-completed/10 text-completed-fg hover:bg-completed/20' },
-  FAILED: { label: 'Failed', className: 'border-failed/40 bg-failed/10 text-failed-fg hover:bg-failed/20' },
-  DENIED: { label: 'Denied', className: 'border-denied/40 bg-denied/10 text-denied-fg hover:bg-denied/20' },
+  COMPLETED: { label: 'Completed', className: 'ok' },
+  FAILED: { label: 'Failed', className: 'bad' },
+  DENIED: { label: 'Denied', className: 'bad' },
 }
 
 function toDateInput(iso: string | null): string {
@@ -55,49 +55,46 @@ function ReviewCard({ item, onResolved }: { item: AdminReviewItem; onResolved: (
   const inputId = `known-at-${item.id}`
 
   return (
-    <li className="space-y-3 rounded-xl border border-line/60 bg-surface-raised/60 p-3" data-testid="review-item">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div className="min-w-0 flex-1 space-y-1">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="font-semibold text-ink-primary">{item.player.name}</span>
-            <StatusBadge status={item.status} />
+    <li className="g-admin-item" data-testid="review-item">
+      <div>
+        <div style={{ display: 'grid', gap: 6 }}>
+          <div className="g-admin-head">
+            <strong>{item.player.name}</strong>
+            <DeskStatus status={item.status} />
             {item.reasons.map((r) => (
-              <span
-                key={r}
-                className="rounded-full border border-caution/40 bg-caution/10 px-2 py-0.5 text-label font-semibold text-caution-fg"
-              >
+              <span key={r} className="g-tag">
                 {REASON_LABEL[r]}
               </span>
             ))}
           </div>
-          <p className="flex flex-wrap items-center gap-1.5 text-sm text-ink-secondary">
+          <p className="g-admin-meta">
             <span>{item.fromClub.name}</span>
-            <span className="text-ink-faint">→</span>
+            <span className="sep">→</span>
             <span>{item.toClub.name}</span>
-            <span className="text-ink-faint">·</span>
+            <span className="sep">·</span>
             <span>{item.window.toLowerCase()} window</span>
-            <span className="text-ink-faint">·</span>
-            <span className="font-mono">{Math.round(item.computedLikelihood)}%</span>
-            <span className="text-ink-faint">·</span>
+            <span className="sep">·</span>
+            <span className="mono">{Math.round(item.computedLikelihood)}%</span>
+            <span className="sep">·</span>
             <span>first reported {formatDate(item.rumourDate)} by {item.source.name}</span>
           </p>
         </div>
       </div>
 
-      <div className="border-t border-line/60 pt-2">
+      <div className="g-admin-evidence">
         {item.textSignals.length === 0 ? (
-          <p className="text-xs text-ink-muted">
+          <p className="g-note">
             No article wording to go on. Check an official club source before resolving.
           </p>
         ) : (
-          <ul className="space-y-1">
+          <ul className="g-list" style={{ display: 'grid', gap: 4 }}>
             {item.textSignals.map((s, i) => (
-              <li key={i} className="flex flex-wrap items-center gap-1.5 text-xs">
-                <span className="font-semibold text-ink-soft">{s.outcome === 'COMPLETED' ? 'Suggests done' : 'Suggests off'}</span>
-                <span className="text-ink-muted">
+              <li key={i}>
+                <span style={{ color: '#e6ecf1', fontWeight: 550 }}>{s.outcome === 'COMPLETED' ? 'Suggests done' : 'Suggests off'}</span>
+                <span className="g-muted">
                   {s.sourceName}, {formatDate(s.publishedAt)}:
                 </span>
-                <a href={s.link} target="_blank" rel="noopener noreferrer" className="min-w-0 truncate text-pitch-500 hover:underline">
+                <a href={s.link} target="_blank" rel="noopener noreferrer" >
                   {s.headline}
                 </a>
               </li>
@@ -106,9 +103,9 @@ function ReviewCard({ item, onResolved }: { item: AdminReviewItem; onResolved: (
         )}
       </div>
 
-      <div className="flex flex-wrap items-end gap-3">
-        <div className="space-y-1">
-          <label htmlFor={inputId} className="block text-label text-ink-muted">
+      <div className="g-admin-actions">
+        <div className="g-field">
+          <label htmlFor={inputId}>
             Outcome public on
           </label>
           <input
@@ -117,23 +114,23 @@ function ReviewCard({ item, onResolved }: { item: AdminReviewItem; onResolved: (
             value={knownAt}
             max={today()}
             onChange={(e) => setKnownAt(e.target.value)}
-            className="rounded-lg border border-line bg-surface-panel px-2 py-1 text-sm text-ink-primary focus:border-pitch-500 focus:outline-none"
+            className="g-input"
           />
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
           {(Object.keys(OUTCOME_BUTTON) as Outcome[]).map((o) => (
             <button
               key={o}
               disabled={pending !== null}
               onClick={() => resolve(o)}
-              className={`rounded-lg border px-3 py-1.5 text-xs font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${OUTCOME_BUTTON[o].className}`}
+              className={`g-btn ${OUTCOME_BUTTON[o].className}`}
             >
               {pending === o ? 'Saving…' : OUTCOME_BUTTON[o].label}
             </button>
           ))}
         </div>
       </div>
-      {error && <p className="text-xs text-failed-fg" role="alert">{error}</p>}
+      {error && <p className="g-error" role="alert">{error}</p>}
     </li>
   )
 }
@@ -160,19 +157,19 @@ export default function ReviewQueue() {
   }, [load])
 
   return (
-    <div className="space-y-4">
-      <p className="max-w-2xl text-sm text-ink-secondary">
+    <div>
+      <p className="g-panel-intro">
         Rumours that need a decision. Article wording is a lead, not proof: confirm against an official club source,
         then set the date the outcome became public. The scorecard only scores estimates made before that date.
       </p>
-      {error && <p className="text-sm text-failed-fg">{error}</p>}
-      {loading && <p className="text-sm text-ink-muted">Loading…</p>}
+      {error && <p className="g-error" style={{ padding: '16px 24px' }}>{error}</p>}
+      {loading && <p className="g-note" style={{ padding: '16px 24px' }}>Loading…</p>}
       {!loading && !error && (
-        <p className="text-xs text-ink-muted" data-testid="review-count">
+        <p className="g-note" style={{ padding: '12px 24px', borderBottom: '1px solid var(--g-line)' }} data-testid="review-count">
           {items.length === 0 ? 'Nothing waiting for review.' : `${items.length} waiting for review`}
         </p>
       )}
-      <ul className="space-y-2">
+      <ul className="g-list">
         {items.map((item) => (
           <ReviewCard key={item.id} item={item} onResolved={(id) => setItems((prev) => prev.filter((r) => r.id !== id))} />
         ))}

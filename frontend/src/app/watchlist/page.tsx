@@ -1,7 +1,8 @@
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import RumourCard from '@/components/RumourCard'
+import DeskPage from '@/components/desk/DeskPage'
+import { RumourRowsPanel } from '@/components/desk/RumourLedger'
 import type { PaginatedResponse, Rumour } from '@/types'
 
 const BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001'
@@ -20,22 +21,17 @@ export default async function WatchlistPage() {
   const { data: rumours, total } = (await res.json()) as PaginatedResponse<Rumour>
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-2xl font-bold">My Watchlist</h1>
-      <div className="space-y-3">
-        {rumours.map((r) => (
-          <RumourCard key={r.id} rumour={r} />
-        ))}
-        {rumours.length === 0 && (
-          <div className="rounded-xl border border-line/60 bg-card shadow-card p-12 text-center">
-            <p className="text-ink-muted">No rumours for watched players yet.</p>
-            <Link href="/" className="mt-2 inline-block text-pitch-500 hover:underline">
-              Browse rumours →
-            </Link>
+    <DeskPage eyebrow="ACCOUNT" title="Watchlist" intro={`Rumours about the players you follow. ${total} in total.`}>
+      {rumours.length === 0 ? (
+        <section className="g-panel">
+          <div className="g-panel-body">
+            <p>No rumours for watched players yet.</p>
+            <p><Link href="/rumours" className="g-green-link" style={{ display: 'inline-flex' }}>Browse rumours →</Link></p>
           </div>
-        )}
-      </div>
-      <p className="text-xs text-ink-faint">{total} total</p>
-    </div>
+        </section>
+      ) : (
+        <RumourRowsPanel title="Watched players" rumours={rumours} empty="No rumours for watched players yet." />
+      )}
+    </DeskPage>
   )
 }
