@@ -51,7 +51,25 @@ beforeAll(async () => {
 
 afterAll(async () => {
   await new Promise<void>((resolve) => server.close(() => resolve()))
-  await prisma.user.deleteMany({ where: { id: { in: [adminUserId, nonAdminUserId] } } })
+
+  // Clean up all clubs, sourced_facts, and users created with RUN_ID
+  const testClubs = await prisma.club.findMany({
+    where: { name: { startsWith: RUN_ID } },
+    select: { id: true },
+  })
+  if (testClubs.length > 0) {
+    const clubIds = testClubs.map((c) => c.id)
+    await prisma.sourcedFact.deleteMany({
+      where: { entityType: 'CLUB', entityId: { in: clubIds } },
+    })
+    await prisma.club.deleteMany({
+      where: { id: { in: clubIds } },
+    })
+  }
+
+  await prisma.user.deleteMany({
+    where: { email: { startsWith: RUN_ID } },
+  })
   await prisma.$disconnect()
 })
 
@@ -216,7 +234,7 @@ describe('Club Location Review API', () => {
   })
 
   describe('manual location entry', () => {
-    it('validates ranges, writes Club columns, and adds manual SourcedFact rows', async () => {
+    it('validates ranges, string limits, writes Club columns, and adds manual SourcedFact rows', async () => {
       const club = await prisma.club.create({
         data: { name: `${RUN_ID}-ManualClub`, country: 'Spain', league: 'La Liga' },
       })
@@ -229,6 +247,15 @@ describe('Club Location Review API', () => {
           body: JSON.stringify({ lat: 100, lng: 0 }), // lat > 90
         })
         expect(badRes.status).toBe(400)
+
+        // Validation error on stadium / city > 200 chars
+        const longText = 'a'.repeat(201)
+        const longRes = await fetch(`${baseUrl}/admin/club-locations/${club.id}/manual`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Cookie: cookieFor(adminUserId) },
+          body: JSON.stringify({ lat: 40.4168, lng: -3.7038, stadium: longText }),
+        })
+        expect(longRes.status).toBe(400)
 
         // Valid manual coordinates
         const goodRes = await fetch(`${baseUrl}/admin/club-locations/${club.id}/manual`, {
@@ -252,6 +279,126 @@ describe('Club Location Review API', () => {
         const facts = await prisma.sourcedFact.findMany({ where: { entityType: 'CLUB', entityId: club.id, source: 'manual' } })
         expect(facts.length).toBe(4)
         expect(facts.every((f) => f.licence === 'manual' && f.confidence === 1 && f.applied)).toBe(true)
+      } finally {
+        await prisma.sourcedFact.deleteMany({ where: { entityType: 'CLUB', entityId: club.id } })
+        await prisma.club.deleteMany({ where: { id: club.id } })
+      }
+    })
+
+    it('supersedes earlier applied lat/lng/stadium/city facts before inserting manual rows', async () => {
+      const club = await prisma.club.create({
+        data: {
+          name: `${RUN_ID}-ManualSupersedeClub`,
+          country: 'Germany',
+          league: 'Bundesliga',
+          lat: 52.52,
+          lng: 13.405,
+          stadium: 'Old Ground',
+          city: 'Berlin',
+        },
+      })
+
+      // Add earlier applied wikidata facts
+      await prisma.sourcedFact.createMany({
+        data: [
+          {
+            entityType: 'CLUB',
+            entityId: club.id,
+            field: 'lat',
+            value: '52.52',
+            source: 'wikidata',
+            sourceUrl: 'https://wikidata.org/wiki/Q1',
+            licence: 'CC0',
+            confidence: 0.8,
+            applied: true,
+          },
+          {
+            entityType: 'CLUB',
+            entityId: club.id,
+            field: 'lng',
+            value: '13.405',
+            source: 'wikidata',
+            sourceUrl: 'https://wikidata.org/wiki/Q1',
+            licence: 'CC0',
+            confidence: 0.8,
+            applied: true,
+          },
+          {
+            entityType: 'CLUB',
+            entityId: club.id,
+            field: 'stadium',
+            value: 'Old Ground',
+            source: 'wikidata',
+            sourceUrl: 'https://wikidata.org/wiki/Q1',
+            licence: 'CC0',
+            confidence: 0.8,
+            applied: true,
+          },
+          {
+            entityType: 'CLUB',
+            entityId: club.id,
+            field: 'city',
+            value: 'Berlin',
+            source: 'wikidata',
+            sourceUrl: 'https://wikidata.org/wiki/Q1',
+            licence: 'CC0',
+            confidence: 0.8,
+            applied: true,
+          },
+        ],
+      })
+
+      try {
+        const res = await fetch(`${baseUrl}/admin/club-locations/${club.id}/manual`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Cookie: cookieFor(adminUserId) },
+          body: JSON.stringify({
+            lat: 52.5167,
+            lng: 13.3833,
+            stadium: 'New Manual Ground',
+            city: 'Berlin Mitte',
+          }),
+        })
+        expect(res.status).toBe(200)
+
+        // Verify exactly one live applied lat row remains, with source manual
+        const liveLatFacts = await prisma.sourcedFact.findMany({
+          where: {
+            entityType: 'CLUB',
+            entityId: club.id,
+            field: 'lat',
+            applied: true,
+            supersededAt: null,
+          },
+        })
+        expect(liveLatFacts.length).toBe(1)
+        expect(liveLatFacts[0].source).toBe('manual')
+        expect(liveLatFacts[0].value).toBe('52.5167')
+
+        // Verify the earlier wikidata lat fact was superseded
+        const oldLatFact = await prisma.sourcedFact.findFirst({
+          where: {
+            entityType: 'CLUB',
+            entityId: club.id,
+            field: 'lat',
+            source: 'wikidata',
+          },
+        })
+        expect(oldLatFact?.applied).toBe(true)
+        expect(oldLatFact?.supersededAt).not.toBeNull()
+
+        // Verify live applied stadium and city facts
+        const liveStadiumFacts = await prisma.sourcedFact.findMany({
+          where: {
+            entityType: 'CLUB',
+            entityId: club.id,
+            field: 'stadium',
+            applied: true,
+            supersededAt: null,
+          },
+        })
+        expect(liveStadiumFacts.length).toBe(1)
+        expect(liveStadiumFacts[0].source).toBe('manual')
       } finally {
         await prisma.sourcedFact.deleteMany({ where: { entityType: 'CLUB', entityId: club.id } })
         await prisma.club.deleteMany({ where: { id: club.id } })

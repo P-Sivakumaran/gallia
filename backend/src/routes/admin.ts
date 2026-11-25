@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import { PrismaClient, RumourStatus } from '@prisma/client'
+import { Prisma, PrismaClient, RumourStatus } from '@prisma/client'
 import { applyOutcome, detectOutcome, isPastWindowGrace } from '../ingestion/outcomeDetector.js'
 import { enrichQueue, playerSyncQueue } from '../queue/queues.js'
 import { broadcast } from '../sse/broadcaster.js'
@@ -414,31 +414,46 @@ router.post('/club-locations/:clubId/accept', async (req: AuthedRequest, res) =>
   const lng = lngStr ? parseFloat(lngStr) : null
   const now = new Date()
 
-  await prisma.$transaction([
-    prisma.club.update({
-      where: { id: clubId },
-      data: {
-        wikidataId,
-        lat,
-        lng,
-        stadium,
-        city,
-        geoCheckedAt: now,
-      },
-    }),
-    prisma.sourcedFact.updateMany({
-      where: {
-        entityType: 'CLUB',
-        entityId: clubId,
-        source: 'wikidata',
-        applied: false,
-        supersededAt: null,
-      },
-      data: {
-        applied: true,
-      },
-    }),
-  ])
+  try {
+    await prisma.$transaction([
+      prisma.club.update({
+        where: { id: clubId },
+        data: {
+          wikidataId,
+          lat,
+          lng,
+          stadium,
+          city,
+          geoCheckedAt: now,
+        },
+      }),
+      prisma.sourcedFact.updateMany({
+        where: {
+          entityType: 'CLUB',
+          entityId: clubId,
+          source: 'wikidata',
+          applied: false,
+          supersededAt: null,
+        },
+        data: {
+          applied: true,
+        },
+      }),
+    ])
+  } catch (err: unknown) {
+    if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002') {
+      const conflictClub = await prisma.club.findFirst({
+        where: { wikidataId, id: { not: clubId } },
+        select: { name: true },
+      })
+      res.status(409).json({
+        error: `Wikidata item ${wikidataId} is already held by club "${conflictClub?.name ?? 'another club'}"`,
+        heldBy: conflictClub?.name ?? 'another club',
+      })
+      return
+    }
+    throw err
+  }
 
   res.json({ ok: true, clubId, wikidataId, lat, lng, stadium, city })
 })
@@ -468,8 +483,8 @@ router.post('/club-locations/:clubId/reject', async (req: AuthedRequest, res) =>
 const manualLocationSchema = z.object({
   lat: z.number().min(-90).max(90),
   lng: z.number().min(-180).max(180),
-  stadium: z.string().optional().nullable(),
-  city: z.string().optional().nullable(),
+  stadium: z.string().max(200).optional().nullable(),
+  city: z.string().max(200).optional().nullable(),
 })
 
 // POST /admin/club-locations/:clubId/manual — manual coordinates for clubs with no match
@@ -518,6 +533,20 @@ router.post('/club-locations/:clubId/manual', async (req: AuthedRequest, res) =>
         ...(stadium ? { stadium } : {}),
         ...(city ? { city } : {}),
         geoCheckedAt: now,
+      },
+    }),
+    prisma.sourcedFact.updateMany({
+      where: {
+        entityType: 'CLUB',
+        entityId: clubId,
+        applied: true,
+        supersededAt: null,
+        field: {
+          in: ['lat', 'lng', ...(stadium ? ['stadium'] : []), ...(city ? ['city'] : [])],
+        },
+      },
+      data: {
+        supersededAt: now,
       },
     }),
     prisma.sourcedFact.createMany({
