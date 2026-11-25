@@ -108,3 +108,18 @@
 .g-chart-frame>div{border:0;box-shadow:none;background:transparent;padding:0}
 
 .g-app p.g-connection-notice{margin-bottom:24px}
+
+/* ── Detail pages ── */
+.g-evidence-list{list-style:none;margin:0;padding:0}
+.g-evidence-list li{display:grid;gap:4px;padding:14px 24px;border-bottom:1px solid var(--g-line)}
+.g-evidence-list li:last-child{border-bottom:0}
+.g-evidence-list a{font-size:13px;line-height:20px;color:#e6ecf1}
+.g-evidence-list a:hover{color:var(--g-green)}
+.g-evidence-list a svg{display:inline;vertical-align:-1px;color:var(--g-muted)}
+.g-evidence-list span{font:12px var(--font-mono),monospace;color:var(--g-muted)}
+.g-desk-page .g-hero-story h2 a:hover{color:var(--g-green)}
+.g-desk-page a.g-route-club:hover strong{color:var(--g-green)}
+.g-stack{display:grid;gap:24px;margin-bottom:24px}
+
+/* Claim components bring their own cards; on a desk page they read as desk panels. */
+.g-claim-stack>div,.g-claim-stack>section{border:1px solid var(--g-line);border-radius:8px;background:var(--surface-panel);box-shadow:none}

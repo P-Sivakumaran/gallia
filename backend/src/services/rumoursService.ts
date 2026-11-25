@@ -37,7 +37,7 @@ export function publicNotes(notes: string | null): string | null {
   return stripped || null
 }
 
-function withPublicNotes<T extends { notes: string | null }>(r: T): T {
+export function withPublicNotes<T extends { notes: string | null }>(r: T): T {
   return { ...r, notes: publicNotes(r.notes) }
 }
 

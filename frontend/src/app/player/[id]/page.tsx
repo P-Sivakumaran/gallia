@@ -1,6 +1,9 @@
 import { notFound } from 'next/navigation'
+import Link from 'next/link'
 import { api } from '@/lib/api'
-import RumourCard from '@/components/RumourCard'
+import DeskPage, { Metric } from '@/components/desk/DeskPage'
+import { RumourRowsPanel } from '@/components/desk/RumourLedger'
+import { formatMillions, toMillions } from '@/lib/format'
 
 export default async function PlayerPage({ params }: { params: Promise<{ id: string }> }) {
   const { id: rawId } = await params
@@ -11,51 +14,22 @@ export default async function PlayerPage({ params }: { params: Promise<{ id: str
   const contractEnd = player.contractEnd
     ? new Date(player.contractEnd).toLocaleDateString('en-GB', { month: 'short', year: 'numeric' })
     : 'Unknown'
+  const facts = [player.position, player.nationality, player.age ? `age ${player.age}` : null].filter(Boolean).join(' · ')
+  const open = player.rumours.filter((r) => r.status === 'HOT' || r.status === 'PENDING').length
 
   return (
-    <div className="space-y-8">
-      {/* Player header */}
-      <div className="flex flex-wrap items-start gap-6">
-        <div className="flex h-20 w-20 items-center justify-center rounded-2xl border border-line bg-surface-raised text-3xl font-bold text-ink-secondary">
-          {player.name.charAt(0)}
-        </div>
-        <div className="flex-1">
-          <h1 className="text-4xl font-black tracking-display">{player.name}</h1>
-          <div className="mt-1 flex flex-wrap gap-3 text-sm text-ink-secondary">
-            <span>{player.position}</span>
-            {player.nationality && <span>· {player.nationality}</span>}
-            {player.age && <span>· Age {player.age}</span>}
-            {player.currentClub && <span>· {player.currentClub.name}</span>}
-          </div>
-          <div className="mt-3 flex flex-wrap gap-4 text-sm">
-            {player.marketValue && (
-              <div>
-                <span className="text-ink-muted">Market value</span>
-                <span className="ml-1.5 font-mono font-semibold text-ink-primary">€{player.marketValue}M</span>
-              </div>
-            )}
-            <div>
-              <span className="text-ink-muted">Contract until</span>
-              <span className="ml-1.5 font-mono font-semibold text-ink-primary">{contractEnd}</span>
-            </div>
-          </div>
-        </div>
+    <DeskPage
+      eyebrow="PLAYER"
+      title={player.name}
+      intro={<>{facts}{player.currentClub && <> · now at <Link href={`/club/${player.currentClub.id}`} className="g-green-link" style={{ display: 'inline' }}>{player.currentClub.name}</Link></>}</>}
+    >
+      <div className="g-metrics">
+        <Metric label="CURRENT CLUB" value={<span style={{ fontSize: 20 }}>{player.currentClub?.name ?? 'Unknown'}</span>} note="From the nightly club sync" />
+        <Metric label="MARKET VALUE" value={player.marketValue ? `€${formatMillions(toMillions(player.marketValue))}` : '—'} note={player.marketValue ? 'Reported estimate' : 'No estimate stored'} />
+        <Metric label="CONTRACT UNTIL" value={<span style={{ fontSize: 20 }}>{contractEnd}</span>} />
+        <Metric label="OPEN RUMOURS" value={open} tone={open ? 'amber' : undefined} note={`${player.rumours.length} in total`} />
       </div>
-
-      {/* Rumours */}
-      <section>
-        <h2 className="mb-4 text-xs font-semibold uppercase tracking-widest text-ink-muted">
-          Transfer rumours ({player.rumours.length})
-        </h2>
-        <div className="space-y-3">
-          {player.rumours.map((r) => (
-            <RumourCard key={r.id} rumour={r} />
-          ))}
-          {player.rumours.length === 0 && (
-            <p className="text-sm italic text-ink-muted">No rumours for this player.</p>
-          )}
-        </div>
-      </section>
-    </div>
+      <RumourRowsPanel title="Transfer rumours" rumours={player.rumours} empty="No rumours for this player." />
+    </DeskPage>
   )
 }

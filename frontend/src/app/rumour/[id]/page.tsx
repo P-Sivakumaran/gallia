@@ -1,10 +1,24 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { api } from '@/lib/api'
-import TruthMeter from '@/components/TruthMeter'
 import TimelineChart from '@/components/TimelineChart'
-import SectionKicker from '@/components/SectionKicker'
+import DeskPage, { PanelHeading } from '@/components/desk/DeskPage'
+import { Icon, ProbabilityMeter } from '@/components/gallia/Primitives'
+import { feeLabel } from '@/lib/format'
 import { resolveDisplayOrigin } from '@/lib/rumourOrigin'
+import type { RumourStatus } from '@/types'
+
+const STATUS_CLASS: Record<RumourStatus, string> = {
+  HOT: 'g-status',
+  PENDING: 'g-status g-status-smoke',
+  COMPLETED: 'g-status g-status-confirmed',
+  FAILED: 'g-status g-status-denied',
+  DENIED: 'g-status g-status-denied',
+}
+
+function code(name: string): string {
+  return name.replace(/^(FC|AFC|AC|CF)\s+/i, '').slice(0, 3).toUpperCase()
+}
 
 export default async function RumourDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id: rawId } = await params
@@ -13,106 +27,90 @@ export default async function RumourDetailPage({ params }: { params: Promise<{ i
   if (!rumour) notFound()
 
   const origin = resolveDisplayOrigin(rumour)
-
-  const fee =
-    rumour.reportedFeeMin != null && rumour.reportedFeeMax != null
-      ? `€${rumour.reportedFeeMin}–${rumour.reportedFeeMax}M`
-      : rumour.reportedFeeMin != null
-        ? `€${rumour.reportedFeeMin}M`
-        : 'Undisclosed'
+  const likelihood = Math.round(rumour.computedLikelihood)
+  const settled = rumour.status === 'COMPLETED' || rumour.status === 'FAILED' || rumour.status === 'DENIED'
+  const reliability = Math.round(rumour.source.reliabilityScore * 100)
 
   return (
-    <div className="mx-auto max-w-3xl space-y-10">
-      {/* Header */}
-      <div className="flex flex-wrap items-start gap-8">
-        <TruthMeter
-          score={Math.round(rumour.computedLikelihood)}
-          status={rumour.status}
-          size="lg"
-        />
-        <div className="flex-1">
-          <h1 className="text-4xl font-black tracking-display sm:text-5xl">
-            <Link href={`/player/${rumour.player.id}`} className="hover:text-pitch-500">
-              {rumour.player.name}
-            </Link>
-          </h1>
-          <div className="mt-2 flex flex-wrap items-center gap-2 text-lg">
-            <Link href={`/club/${origin.club.id}`} className="font-medium text-ink-soft hover:text-ink-primary">
-              {origin.club.name}
-            </Link>
-            {origin.unconfirmed && (
-              <span
-                className="rounded-full border border-caution/40 bg-caution/10 px-2 py-0.5 text-xs font-medium uppercase tracking-wide text-caution-fg"
-                title="Origin club couldn't be confirmed from the source text — showing the player's actual current club instead"
-              >
-                unconfirmed origin
-              </span>
-            )}
-            <span className="text-2xl text-ink-faint">→</span>
-            <Link href={`/club/${rumour.toClub.id}`} className="font-medium text-ink-soft hover:text-ink-primary">
-              {rumour.toClub.name}
-            </Link>
+    <DeskPage
+      eyebrow={`RUMOUR · R-${rumour.id}`}
+      title={rumour.player.name}
+      intro={`${origin.club.name} to ${rumour.toClub.name}, ${rumour.window.toLowerCase()} window. Reported by ${rumour.source.name}.`}
+      actions={<Link href="/rumours" className="g-button"><span style={{ display: 'flex', transform: 'scaleX(-1)' }}><Icon name="arrow" size={16} /></span>All rumours</Link>}
+    >
+      <div className="g-hero-grid">
+        <section className="g-panel g-hero">
+          <div className="g-hero-top">
+            <span className="g-eyebrow"><Icon name="activity" size={14} />THE RUMOUR</span>
+            <span className="g-claim-id">R-{rumour.id}</span>
           </div>
-          <div className="mt-3 flex flex-wrap gap-4 text-sm text-ink-secondary">
-            <span>Fee: <strong className="text-ink-primary font-mono">{fee}</strong></span>
-            <span>Window: <strong className="text-ink-primary">{rumour.window}</strong></span>
-            <span>Position: <strong className="text-ink-primary">{rumour.player.position}</strong></span>
+          <div className="g-hero-main">
+            <div className="g-hero-story">
+              <div className="g-hero-tags">
+                <span className={STATUS_CLASS[rumour.status]}><span />{rumour.status}</span>
+                {rumour.player.position && <span className="g-muted">{rumour.player.position}</span>}
+              </div>
+              <h2><Link href={`/player/${rumour.player.id}`}>{rumour.player.name}</Link></h2>
+              {rumour.notes && <p className="g-hero-headline">“{rumour.notes}”</p>}
+              <div className="g-transfer-route">
+                <Link href={`/club/${origin.club.id}`} className="g-route-club">
+                  <span className="g-club-code">{code(origin.club.name)}</span>
+                  <span><small>{origin.unconfirmed ? 'ORIGIN (UNCONFIRMED)' : 'FROM'}</small><strong>{origin.club.name}</strong></span>
+                </Link>
+                <span className="g-route-arrow"><Icon name="arrow" /></span>
+                <Link href={`/club/${rumour.toClub.id}`} className="g-route-club">
+                  <span className="g-club-code destination">{code(rumour.toClub.name)}</span>
+                  <span><small>DESTINATION</small><strong>{rumour.toClub.name}</strong></span>
+                </Link>
+              </div>
+            </div>
+            <div className="g-hero-forecast">
+              <p className="g-forecast-caption">{settled ? 'OUTCOME RECORDED' : 'MODEL ESTIMATE · UNCALIBRATED'}</p>
+              <ProbabilityMeter value={likelihood} />
+            </div>
           </div>
-        </div>
+          <div className="g-route-matrix">
+            <div><span className="g-eyebrow">REPORTED FEE</span><strong>{feeLabel(rumour.reportedFeeMin, rumour.reportedFeeMax, rumour.currency)}</strong></div>
+            <div><span className="g-eyebrow">WINDOW</span><strong>{rumour.window.charAt(0) + rumour.window.slice(1).toLowerCase()}</strong></div>
+            <div><span className="g-eyebrow">SOURCES</span><strong>{rumour.distinctSourceCount}</strong></div>
+            <div><span className="g-eyebrow">FIRST REPORTED</span><strong>{new Date(rumour.rumourDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</strong></div>
+          </div>
+        </section>
+
+        <aside className="g-panel">
+          <PanelHeading title="Source" right={<span className="g-count-label">{rumour.source.type.replace(/_/g, ' ')}</span>} />
+          <div className="g-panel-body">
+            <p style={{ fontSize: 16, color: '#edf1f5', fontWeight: 550 }}>{rumour.source.name}</p>
+            <div className="g-row-prob" style={{ alignItems: 'flex-start', marginTop: 16 }}>
+              <strong>{reliability}<small>%</small></strong>
+              <span className="g-probability-track" style={{ width: '100%' }}><i style={{ width: `${reliability}%`, background: 'var(--g-green)' }} /></span>
+            </div>
+            <p style={{ marginTop: 12 }}>Reliability: how often this source&apos;s resolved rumours came true, blended with a starting estimate until it has a track record.</p>
+          </div>
+        </aside>
       </div>
 
-      {/* Source */}
-      <div className="rounded-xl border border-line/60 bg-card shadow-card p-4">
-        <p className="text-xs font-semibold uppercase tracking-widest text-ink-muted mb-2">Source</p>
-        <div className="flex items-center gap-3">
-          <span className="font-medium text-ink-primary">{rumour.source.name}</span>
-          <span className="text-xs text-ink-muted">{rumour.source.type.replace('_', ' ')}</span>
-          <span className="ml-auto font-mono text-sm text-pitch-500">
-            {Math.round(rumour.source.reliabilityScore * 100)}% reliable
-          </span>
-        </div>
+      <div className="g-score-grid">
+        <section className="g-panel g-span-8">
+          <PanelHeading title="Likelihood over time" right={<span className="g-count-label">70% = HOT</span>} />
+          <div className="g-panel-body"><TimelineChart history={rumour.history} /></div>
+        </section>
+        <section className="g-panel g-span-4">
+          <PanelHeading title="Evidence" right={<span className="g-count-label">{rumour.evidence.length} ARTICLE{rumour.evidence.length === 1 ? '' : 'S'}</span>} />
+          {rumour.evidence.length === 0 ? (
+            <div className="g-panel-body"><p>No source articles are linked to this rumour yet.</p></div>
+          ) : (
+            <ul className="g-evidence-list">
+              {rumour.evidence.map((e, i) => (
+                <li key={i}>
+                  <a href={e.link} target="_blank" rel="noopener noreferrer">{e.headline} <Icon name="external" size={12} /></a>
+                  <span>{e.sourceName} · {new Date(e.publishedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
       </div>
-
-      {/* Likelihood timeline */}
-      <div className="rounded-xl border border-line/60 bg-card shadow-card p-4">
-        <SectionKicker className="mb-4">
-          Likelihood over time
-        </SectionKicker>
-        <TimelineChart history={rumour.history} />
-      </div>
-
-      {rumour.notes && (
-        <div className="rounded-xl border border-line/60 bg-card shadow-card p-4">
-          <SectionKicker className="mb-2">Notes</SectionKicker>
-          <p className="text-ink-soft text-sm leading-relaxed">{rumour.notes}</p>
-        </div>
-      )}
-
-      {/* Evidence — the articles this rumour and its status are actually based on */}
-      <div className="rounded-xl border border-line/60 bg-card shadow-card p-4">
-        <SectionKicker className="mb-2">Evidence</SectionKicker>
-        {rumour.evidence.length === 0 ? (
-          <p className="text-sm text-ink-muted">No source articles linked to this rumour yet.</p>
-        ) : (
-          <ul className="space-y-2">
-            {rumour.evidence.map((e, i) => (
-              <li key={i} className="text-sm">
-                <a
-                  href={e.link}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-pitch-500 hover:underline"
-                >
-                  {e.headline}
-                </a>
-                <span className="ml-2 text-xs text-ink-muted">
-                  {e.sourceName} · {new Date(e.publishedAt).toLocaleDateString()}
-                </span>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
-    </div>
+    </DeskPage>
   )
 }

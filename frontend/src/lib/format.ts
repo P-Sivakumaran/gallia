@@ -3,11 +3,11 @@ export const CURRENCY_SYMBOLS: Record<string, string> = { EUR: '€', GBP: '£',
 // Fees are stored in millions, but some feeds wrote raw currency units
 // (450000 for €0.45M), which printed as "€450000–550000.000000001M".
 // Anything at or above 1,000 is read as raw units.
-function toMillions(v: number): number {
+export function toMillions(v: number): number {
   return v >= 1000 ? v / 1_000_000 : v
 }
 
-function formatMillions(m: number): string {
+export function formatMillions(m: number): string {
   if (m < 1) return `${Math.round(m * 1000)}K`
   return `${Number(m.toFixed(m < 10 ? 1 : 0))}M`
 }
