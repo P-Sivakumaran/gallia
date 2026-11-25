@@ -1,11 +1,10 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import { clsx } from 'clsx'
 import { api } from '@/lib/api'
 import type { AdminRumour, AdminSource, Player, RumourStatus } from '@/types'
-import StatusBadge from '@/components/StatusBadge'
-import SectionKicker from '@/components/SectionKicker'
+import DeskPage from '@/components/desk/DeskPage'
+import DeskStatus from '@/components/desk/DeskStatus'
 import ReviewQueue from '@/components/admin/ReviewQueue'
 
 const STATUS_FILTERS: Array<RumourStatus | 'ALL'> = ['ALL', 'PENDING', 'HOT', 'COMPLETED', 'FAILED', 'DENIED']
@@ -48,64 +47,48 @@ function RumoursPanel() {
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-wrap gap-2">
+    <div>
+      <div className="g-chip-row" role="group" aria-label="Filter by status">
         {STATUS_FILTERS.map((s) => (
-          <button
-            key={s}
-            onClick={() => setFilter(s)}
-            className={clsx(
-              'rounded-full border px-3 py-1 text-xs font-medium transition-colors',
-              filter === s
-                ? 'border-pitch-500 bg-pitch-500/20 text-pitch-500'
-                : 'border-line bg-transparent text-ink-secondary hover:border-line-emphasis hover:text-ink-body',
-            )}
-          >
+          <button key={s} type="button" aria-pressed={filter === s} onClick={() => setFilter(s)}>
             {s}
           </button>
         ))}
       </div>
 
-      {error && <p className="text-sm text-failed-fg">{error}</p>}
-      {loading && <p className="text-sm text-ink-muted">Loading…</p>}
+      {error && <p className="g-error" style={{ padding: '16px 24px' }}>{error}</p>}
+      {loading && <p className="g-note" style={{ padding: '16px 24px' }}>Loading…</p>}
       {!loading && rumours.length === 0 && !error && (
-        <p className="text-sm text-ink-muted">No rumours match this filter.</p>
+        <p className="g-note" style={{ padding: '16px 24px' }}>No rumours match this filter.</p>
       )}
 
-      <div className="space-y-2">
+      <ul className="g-list">
         {rumours.map((r) => (
-          <div
-            key={r.id}
-            className="flex flex-col gap-3 rounded-xl border border-line/60 bg-surface-raised/60 p-3"
-          >
-            <div className="flex flex-wrap items-start justify-between gap-3">
-              <div className="min-w-0 flex-1">
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="font-semibold text-ink-primary">{r.player.name}</span>
-                  <StatusBadge status={r.status} />
-                  {r.contradicts !== null && (
-                    <span className="rounded-full border border-caution/40 bg-caution/20 px-2 py-0.5 text-xs font-semibold text-caution-fg">
-                      contradicts #{r.contradicts}
-                    </span>
-                  )}
+          <li key={r.id} className="g-admin-item">
+            <div className="g-admin-actions" style={{ justifyContent: 'space-between', alignItems: 'flex-start' }}>
+              <div style={{ display: 'grid', gap: 6, minWidth: 0 }}>
+                <div className="g-admin-head">
+                  <strong>{r.player.name}</strong>
+                  <DeskStatus status={r.status} />
+                  {r.contradicts !== null && <span className="g-tag">contradicts #{r.contradicts}</span>}
                 </div>
-                <div className="mt-1 flex flex-wrap items-center gap-1.5 text-sm text-ink-secondary">
+                <div className="g-admin-meta">
                   <span>{r.fromClub.name}</span>
-                  <span className="text-ink-faint">→</span>
+                  <span className="sep">→</span>
                   <span>{r.toClub.name}</span>
-                  <span className="text-ink-faint">·</span>
-                  <span className="font-mono">{Math.round(r.computedLikelihood)}%</span>
-                  <span className="text-ink-faint">·</span>
+                  <span className="sep">·</span>
+                  <span className="mono">{Math.round(r.computedLikelihood)}%</span>
+                  <span className="sep">·</span>
                   <span>{r.source.name} ({Math.round(r.source.reliabilityScore * 100)}%)</span>
                 </div>
               </div>
 
-              <div className="flex gap-2">
+              <div style={{ display: 'flex', gap: 8 }}>
                 <button
                   disabled={pendingId === r.id || r.evidence.length === 0}
                   title={r.evidence.length === 0 ? 'No source evidence found for this rumour — cannot set outcome' : undefined}
                   onClick={() => setOutcome(r.id, 'COMPLETED')}
-                  className="rounded-lg border border-completed/40 bg-completed/10 px-3 py-1.5 text-xs font-semibold text-completed-fg transition-colors hover:bg-completed/20 disabled:cursor-not-allowed disabled:opacity-30"
+                  className="g-btn ok"
                 >
                   Completed
                 </button>
@@ -113,7 +96,7 @@ function RumoursPanel() {
                   disabled={pendingId === r.id || r.evidence.length === 0}
                   title={r.evidence.length === 0 ? 'No source evidence found for this rumour; cannot set outcome' : undefined}
                   onClick={() => setOutcome(r.id, 'FAILED')}
-                  className="rounded-lg border border-failed/40 bg-failed/10 px-3 py-1.5 text-xs font-semibold text-failed-fg transition-colors hover:bg-failed/20 disabled:cursor-not-allowed disabled:opacity-30"
+                  className="g-btn bad"
                 >
                   Failed
                 </button>
@@ -121,7 +104,7 @@ function RumoursPanel() {
                   disabled={pendingId === r.id || r.evidence.length === 0}
                   title={r.evidence.length === 0 ? 'No source evidence found for this rumour; cannot set outcome' : undefined}
                   onClick={() => setOutcome(r.id, 'DENIED')}
-                  className="rounded-lg border border-denied/40 bg-denied/10 px-3 py-1.5 text-xs font-semibold text-denied-fg transition-colors hover:bg-denied/20 disabled:cursor-not-allowed disabled:opacity-30"
+                  className="g-btn bad"
                 >
                   Denied
                 </button>
@@ -129,19 +112,18 @@ function RumoursPanel() {
             </div>
 
             {/* Evidence: every action above must be traceable to one of these */}
-            <div className="border-t border-line/60 pt-2">
+            <div className="g-admin-evidence">
               {r.evidence.length === 0 ? (
-                <p className="text-xs text-ink-muted">No source articles linked; outcome cannot be set manually.</p>
+                <p className="g-note">No source articles linked; outcome cannot be set manually.</p>
               ) : (
-                <ul className="space-y-1">
+                <ul className="g-list" style={{ display: 'grid', gap: 4 }}>
                   {r.evidence.map((e, i) => (
-                    <li key={i} className="flex items-center gap-1.5 text-xs">
-                      <span className="text-ink-muted">{e.sourceName}:</span>
+                    <li key={i}>
+                      <span className="g-muted">{e.sourceName}:</span>
                       <a
                         href={e.link}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="truncate text-pitch-500 hover:underline"
                       >
                         {e.headline}
                       </a>
@@ -150,9 +132,9 @@ function RumoursPanel() {
                 </ul>
               )}
             </div>
-          </div>
+          </li>
         ))}
-      </div>
+      </ul>
     </div>
   )
 }
@@ -170,31 +152,31 @@ function SourcesPanel() {
       .finally(() => setLoading(false))
   }, [])
 
-  if (loading) return <p className="text-sm text-ink-muted">Loading…</p>
-  if (error) return <p className="text-sm text-failed-fg">{error}</p>
+  if (loading) return <p className="g-note" style={{ padding: '16px 24px' }}>Loading…</p>
+  if (error) return <p className="g-error" style={{ padding: '16px 24px' }}>{error}</p>
 
   return (
-    <div className="overflow-x-auto rounded-xl border border-line/60">
-      <table className="w-full text-sm">
-        <thead className="bg-surface-raised/80 text-left text-xs uppercase tracking-wide text-ink-muted">
+    <div style={{ overflowX: 'auto' }}>
+      <table className="g-table">
+        <thead>
           <tr>
-            <th className="px-3 py-2">Source</th>
-            <th className="px-3 py-2">Type</th>
-            <th className="px-3 py-2">Reliability</th>
-            <th className="px-3 py-2">Hits</th>
-            <th className="px-3 py-2">Misses</th>
-            <th className="px-3 py-2">Rumours</th>
+            <th>SOURCE</th>
+            <th>TYPE</th>
+            <th className="num">RELIABILITY</th>
+            <th className="num">HITS</th>
+            <th className="num">MISSES</th>
+            <th className="num">RUMOURS</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-line-subtle">
+        <tbody>
           {sources.map((s) => (
-            <tr key={s.id} className="bg-surface-panel/40">
-              <td className="px-3 py-2 font-medium text-ink-primary">{s.name}</td>
-              <td className="px-3 py-2 text-ink-secondary">{s.type}</td>
-              <td className="px-3 py-2 font-mono text-ink-soft">{Math.round(s.reliabilityScore * 100)}%</td>
-              <td className="px-3 py-2 text-completed-fg">{s.hitCount}</td>
-              <td className="px-3 py-2 text-failed-fg">{s.missCount}</td>
-              <td className="px-3 py-2 text-ink-secondary">{s._count.rumours}</td>
+            <tr key={s.id}>
+              <td style={{ fontWeight: 550, color: '#edf1f5' }}>{s.name}</td>
+              <td className="g-muted">{s.type.replace(/_/g, ' ').toLowerCase()}</td>
+              <td className="num">{Math.round(s.reliabilityScore * 100)}%</td>
+              <td className="num" style={{ color: 'var(--signal-fire)' }}>{s.hitCount}</td>
+              <td className="num" style={{ color: 'var(--signal-denied)' }}>{s.missCount}</td>
+              <td className="num">{s._count.rumours}</td>
             </tr>
           ))}
         </tbody>
@@ -236,36 +218,32 @@ function EnrichPanel() {
   }
 
   return (
-    <div className="space-y-3">
-      <input
-        value={query}
-        onChange={(e) => search(e.target.value)}
-        placeholder="Search player to re-enrich…"
-        className="w-full rounded-lg border border-line bg-surface-panel px-3 py-2 text-sm text-ink-primary placeholder:text-ink-muted focus:border-pitch-500 focus:outline-none"
-      />
-      {searching && <p className="text-sm text-ink-muted">Searching…</p>}
-      {message && <p className="text-sm text-pitch-500">{message}</p>}
-      <div className="space-y-2">
+    <div>
+      <div style={{ padding: '16px 24px', borderBottom: '1px solid var(--g-line)' }}>
+        <input
+          value={query}
+          onChange={(e) => search(e.target.value)}
+          placeholder="Search player to re-enrich…"
+          aria-label="Search player to re-enrich"
+          className="g-input"
+          style={{ width: '100%' }}
+        />
+        {searching && <p className="g-note" style={{ marginTop: 8 }}>Searching…</p>}
+        {message && <p className="g-note" style={{ marginTop: 8, color: 'var(--signal-fire)' }}>{message}</p>}
+      </div>
+      <ul className="g-list">
         {results.map((p) => (
-          <div
-            key={p.id}
-            className="flex items-center justify-between rounded-xl border border-line/60 bg-surface-raised/60 p-3"
-          >
-            <div>
-              <p className="font-medium text-ink-primary">{p.name}</p>
-              <p className="text-xs text-ink-muted">
-                {p.position} · {p.nationality ?? 'Unknown nationality'}
-              </p>
+          <li key={p.id} className="g-admin-item" style={{ gridTemplateColumns: '1fr auto', alignItems: 'center' }}>
+            <div className="g-admin-head" style={{ display: 'grid', gap: 2 }}>
+              <strong>{p.name}</strong>
+              <span className="g-note">{p.position} · {p.nationality ?? 'Unknown nationality'}</span>
             </div>
-            <button
-              onClick={() => enrich(p.id, p.name)}
-              className="rounded-lg border border-pitch-500/40 bg-pitch-500/10 px-3 py-1.5 text-xs font-semibold text-pitch-500 transition-colors hover:bg-pitch-500/20"
-            >
+            <button type="button" onClick={() => enrich(p.id, p.name)} className="g-btn ok">
               Enrich
             </button>
-          </div>
+          </li>
         ))}
-      </div>
+      </ul>
     </div>
   )
 }
@@ -274,36 +252,25 @@ export default function AdminPage() {
   const [tab, setTab] = useState<'review' | 'rumours' | 'sources' | 'enrich'>('review')
 
   return (
-    <div className="space-y-6">
-      <div className="space-y-2">
-        <SectionKicker>Operations Desk</SectionKicker>
-        <h1 className="text-3xl font-black tracking-display text-ink-primary sm:text-4xl">
-          Operations <span className="text-pitch-500">Admin.</span>
-        </h1>
-        <p className="max-w-2xl text-sm text-ink-secondary">
-          Review rumours awaiting an outcome, resolve rumours, check source reliability, and trigger player profile enrichment.
-        </p>
-      </div>
-
-      <div className="flex gap-2 border-b border-line-subtle">
-        {(['review', 'rumours', 'sources', 'enrich'] as const).map((t) => (
-          <button
-            key={t}
-            onClick={() => setTab(t)}
-            className={clsx(
-              'border-b-2 px-4 py-2 text-sm font-semibold capitalize transition-colors',
-              tab === t ? 'border-pitch-500 text-ink-primary' : 'border-transparent text-ink-muted hover:text-ink-soft',
-            )}
-          >
-            {t}
-          </button>
-        ))}
-      </div>
-
-      {tab === 'review' && <ReviewQueue />}
-      {tab === 'rumours' && <RumoursPanel />}
-      {tab === 'sources' && <SourcesPanel />}
-      {tab === 'enrich' && <EnrichPanel />}
-    </div>
+    <DeskPage
+      eyebrow="OPERATIONS DESK"
+      title="Admin"
+      accent="."
+      intro="Review rumours awaiting an outcome, resolve rumours, check source reliability, and trigger player profile enrichment."
+    >
+      <section className="g-panel">
+        <div className="g-admin-tabs" role="tablist" aria-label="Admin sections">
+          {(['review', 'rumours', 'sources', 'enrich'] as const).map((t) => (
+            <button key={t} type="button" role="tab" aria-selected={tab === t} onClick={() => setTab(t)}>
+              {t}
+            </button>
+          ))}
+        </div>
+        {tab === 'review' && <ReviewQueue />}
+        {tab === 'rumours' && <RumoursPanel />}
+        {tab === 'sources' && <SourcesPanel />}
+        {tab === 'enrich' && <EnrichPanel />}
+      </section>
+    </DeskPage>
   )
 }
