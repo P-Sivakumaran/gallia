@@ -6,8 +6,8 @@
  *
  * League IDs, endpoint shapes, and the position-id taxonomy below were
  * verified against a live account (2026-08-09), not guessed. That account's
- * plan is scoped to UEFA club competitions specifically (see TARGET_LEAGUES)
- * — a domestic-league plan would need different league IDs, but the
+ * plan is scoped to UEFA club competitions by default (DEFAULT_TARGET_LEAGUES);
+ * SPORTMONKS_LEAGUES adds domestic leagues once the plan covers them. The
  * endpoint/response shapes should carry over.
  */
 import axios from 'axios'
@@ -27,12 +27,36 @@ function coreBaseUrl(): string {
 export type Position = 'GK' | 'CB' | 'LB' | 'RB' | 'CDM' | 'CM' | 'CAM' | 'LM' | 'RM' | 'LW' | 'RW' | 'ST' | 'CF'
 
 // Verified via GET /leagues against the live key — this account's plan is
-// "Euro Club Tournaments", scoped to exactly these 4 competitions.
-const TARGET_LEAGUES: Record<string, string> = {
+// "Euro Club Tournaments", scoped to exactly these 4 competitions. Used when
+// SPORTMONKS_LEAGUES is unset.
+const DEFAULT_TARGET_LEAGUES: Record<string, string> = {
   '2': 'Champions League',
   '5': 'Europa League',
   '1328': 'UEFA Super Cup',
   '2286': 'Europa Conference League',
+}
+
+/**
+ * Leagues to sync, from SPORTMONKS_LEAGUES as "id:Name" pairs separated by
+ * commas (e.g. "8:Premier League,564:La Liga"). Lets the plan grow without a
+ * code change. Ids must be on the account's plan: check with GET /leagues.
+ * Malformed entries are skipped; if nothing valid remains, the defaults apply.
+ */
+export function targetLeagues(raw: string | undefined = process.env.SPORTMONKS_LEAGUES): Record<string, string> {
+  if (!raw || !raw.trim()) return DEFAULT_TARGET_LEAGUES
+  const leagues: Record<string, string> = {}
+  for (const entry of raw.split(',')) {
+    const i = entry.indexOf(':')
+    if (i < 0) continue
+    const id = entry.slice(0, i).trim()
+    const name = entry.slice(i + 1).trim()
+    if (/^\d+$/.test(id) && name) leagues[id] = name
+  }
+  if (Object.keys(leagues).length === 0) {
+    console.warn('[sportmonksCatalog] SPORTMONKS_LEAGUES has no valid "id:Name" entries — using defaults.')
+    return DEFAULT_TARGET_LEAGUES
+  }
+  return leagues
 }
 
 // Verified via GET /core/types/{id} for every id observed in real squad
@@ -176,9 +200,8 @@ async function resolveCountryName(countryId: number | null): Promise<string> {
   }
 }
 
-async function fetchLeagueTeams(leagueId: string): Promise<NormalizedClub[]> {
+async function fetchLeagueTeams(leagueId: string, league: string): Promise<NormalizedClub[]> {
   const client = createAxiosClient()
-  const league = TARGET_LEAGUES[leagueId]
   const { data: response } = await client.get(`/leagues/${leagueId}`, {
     params: { include: 'currentSeason.teams' },
   })
@@ -232,8 +255,8 @@ export async function fetchLeagueCatalog(): Promise<{ clubs: NormalizedClub[]; p
   }
 
   const rawClubs: NormalizedClub[] = []
-  for (const leagueId of Object.keys(TARGET_LEAGUES)) {
-    rawClubs.push(...(await fetchLeagueTeams(leagueId)))
+  for (const [leagueId, league] of Object.entries(targetLeagues())) {
+    rawClubs.push(...(await fetchLeagueTeams(leagueId, league)))
     await delay(250)
   }
 

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { SportmonksSquadMemberSchema } from './sportmonksCatalog.js'
+import { SportmonksSquadMemberSchema, targetLeagues } from './sportmonksCatalog.js'
 
 const BASE_MEMBER = {
   player_id: 1,
@@ -28,5 +28,23 @@ describe('SportmonksSquadMemberSchema', () => {
   it('accepts a squad member with the end key omitted entirely (e.g. trialist/youth/loan rows)', () => {
     const parsed = SportmonksSquadMemberSchema.parse({ ...BASE_MEMBER })
     expect(parsed.end).toBeUndefined()
+  })
+})
+
+describe('targetLeagues', () => {
+  it('defaults to the four UEFA club competitions when unset or blank', () => {
+    expect(Object.keys(targetLeagues(undefined))).toEqual(['2', '5', '1328', '2286'])
+    expect(targetLeagues('  ')).toEqual(targetLeagues(undefined))
+  })
+
+  it('parses "id:Name" pairs and skips malformed entries', () => {
+    expect(targetLeagues('8:Premier League, 564:La Liga,bad,x:Nope,9:')).toEqual({
+      '8': 'Premier League',
+      '564': 'La Liga',
+    })
+  })
+
+  it('falls back to defaults when no entry is valid', () => {
+    expect(targetLeagues('nonsense')).toEqual(targetLeagues(undefined))
   })
 })
