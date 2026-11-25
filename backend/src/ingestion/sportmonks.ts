@@ -137,7 +137,10 @@ function stubRumours(): NormalizedRumour[] {
 // ─── Public API ────────────────────────────────────────────────────────────
 
 export async function fetchLatestRumours(): Promise<NormalizedRumour[]> {
-  if (!process.env.SPORTMONKS_API_KEY) return stubRumours()
+  // Without a key, return nothing. The stub rumour (a fake transfer dated
+  // "now") used to be returned here by default, which would write a fabricated
+  // rumour into a real database; it is now opt-in for offline dev only.
+  if (!process.env.SPORTMONKS_API_KEY) return process.env.SPORTMONKS_STUB === 'true' ? stubRumours() : []
 
   const client = createAxiosClient()
   const results: NormalizedRumour[] = []

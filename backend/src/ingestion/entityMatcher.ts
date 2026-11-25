@@ -135,8 +135,11 @@ const AUTO_CREATE_THRESHOLD = 0.85
 // transfer content. Deliberately excludes bare "sign"/"signing": a nearby
 // mention of someone else's signing (common in aggregator digests and match
 // reports alike) would let an unrelated article through.
+// "here we go", "talks", "seal", "personal terms", "fee" added 2026-11-25:
+// "Mika Godts from AFC Ajax to PSG: Here we Go, Confirmed" and "Romano gives
+// Enzo Fernandez to Man City 'here we go'" were both dropped by this gate.
 const TRANSFER_CONTEXT_KEYWORDS =
-  /\b(transfer|sign(?:s|ed)? for|joins?|joined|joining|moves? to|moved to|deal|bid|target(?:ed|s)?|linked|rumou?r|loan|medical|hijack|swoop|agreement|agrees? (?:a )?deal|chase(?:s|d)?|keen on|interested in|approach(?:ed)?)\b/i
+  /\b(transfer|sign(?:s|ed)? for|joins?|joined|joining|moves? to|moved to|deal|bid|target(?:ed|s)?|linked|rumou?r|loan|medical|hijack|swoop|agreement|agrees? (?:a )?deal|chase(?:s|d)?|keen on|interested in|approach(?:ed)?|here we go|talks|seal(?:s|ed)?|personal terms|fee)\b/i
 
 // Radius (chars) around a player mention searched for TRANSFER_CONTEXT_KEYWORDS.
 // Tighter than the 150-char club-matching window on purpose — that window is
@@ -399,7 +402,7 @@ const FROM_PREPOSITIONS = [' from ', ' leaves ', ' leave ', ' departs ', ' exits
 // regression on signal 7196, and a live one on a fresh post-wipe re-ingest —
 // see entityMatcher.replay.ts).
 const TO_INFINITIVE_VERBS =
-  /^(leave|leaves|join|joins|sign|signs|complete|completes|become|becomes|move|moves|head|heads|make|makes|watch|watching|monitor|monitoring|scout|scouting|track|tracking|assess|assessing|replace|replaces|hijack|hijacks|bid|bids|bidding)\b/i
+  /^(leave|leaves|join|joins|sign|signs|complete|completes|become|becomes|move|moves|head|heads|make|makes|watch|watching|monitor|monitoring|scout|scouting|track|tracking|assess|assessing|replace|replaces|hijack|hijacks|bid|bids|bidding|land|lands|lure|lures|poach|poaches|snap)\b/i
 
 // "Reports/news/sources **from** X" attributes the story to a publication,
 // not a transfer origin — the same bare " from " cue that catches a real
@@ -412,6 +415,17 @@ const FROM_ATTRIBUTION_PRECEDING = /\b(reports?|news|sources?|according)\s*$/i
 // from Barcelona for ... Rodri" reversed rumour 147. When X follows one of
 // these nouns it fills the destination slot instead.
 const BUYER_BEFORE_FROM = /\b(bids?|offers?|approach(es)?|interest|proposals?|enquir(y|ies)|inquir(y|ies)|advances?|attempts?)\s*$/i
+
+// With no direction cue at all, the player's club plus one other club only
+// make a rumour when the text says the other club is approaching: "Man City
+// open talks with Liverpool" (Gakpo) yes; "PSG consider January response to
+// Desire Doue injury" no.
+const APPROACH_WORDS = /\b(talks|discuss(?:es|ed|ing)?|bids?|offers?|targets?|targeting|wants?|interest(?:ed)?|approach(?:es|ed)?|move for|sign(?:s|ing)?|pursuit|chase|land|lands|lure|here we go|deal|warning)\b/i
+
+// "leaves X one step closer / in pole position / sweating": 'leaves' meaning
+// 'puts', not a departure ("Romano's PSG here we go leaves Liverpool one step
+// closer to Bradley Barcola" read Barcola as leaving Liverpool).
+const LEAVES_AS_PUTS = /^\S+(?: \S+){0,2} (?:(?:one |a )?step closer|closer|in pole position|sweating|frustrated|in limbo|empty-handed)\b/i
 
 // "respond/reply/react **to** X", "warning to X": a club answering another
 // club, not a destination. "Arsenal respond to Galatasaray warning over
@@ -498,6 +512,7 @@ export function resolveDirection(
       if (idx === -1) continue
       if (prep === ' from ' && FROM_ATTRIBUTION_PRECEDING.test(lower.slice(Math.max(0, idx - 20), idx))) continue
       const afterPrep = text.slice(idx + prep.length, idx + prep.length + 40)
+      if ((prep === ' leaves ' || prep === ' leave ') && LEAVES_AS_PUTS.test(afterPrep)) continue
       const best = findBestClub(afterPrep, candidateClubs)
       if (prep === ' from ' && best && BUYER_BEFORE_FROM.test(lower.slice(Math.max(0, idx - 20), idx))) {
         // "interest from Spurs and Man City": both clubs are suitors, so
@@ -539,7 +554,7 @@ export function resolveDirection(
     if (toClub && toClub.id !== current.id && (!fromClub || fromClubInferred)) {
       fromClub = current
       fromClubInferred = false
-    } else if (!toClub && !fromClub && mentionedClubs.length === 2) {
+    } else if (!toClub && !fromClub && mentionedClubs.length === 2 && APPROACH_WORDS.test(lower)) {
       fromClub = current
       toClub = mentionedClubs.find((c) => c.id !== current.id) ?? null
     }

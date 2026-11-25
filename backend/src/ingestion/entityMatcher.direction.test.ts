@@ -110,3 +110,59 @@ describe('resolveDirection — buyer and reply cues', () => {
     expect(r.fromClub?.id).toBe(gala.id)
   })
 })
+
+describe('resolveDirection — "to land" is a verb, not a destination', () => {
+  it('reads "Milan to land Liverpool defender" with Liverpool as origin', () => {
+    const milan = { id: 20, name: 'AC Milan', shortName: 'Milan', league: 'x' }
+    const pool = { id: 21, name: 'Liverpool', shortName: null, league: 'x' }
+    const text = 'Transfer rumors, news: Milan to land Liverpool defender Van Dijk?'
+    const r = resolveDirection(text.toLowerCase(), text, [milan, pool], [
+      { id: milan.id, name: milan.name, score: 1 },
+      { id: pool.id, name: pool.name, score: 1 },
+    ], pool.id)
+    expect(r.fromClub?.id).toBe(pool.id)
+    expect(r.toClub?.id).toBe(milan.id)
+  })
+})
+
+describe('resolveDirection — "leaves X closer" is not a departure', () => {
+  it('does not read Liverpool as the origin', () => {
+    const psg = { id: 30, name: 'Paris Saint Germain', shortName: 'PSG', league: 'x' }
+    const pool = { id: 31, name: 'Liverpool', shortName: null, league: 'x' }
+    const text = "Fabrizio Romano's latest PSG here we go leaves Liverpool one step closer to Bradley Barcola"
+    const r = resolveDirection(text.toLowerCase(), text, [psg, pool], [
+      { id: psg.id, name: psg.name, score: 1 },
+      { id: pool.id, name: pool.name, score: 1 },
+    ], psg.id)
+    expect(r.fromClub?.id).toBe(psg.id)
+    expect(r.toClub?.id).toBe(pool.id)
+  })
+
+  it('still reads a real "leaves X for Y"', () => {
+    const a = { id: 32, name: 'Ajax', shortName: null, league: 'x' }
+    const b = { id: 33, name: 'Benfica', shortName: null, league: 'x' }
+    const text = 'Striker leaves Ajax for Benfica'
+    const r = resolveDirection(text.toLowerCase(), text, [a, b], [
+      { id: a.id, name: a.name, score: 1 },
+      { id: b.id, name: b.name, score: 1 },
+    ])
+    expect(r.fromClub?.id).toBe(a.id)
+    expect(r.toClub?.id).toBe(b.id)
+  })
+})
+
+describe('resolveDirection — current club fills both slots only on an approach', () => {
+  const psg = { id: 40, name: 'Paris Saint Germain', shortName: 'PSG', league: 'x' }
+  const ars = { id: 41, name: 'Arsenal', shortName: null, league: 'x' }
+  const mm = [{ id: psg.id, name: psg.name, score: 1 }, { id: ars.id, name: ars.name, score: 1 }]
+  it('no rumour from an injury story', () => {
+    const t = 'Arsenal face fresh £80m transfer threat as PSG consider January response to Desire Doue injury'
+    expect(resolveDirection(t.toLowerCase(), t, [psg, ars], mm, psg.id).toClub).toBeNull()
+  })
+  it('a rumour from "open talks with"', () => {
+    const t = 'Arsenal open talks with PSG over Desire Doue'
+    const r = resolveDirection(t.toLowerCase(), t, [psg, ars], mm, psg.id)
+    expect(r.fromClub?.id).toBe(psg.id)
+    expect(r.toClub?.id).toBe(ars.id)
+  })
+})

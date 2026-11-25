@@ -14,13 +14,24 @@ const PLAYER_SYNC_INTERVAL_MS =
 
 const PURGE_INTERVAL_MS = 24 * 60 * 60 * 1000 // daily, per task spec — not env-configurable (retention *days* is; the run *cadence* isn't)
 
+const BOOT_SYNC_SKIP_MS = 20 * 60 * 60 * 1000
+
+export function isRecentRun(finishedOn: number | undefined, now = Date.now(), skipMs = BOOT_SYNC_SKIP_MS): boolean {
+  return finishedOn !== undefined && now - finishedOn < skipMs
+}
+
+async function shouldRunBootPlayerSync(): Promise<boolean> {
+  // Newest completed job first (asc = false).
+  const [last] = await playerSyncQueue.getJobs(['completed'], 0, 0, false)
+  return !isRecentRun(last?.finishedOn)
+}
+
 export async function scheduleRecurringJobs(): Promise<void> {
   // upsertJobScheduler is idempotent — safe to call on every startup
-  await ingestQueue.upsertJobScheduler(
-    'sportmonks-recurring',
-    { every: INTERVAL_MS },
-    { name: 'sportmonks', data: { source: 'sportmonks' } },
-  )
+  // Sportmonks is no longer used (owner, 2026-11-25): its plan only covered
+  // UEFA club competitions. Current clubs come from TheStatsAPI (player-sync).
+  // Remove the scheduler left in Redis from earlier boots; upsert never does.
+  await ingestQueue.removeJobScheduler('sportmonks-recurring')
 
   await ingestQueue.upsertJobScheduler(
     'apifootball-recurring',
@@ -75,8 +86,16 @@ export async function scheduleRecurringJobs(): Promise<void> {
   }
 
   // Fire all sources immediately on startup
-  await ingestQueue.add('sportmonks-boot', { source: 'sportmonks' })
-  await playerSyncQueue.add('player-sync-boot', {})
+  // The player sync spends requests from TheStatsAPI key Overround also
+  // uses (12/min shared). `tsx watch` restarts the backend on every file
+  // change, and each restart used to fire a full sync (5 runs, ~150
+  // requests, on 2026-11-25). Only sync on boot when the last completed
+  // run is older than the skip window.
+  if (await shouldRunBootPlayerSync()) {
+    await playerSyncQueue.add('player-sync-boot', {})
+  } else {
+    console.log('[scheduler] Skipping boot player-sync: last run is recent')
+  }
   await ingestQueue.add('apifootball-boot', { source: 'apifootball' })
   // Purge is idempotent (runRetentionPurge only ever deletes rows already
   // past the cutoff) — safe to also fire once on boot rather than waiting

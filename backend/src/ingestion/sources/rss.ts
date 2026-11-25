@@ -113,11 +113,8 @@ export const RSS_FEEDS: Array<{ url: string; name: string; defaultReliability: n
     defaultReliability: 0.70,
   },
   // Both verified live (2026-08-13, curl'd directly, real 200 + parseable RSS).
-  {
-    url: 'https://www.football-italia.net/feed',
-    name: 'Football Italia',
-    defaultReliability: 0.68,
-  },
+  // Football Italia removed 2026-11-25: /feed now 301s to football-italia.net/feed/,
+  // which took over 15 s and timed out on every poll.
   {
     // Scoped directly to L'Équipe's mercato (transfer) section, not the
     // general football feed — found via the site's RSS API path, not guessed.
@@ -141,15 +138,6 @@ export const RSS_FEEDS: Array<{ url: string; name: string; defaultReliability: n
     name: 'Google News Confirmed',
     defaultReliability: 0.82, // "confirmed" signals = outcome detector fuel
   },
-  // Community tier-tagged sources
-  {
-    url: 'https://www.reddit.com/r/footballtransfers/new.rss',
-    name: 'Reddit Transfers',
-    defaultReliability: 0.45,
-  },
-  {
-    url: 'https://www.reddit.com/r/soccer/search.rss?q=transfer+rumour&sort=new',
-    name: 'Reddit Soccer',
-    defaultReliability: 0.40,
-  },
+  // Reddit feeds removed 2026-11-25: anonymous RSS now returns 403/429 (and
+  // Reddit's terms want OAuth API access for automated use).
 ]
