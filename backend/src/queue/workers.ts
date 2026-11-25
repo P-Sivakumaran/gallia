@@ -16,6 +16,7 @@ import { applyOutcome, resolveWindowOutcomes } from '../ingestion/outcomeDetecto
 import { crawlUrl } from '../ingestion/sources/crawl4ai.js'
 import { runPlayerEnrichment } from '../ingestion/enrichment.js'
 import { runPlayerClubSyncWithPrisma } from '../ingestion/playerClubSync.js'
+import { runStatsApiClubSyncWithPrisma } from '../ingestion/statsApiClubSync.js'
 import { runRetentionPurge, type RetentionDb, type PurgeHealthDb } from '../analytics/retention.js'
 import { logOperationalEvent, type OperationalEventDb } from '../analytics/operationalEvents.js'
 
@@ -359,7 +360,18 @@ async function processEnrich(job: { data: EnrichJobData }) {
 }
 
 async function processPlayerSync(_job: { data: PlayerSyncJobData }) {
-  console.log('[worker:player-sync] starting')
+  // TheStatsAPI is the current-club source when its key is set; the
+  // Sportmonks catalog (UEFA competitions only) is the fallback.
+  const statsKey = process.env.STATS_API_KEY
+  if (statsKey) {
+    console.log('[worker:player-sync] starting (TheStatsAPI, open-rumour players)')
+    const summary = await runStatsApiClubSyncWithPrisma(prisma, statsKey)
+    console.log(
+      `[worker:player-sync] done — checked=${summary.checked} updated=${summary.updated} unchanged=${summary.unchanged} unmatched=${summary.unmatched} ambiguous=${summary.ambiguous} noTeam=${summary.noTeam} errors=${summary.errors}${summary.rateLimited ? ' (stopped: rate limited)' : ''}`,
+    )
+    return summary
+  }
+  console.log('[worker:player-sync] starting (Sportmonks catalog)')
   const result = await runPlayerClubSyncWithPrisma(prisma)
   console.log(`[worker:player-sync] done — clubs=${result.clubs} players=${result.players}`)
   return result
