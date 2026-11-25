@@ -92,7 +92,8 @@ export interface WindowOutcomeSummary {
   checked: number
   resolved: number
   completed: number
-  failed: number
+  /** Past the window deadline with no confirmed move: left PENDING/HOT for owner review. */
+  awaitingReview: number
 }
 
 const DEFAULT_CUTOFF_CONFIG: CutoffConfig = {
@@ -100,18 +101,35 @@ const DEFAULT_CUTOFF_CONFIG: CutoffConfig = {
   winterCutoffMonthDay: '02-02',
 }
 
+const GRACE_PERIOD_MS = 48 * 60 * 60 * 1000 // 48h administrative buffer after window close
+
+export function isPastWindowGrace(
+  rumour: { window: string | null; rumourDate: Date },
+  now: Date,
+  config: CutoffConfig = DEFAULT_CUTOFF_CONFIG,
+): boolean {
+  if (!rumour.window) return false
+  const cutoff = resolveWindowCutoff(rumour.window, rumour.rumourDate, config)
+  if (!cutoff) return false
+  return now.getTime() > cutoff.getTime() + GRACE_PERIOD_MS
+}
+
 /**
- * Automatically resolves rumours whose transfer window deadline has passed by more than 48 hours.
- * If the player's currentClubId matches the rumour's target club, the transfer is marked COMPLETED.
- * Otherwise, the rumour is marked FAILED (deal collapsed / did not happen).
+ * Resolves rumours whose transfer window deadline passed more than 48 hours ago.
+ *
+ * Only a positive match is resolved automatically: if the synced player's
+ * currentClubId is the rumour's target club, the rumour is marked COMPLETED.
+ * A mismatch is NOT evidence the move failed. The club sync only covers the
+ * leagues on the Sportmonks plan and records no per-player freshness, so a
+ * player who moved outside coverage still shows his old club. Those rumours
+ * stay unresolved and are counted as awaitingReview; the owner resolves them
+ * through PATCH /admin/rumours/:id/outcome.
  */
 export async function resolveWindowOutcomes(
   db: PrismaClient,
   now = new Date(),
   config: CutoffConfig = DEFAULT_CUTOFF_CONFIG,
 ): Promise<WindowOutcomeSummary> {
-  const GRACE_PERIOD_MS = 48 * 60 * 60 * 1000 // 48h administrative buffer after window close
-
   const pendingRumours = await db.rumour.findMany({
     where: {
       status: { in: [RumourStatus.PENDING, RumourStatus.HOT] },
@@ -121,33 +139,25 @@ export async function resolveWindowOutcomes(
     },
   })
 
-  let resolved = 0
   let completed = 0
-  let failed = 0
+  let awaitingReview = 0
 
   for (const r of pendingRumours) {
-    if (!r.window) continue
-    const cutoff = resolveWindowCutoff(r.window, r.rumourDate, config)
-    if (!cutoff) continue
+    if (!isPastWindowGrace(r, now, config)) continue
 
-    if (now.getTime() > cutoff.getTime() + GRACE_PERIOD_MS) {
-      const isCompleted = Boolean(r.player && r.player.currentClubId === r.toClubId)
-      const outcome = isCompleted ? RumourStatus.COMPLETED : RumourStatus.FAILED
-
-      await applyOutcome(r.id, outcome, db)
-      resolved++
-      if (isCompleted) {
-        completed++
-      } else {
-        failed++
-      }
+    const isCompleted = Boolean(r.player && r.player.currentClubId === r.toClubId)
+    if (isCompleted) {
+      await applyOutcome(r.id, RumourStatus.COMPLETED, db)
+      completed++
+    } else {
+      awaitingReview++
     }
   }
 
   return {
     checked: pendingRumours.length,
-    resolved,
+    resolved: completed,
     completed,
-    failed,
+    awaitingReview,
   }
 }

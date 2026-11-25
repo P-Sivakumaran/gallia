@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { PrismaClient, RumourStatus } from '@prisma/client'
-import { detectOutcome, applyOutcome, resolveWindowOutcomes } from './outcomeDetector.js'
+import { detectOutcome, applyOutcome, resolveWindowOutcomes, isPastWindowGrace } from './outcomeDetector.js'
 
 describe('outcomeDetector: detectOutcome', () => {
   it('detects completion phrases accurately', () => {
@@ -109,7 +109,7 @@ describe('outcomeDetector: applyOutcome', () => {
 })
 
 describe('outcomeDetector: resolveWindowOutcomes', () => {
-  it('automatically resolves expired rumours past the 48h cutoff', async () => {
+  it('completes matched rumours past the 48h cutoff and leaves mismatches for review', async () => {
     const mockDb = {
       rumour: {
         findMany: vi.fn(),
@@ -137,7 +137,7 @@ describe('outcomeDetector: resolveWindowOutcomes', () => {
         sourceId: 5,
         status: RumourStatus.HOT,
         computedLikelihood: 80,
-        player: { currentClubId: 200 }, // Player did NOT move to club 100 -> FAILED
+        player: { currentClubId: 200 }, // Synced club differs: could be a stale or out-of-coverage sync -> review
       },
       {
         id: 2,
@@ -171,14 +171,15 @@ describe('outcomeDetector: resolveWindowOutcomes', () => {
     })
 
     expect(summary.checked).toBe(2)
-    expect(summary.resolved).toBe(2)
+    expect(summary.resolved).toBe(1)
     expect(summary.completed).toBe(1)
-    expect(summary.failed).toBe(1)
+    expect(summary.awaitingReview).toBe(1)
 
-    expect(mockDb.rumour.update).toHaveBeenCalledWith({
-      where: { id: 1 },
-      data: { status: RumourStatus.FAILED, computedLikelihood: 0 },
-    })
+    // A club mismatch is never written as FAILED: the rumour is left untouched.
+    expect(mockDb.rumour.update).not.toHaveBeenCalledWith(
+      expect.objectContaining({ where: { id: 1 } }),
+    )
+    expect(mockDb.rumour.update).toHaveBeenCalledTimes(1)
 
     expect(mockDb.rumour.update).toHaveBeenCalledWith({
       where: { id: 2 },
@@ -214,6 +215,14 @@ describe('outcomeDetector: resolveWindowOutcomes', () => {
     expect(summary.checked).toBe(1)
     expect(summary.resolved).toBe(0)
     expect(summary.completed).toBe(0)
-    expect(summary.failed).toBe(0)
+    expect(summary.awaitingReview).toBe(0)
+  })
+
+  it('isPastWindowGrace is false inside the 48h grace period and true after it', () => {
+    const config = { summerCutoffMonthDay: '09-02', winterCutoffMonthDay: '02-02' }
+    const rumour = { window: 'SUMMER', rumourDate: new Date('2026-07-15T12:00:00Z') }
+    expect(isPastWindowGrace(rumour, new Date('2026-09-03T00:00:00Z'), config)).toBe(false)
+    expect(isPastWindowGrace(rumour, new Date('2026-09-10T00:00:00Z'), config)).toBe(true)
+    expect(isPastWindowGrace({ ...rumour, window: null }, new Date('2027-01-01T00:00:00Z'), config)).toBe(false)
   })
 })
