@@ -67,6 +67,24 @@ describe('ledgerRow', () => {
     expect(ledgerRow(rumour({ id: 3, status: 'COMPLETED', history: [h(100, 'COMPLETED', 1)] }))).toBeNull()
   })
 
+  it('scores the estimate held at the window deadline, not one written while awaiting review', () => {
+    const at = (iso: string, likelihood: number): HistoryRow => ({
+      computedLikelihood: likelihood, status: 'PENDING', recordedAt: new Date(iso),
+    })
+    const row = ledgerRow(rumour({
+      id: 5,
+      status: 'FAILED',
+      window: 'SUMMER',
+      rumourDate: new Date('2026-07-01T00:00:00Z'), // deadline 2026-09-02, +48h grace
+      history: [
+        at('2026-08-20T00:00:00Z', 65),
+        at('2026-09-20T00:00:00Z', 5), // after the deadline: knows the player stayed
+        { computedLikelihood: 0, status: 'FAILED', recordedAt: new Date('2026-10-01T00:00:00Z') },
+      ],
+    }))
+    expect(row!.scored).toBe(65)
+  })
+
   it('ignores open rumours', () => {
     expect(ledgerRow(rumour({ id: 4, history: [h(60, 'PENDING', 1)] }))).toBeNull()
   })

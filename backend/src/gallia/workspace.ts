@@ -11,6 +11,7 @@
 // - Representation, wages and other facts the data doesn't hold are left out, not invented.
 
 import type { PrismaClient } from '@prisma/client'
+import { windowGraceEnd } from '../forecasting/windowCutoff.js'
 
 export type SignalStatus = 'Hot' | 'Smoke' | 'Confirmed' | 'Denied'
 
@@ -335,7 +336,10 @@ function mapClaim(c: ClaimRow, now: Date): GalliaClaim {
 
 export function ledgerRow(r: RumourRow): GalliaLedgerRow | null {
   if (r.status !== 'COMPLETED' && r.status !== 'FAILED' && r.status !== 'DENIED') return null
-  const pre = preResolutionHistory(r.history)
+  // Score what we said by the deadline. A rumour can stay open for review after its
+  // window closes, and an estimate written then would know the answer.
+  const deadline = windowGraceEnd(r)
+  const pre = preResolutionHistory(r.history).filter((h) => !deadline || h.recordedAt.getTime() <= deadline.getTime())
   if (!pre.length) return null
   const scored = pre[pre.length - 1].computedLikelihood / 100
   const y = r.status === 'COMPLETED' ? 1 : 0

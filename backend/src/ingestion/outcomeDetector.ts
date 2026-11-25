@@ -1,5 +1,5 @@
 import { PrismaClient, RumourStatus } from '@prisma/client'
-import { resolveWindowCutoff, type CutoffConfig } from '../forecasting/windowCutoff.js'
+import { DEFAULT_CUTOFF_CONFIG, isPastWindowGrace, type CutoffConfig } from '../forecasting/windowCutoff.js'
 
 const COMPLETION_PATTERNS = [
   /here we go[!?]*/i,
@@ -96,23 +96,7 @@ export interface WindowOutcomeSummary {
   awaitingReview: number
 }
 
-const DEFAULT_CUTOFF_CONFIG: CutoffConfig = {
-  summerCutoffMonthDay: '09-02',
-  winterCutoffMonthDay: '02-02',
-}
-
-const GRACE_PERIOD_MS = 48 * 60 * 60 * 1000 // 48h administrative buffer after window close
-
-export function isPastWindowGrace(
-  rumour: { window: string | null; rumourDate: Date },
-  now: Date,
-  config: CutoffConfig = DEFAULT_CUTOFF_CONFIG,
-): boolean {
-  if (!rumour.window) return false
-  const cutoff = resolveWindowCutoff(rumour.window, rumour.rumourDate, config)
-  if (!cutoff) return false
-  return now.getTime() > cutoff.getTime() + GRACE_PERIOD_MS
-}
+export { isPastWindowGrace }
 
 /**
  * Resolves rumours whose transfer window deadline passed more than 48 hours ago.
