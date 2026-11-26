@@ -11,7 +11,8 @@
     "seed": "tsx prisma/seed.ts",
     "generate": "prisma generate",
     "test": "vitest run",
-    "sync:wikidata-clubs": "tsx src/scripts/syncWikidataClubs.ts"
+    "sync:wikidata-clubs": "tsx src/scripts/syncWikidataClubs.ts",
+    "sources:licences": "tsx src/scripts/applySourceLicences.ts"
   },
   "dependencies": {
     "@prisma/client": "^5.10.2",
