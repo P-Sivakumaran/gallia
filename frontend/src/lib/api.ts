@@ -6,6 +6,10 @@ import type {
   ClubDetail,
   PaginatedResponse,
   Player,
+  PlayerAgentLink,
+  AdminAgentSuggestion,
+  AgentKind,
+  PlayerAgentRole,
   RumourDetail,
   RumourStatus,
   Rumour,
@@ -116,6 +120,7 @@ export const api = {
   players: {
     get: (id: number) => get<Player & { rumours: Rumour[] }>(`/players/${id}`),
     search: (q: string) => get<Player[]>('/players/search', { q }),
+    agents: (id: number) => get<PlayerAgentLink[]>(`/players/${id}/agents`),
   },
   clubs: {
     list: (league?: string) => get<Club[]>('/clubs', league ? { league } : undefined),
@@ -175,5 +180,18 @@ export const api = {
       send<{ ok: boolean; clubId: number }>('POST', `/admin/club-locations/${clubId}/reject`),
     manualClubLocation: (clubId: number, data: { lat: number; lng: number; stadium?: string | null; city?: string | null }) =>
       send<{ ok: boolean; clubId: number }>('POST', `/admin/club-locations/${clubId}/manual`, data),
+    agents: (q?: string) => getFresh<AdminAgentSuggestion[]>('/admin/agents', q ? { q } : undefined),
+    playerAgents: (playerId: number) => getFresh<PlayerAgentLink[]>(`/admin/players/${playerId}/agents`),
+    addAgentLink: (body: {
+      playerId: number
+      agentName: string
+      agentKind: AgentKind
+      agencyName?: string | null
+      role: PlayerAgentRole
+      rumourId?: number | null
+      sourceUrl: string
+      quote?: string | null
+    }) => send<{ ok: boolean; kind: string; linkId: number }>('POST', '/admin/agent-links', body),
+    removeAgentLink: (linkId: number) => send<{ ok: boolean; linkId: number }>('DELETE', `/admin/agent-links/${linkId}`),
   },
 }

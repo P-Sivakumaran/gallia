@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { api } from '@/lib/api'
 import DeskPage, { Metric } from '@/components/desk/DeskPage'
 import { RumourRowsPanel } from '@/components/desk/RumourLedger'
+import PlayerAgents from '@/components/desk/PlayerAgents'
 import { formatMillions, toMillions } from '@/lib/format'
 
 export default async function PlayerPage({ params }: { params: Promise<{ id: string }> }) {
@@ -10,6 +11,7 @@ export default async function PlayerPage({ params }: { params: Promise<{ id: str
   const id = parseInt(rawId, 10)
   const player = await api.players.get(id).catch(() => null)
   if (!player) notFound()
+  const agents = await api.players.agents(id).catch(() => [])
 
   const contractEnd = player.contractEnd
     ? new Date(player.contractEnd).toLocaleDateString('en-GB', { month: 'short', year: 'numeric' })
@@ -29,7 +31,10 @@ export default async function PlayerPage({ params }: { params: Promise<{ id: str
         <Metric label="CONTRACT UNTIL" value={<span style={{ fontSize: 20 }}>{contractEnd}</span>} />
         <Metric label="OPEN RUMOURS" value={open} tone={open ? 'amber' : undefined} note={`${player.rumours.length} in total`} />
       </div>
-      <RumourRowsPanel title="Transfer rumours" rumours={player.rumours} empty="No rumours for this player." />
+      <div className="g-stack">
+        <PlayerAgents playerId={id} initialLinks={agents} />
+        <RumourRowsPanel title="Transfer rumours" rumours={player.rumours} empty="No rumours for this player." />
+      </div>
     </DeskPage>
   )
 }

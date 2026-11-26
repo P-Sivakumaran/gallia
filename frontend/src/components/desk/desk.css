@@ -203,3 +203,24 @@
 .g-chip-row{display:flex;flex-wrap:wrap;gap:16px;padding:12px 24px;border-bottom:1px solid var(--g-line)}
 .g-chip-row>button{font-size:12px;font-weight:500;color:#adb8c5;border-bottom:2px solid transparent;padding-bottom:4px}
 .g-chip-row>button[aria-pressed="true"]{color:#def1e4;border-bottom-color:#9cdeb3}
+
+/* ── Player agent citations ── */
+.g-agent-list{list-style:none;margin:0;padding:0}
+.g-agent-item{display:grid;gap:10px;padding:16px 24px;border-bottom:1px solid var(--g-line)}
+.g-agent-item:last-child{border-bottom:0}
+.g-agent-head{display:grid;gap:4px}
+.g-agent-role{font:12px var(--font-mono),monospace;color:#b3c0cd;margin:0}
+.g-agent-reported{margin:0;font-size:13px;line-height:20px;color:#c3ccd6}
+.g-agent-quote{margin:0;padding:10px 14px;border-left:2px solid #65836e;background:var(--g-inset);font-size:13px;line-height:20px;color:#d6dee6;font-style:italic}
+.g-agent-form{display:grid;gap:14px;padding:20px 24px}
+.g-agent-form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.g-textarea{height:auto;min-height:72px;padding:10px 12px;resize:vertical;line-height:1.4}
+.g-agent-suggest{position:absolute;z-index:5;left:0;right:0;top:100%;margin:4px 0 0;padding:0;list-style:none;border:1px solid var(--g-line);border-radius:5px;background:#10161f;max-height:220px;overflow:auto}
+.g-agent-suggest button{display:block;width:100%;text-align:left;padding:10px 12px;min-height:44px;background:transparent;border:0;border-bottom:1px solid var(--g-line);color:#e6ecf1;font-size:13px;cursor:pointer}
+.g-agent-suggest li:last-child button{border-bottom:0}
+.g-agent-suggest button:hover,.g-agent-suggest button:focus{background:var(--g-hover);outline:0}
+@media (max-width:720px){
+  .g-agent-item{padding:14px 16px}
+  .g-agent-form{padding:16px}
+  .g-agent-form-row{grid-template-columns:1fr}
+}
