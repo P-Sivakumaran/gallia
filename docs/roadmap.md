@@ -21,14 +21,14 @@ The git repository root was the owner's home directory, and GitHub stored the ap
 public repo, and blocked normal clones, CI paths and deployment.
 
 - [x] Move `Projects/transfer-rumour-hub/*` to the repo root (`git mv`, history kept).
-- [x] Point `.mcp.json` (CHAP server) at the new checkout, `~/Projects/smoke-and-fire`.
+- [x] Point `.mcp.json` (CHAP server) at the checkout, now `~/Projects/gallia`.
 - [x] Commit `packages/design-kit` source (36 files; its own `.gitignore` already excludes build output).
 - [x] Push the local-only `ml-scoring-service` branch as `archive/ml-scoring-service`.
-- [ ] Fresh clone at `~/Projects/smoke-and-fire` with `.env` files, `.chap/` audit log, trained
+- [ ] Fresh clone at `~/Projects/gallia` with `.env` files, `.chap/` audit log, trained
       ml-service models and the design-kit build state copied across.
 - [ ] Retire `~/.git` (moved aside to `~/Archive`, not deleted) once this lands on `main`.
 - [ ] Update the Claude Code `autoMode` trust scope to the new repo name.
-- [ ] Rename the GitHub repo to `smoke-and-fire` (GitHub redirects old URLs).
+- [x] Rename the GitHub repo to `gallia` (2026-11-26; GitHub redirects the old `smoke-and-fire` and `transfer-rumour-hub` URLs).
 
 ## Milestone 1 — Identity and the scorecard (completed)
 
