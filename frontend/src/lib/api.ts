@@ -133,6 +133,7 @@ export const api = {
     competitions: () => get<{ source: string; competitions: FootballCompetition[] }>('/football/competitions'),
     table: (competitionId: number) => get<CompetitionTable>(`/football/competitions/${competitionId}/table`),
     squad: (clubId: number) => get<ClubSquad>(`/football/clubs/${clubId}/squad`),
+    player: (id: number) => get<import('@/types').PlayerFootballStatsResponse>(`/football/players/${id}`),
   },
   stats: {
     sources: () => get<(import('@/types').Source & { _count: { rumours: number } })[]>('/stats/sources'),

@@ -296,3 +296,143 @@
 @media (prefers-reduced-motion:reduce){
   .g-table-scroll{scroll-behavior:auto}
 }
+
+/* Hallmark · v2.0.0 · shape: app screen · theme: Console (1/3, graphite) · screen: player card, season stats & player compare
+ * dealt: gallia-player-card-and-compare·f75641aa·2026-11-26·r0 · shell: Gallia desk · density: Console workbench
+ * critique: central attribute spine with mirrored tracks preserves visual symmetry; numerical values on both flanks ensure WCAG AA non-reliance on colour alone; 390px responsive flex prevents horizontal viewport spilling */
+.g-player-card-panel{display:grid}
+.g-card-header-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.g-source-badge{display:inline-flex;align-items:center;min-height:22px;padding:0 7px;border:1px solid var(--g-line);border-radius:3px;font:11px var(--font-mono),monospace;color:#b3c0cd;background:var(--g-inset)}
+.g-limited-sample-badge{display:inline-flex;align-items:center;min-height:22px;padding:0 7px;border:1px solid #6b5a32;border-radius:3px;font:500 11px var(--font-mono),monospace;color:#f2d89a;background:#2a2416}
+.g-player-card-body{display:grid;grid-template-columns:minmax(240px,320px) minmax(0,1fr);gap:24px;padding:20px 24px}
+.g-card-main-score{display:grid;gap:16px;align-content:start;border-right:1px solid var(--g-line);padding-right:24px}
+.g-card-overall-wrap{display:flex;align-items:baseline;gap:12px}
+.g-card-overall{font:700 48px/1 var(--font-mono),monospace;color:var(--g-green);letter-spacing:-1px}
+.g-card-pos{display:inline-flex;align-items:center;min-height:24px;padding:2px 8px;border:1px solid var(--g-line);border-radius:3px;font:500 12px var(--font-mono),monospace;color:#c3ccd6;background:var(--g-inset)}
+.g-card-summary{display:grid;gap:6px}
+.g-card-kicker{margin:0;font:11px var(--font-mono),monospace;color:var(--g-muted);letter-spacing:.5px}
+.g-card-desc{margin:0;font-size:13px;line-height:19px;color:#c3ccd6}
+.g-card-pool{font:11px var(--font-mono),monospace;color:var(--g-muted)}
+.g-card-attributes-grid{display:grid;gap:10px;align-content:center}
+.g-card-attr-row{display:grid;grid-template-columns:92px minmax(0,1fr) 32px;align-items:center;gap:12px}
+.g-card-attr-label{font:12px var(--font-mono),monospace;color:#adb8c5}
+.g-card-attr-track{height:8px;border-radius:4px;background:var(--g-inset);border:1px solid var(--g-line);position:relative;overflow:hidden}
+.g-card-attr-fill{height:100%;background:var(--g-green);border-radius:3px}
+.g-card-attr-val{font:12px var(--font-mono),monospace;color:#e6ecf1;text-align:right}
+.g-card-footnote-wrap{padding:12px 24px;border-top:1px solid var(--g-line);background:var(--g-inset)}
+.g-card-footnote{margin:0;font:11px var(--font-mono),monospace;color:var(--g-muted);line-height:16px}
+.g-card-empty{display:grid;place-items:center;padding:48px 24px;grid-template-columns:1fr}
+.g-card-empty-state{display:grid;gap:8px;text-align:center;max-width:440px}
+.g-card-empty-val{font:700 36px/1 var(--font-mono),monospace;color:var(--g-muted)}
+.g-card-empty-title{margin:0;font-size:15px;font-weight:550;color:#edf1f5}
+
+/* Season Stats Table */
+.g-season-table{min-width:720px}
+.g-comp-title{font-weight:550;color:#edf1f5}
+.g-current-pill{display:inline-flex;margin-left:6px;padding:1px 6px;border-radius:3px;background:#183025;border:1px solid #355f46;color:#c3edcf;font:500 10px var(--font-mono),monospace}
+.g-col-action{width:88px;text-align:right}
+.g-expand-btn{display:inline-flex;align-items:center;min-height:26px;padding:0 10px;border:1px solid var(--g-line);border-radius:3px;background:var(--g-inset);color:#c3ccd6;font:12px var(--font-mono),monospace;cursor:pointer;transition:color .16s,border-color .16s}
+.g-expand-btn:hover{border-color:#62716c;color:#fff}
+.g-expand-btn:focus-visible{outline:2px solid var(--g-green);outline-offset:1px}
+.g-row-expanded{background:var(--g-hover)}
+.g-detail-row{background:var(--g-inset)}
+.g-detail-row td{padding:0}
+.g-season-detail-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;padding:16px 24px}
+.g-detail-card{border:1px solid var(--g-line);border-radius:4px;padding:10px 12px;background:var(--surface-panel)}
+.g-detail-group-title{margin:0 0 8px;font:550 11px var(--font-mono),monospace;color:var(--g-green);letter-spacing:.5px;text-transform:uppercase}
+.g-detail-list{margin:0;display:grid;gap:4px}
+.g-detail-item{display:flex;justify-content:space-between;align-items:baseline;font-size:11px}
+.g-detail-item dt{color:var(--g-muted)}
+.g-detail-item dd{margin:0;font-family:var(--font-mono),monospace;color:#e6ecf1}
+.g-rating-cell{display:inline-block;padding:1px 6px;border-radius:3px;background:#19271f;border:1px solid #65836e;color:#c3edcf;font:500 12px var(--font-mono),monospace}
+.g-season-detail-empty,.g-table-empty{padding:24px;text-align:center}
+
+/* Player Compare View */
+.g-compare-view{display:grid;gap:24px}
+.g-compare-header-row{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:36px}
+.g-compare-section-title{margin:0;font-size:14px;font-weight:550;color:#edf1f5}
+.g-compare-swap-btn{display:inline-flex;align-items:center;min-height:32px;padding:0 12px;border:1px solid var(--g-line);border-radius:4px;background:var(--g-inset);color:#c3ccd6;font:12px var(--font-mono),monospace;cursor:pointer;transition:color .16s,border-color .16s}
+.g-compare-swap-btn:hover{border-color:#62716c;color:#fff}
+.g-compare-swap-btn:focus-visible{outline:2px solid var(--g-green);outline-offset:2px}
+.g-compare-slots-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}
+.g-compare-slot{min-width:0}
+.g-compare-player-card{border:1px solid var(--g-line);border-radius:5px;background:var(--surface-panel);padding:18px 20px;display:grid;gap:14px}
+.g-compare-player-header{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.g-compare-slot-pill{display:inline-flex;align-items:center;min-height:20px;padding:0 6px;border-radius:3px;background:#183025;border:1px solid #355f46;color:#c3edcf;font:500 11px var(--font-mono),monospace}
+.g-compare-slot-actions{display:flex;gap:10px}
+.g-compare-action-link{background:transparent;border:0;padding:0;font:12px var(--font-mono),monospace;color:#adb8c5;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.g-compare-action-link:hover{color:#fff}
+.g-compare-action-link.g-text-danger{color:#ff969c}
+.g-compare-action-link:focus-visible{outline:2px solid var(--g-green);outline-offset:2px}
+.g-compare-player-name{margin:0;font-size:18px;font-weight:600;color:#fff}
+.g-player-link{color:#edf1f5;text-decoration:none}
+.g-player-link:hover{text-decoration:underline}
+.g-compare-player-meta{margin:4px 0 0;font-size:12px;color:#adb8c5}
+.g-compare-player-val{margin:4px 0 0;font:12px var(--font-mono),monospace;color:var(--g-green)}
+.g-compare-score-banner{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:10px 14px;background:var(--g-inset);border:1px solid var(--g-line);border-radius:4px}
+.g-compare-score-block{display:flex;align-items:baseline;gap:8px}
+.g-compare-score-num{font:700 28px/1 var(--font-mono),monospace;color:var(--g-green)}
+.g-compare-score-label{font:10px var(--font-mono),monospace;color:var(--g-muted);letter-spacing:.5px}
+.g-compare-season-meta{display:grid;gap:4px;text-align:right}
+.g-compare-season-comp{font:12px var(--font-mono),monospace;color:#adb8c5}
+
+/* Compare Picker Box */
+.g-compare-picker-box{border:1px dashed var(--g-line);border-radius:5px;background:var(--g-inset);padding:18px 20px;display:grid;gap:10px}
+.g-compare-picker-label{font:550 12px var(--font-mono),monospace;color:#b3c0cd}
+.g-compare-search-wrap{display:flex;gap:8px}
+.g-compare-search-input{flex:1;min-height:38px;padding:0 12px;background:var(--surface-panel);border:1px solid var(--g-line);border-radius:4px;color:#fff;font-size:13px}
+.g-compare-search-input:focus-visible{outline:2px solid var(--g-green);outline-offset:-1px}
+.g-compare-cancel-btn{min-height:38px;padding:0 12px;background:transparent;border:1px solid var(--g-line);border-radius:4px;color:#adb8c5;font-size:12px;cursor:pointer}
+.g-compare-cancel-btn:hover{color:#fff;border-color:#62716c}
+.g-compare-cancel-btn:focus-visible{outline:2px solid var(--g-green);outline-offset:2px}
+.g-compare-picker-hint{margin:0;font-size:12px;color:var(--g-muted)}
+.g-compare-suggest-list{list-style:none;margin:4px 0 0;padding:0;border:1px solid var(--g-line);border-radius:4px;background:var(--surface-panel);max-height:220px;overflow-y:auto}
+.g-compare-suggest-btn{display:block;width:100%;text-align:left;padding:10px 14px;background:transparent;border:0;border-bottom:1px solid var(--g-line);color:#edf1f5;cursor:pointer}
+.g-compare-suggest-btn:hover,.g-compare-suggest-btn:focus-visible{background:var(--g-hover);outline:0}
+.g-compare-suggest-main{display:flex;justify-content:space-between;align-items:center;font-size:13px}
+.g-compare-suggest-pos{font:11px var(--font-mono),monospace;color:var(--g-green)}
+.g-compare-suggest-sub{display:block;font-size:11px;color:var(--g-muted);margin-top:2px}
+
+/* Compare Mirrored Spine Panel */
+.g-compare-spine-body{padding:20px 24px;display:grid;gap:14px}
+.g-compare-spine-head-row{display:grid;grid-template-columns:minmax(0,1fr) 140px minmax(0,1fr);align-items:center;padding-bottom:10px;border-bottom:1px solid var(--g-line);font:12px var(--font-mono),monospace;color:var(--g-muted)}
+.g-compare-spine-player-a{text-align:left;font-weight:550;color:#edf1f5;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.g-compare-spine-center-label{text-align:center;letter-spacing:.5px}
+.g-compare-spine-player-b{text-align:right;font-weight:550;color:#edf1f5;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.g-compare-spine-rows{display:grid;gap:10px}
+.g-compare-spine-row{display:grid;grid-template-columns:minmax(0,1fr) 140px minmax(0,1fr);align-items:center;gap:12px}
+.g-compare-side-a{display:grid;grid-template-columns:32px minmax(0,1fr);align-items:center;gap:10px}
+.g-compare-side-b{display:grid;grid-template-columns:minmax(0,1fr) 32px;align-items:center;gap:10px}
+.g-compare-val-a{font:12px var(--font-mono),monospace;color:#e6ecf1;text-align:left}
+.g-compare-val-b{font:12px var(--font-mono),monospace;color:#e6ecf1;text-align:right}
+.g-compare-spine-label{text-align:center;font:12px var(--font-mono),monospace;color:#b3c0cd;white-space:nowrap}
+.g-compare-bar-track-left{height:8px;border-radius:4px;background:var(--g-inset);border:1px solid var(--g-line);position:relative;overflow:hidden;display:flex;justify-content:flex-end}
+.g-compare-bar-fill-left{height:100%;background:var(--g-green);border-radius:3px}
+.g-compare-bar-track-right{height:8px;border-radius:4px;background:var(--g-inset);border:1px solid var(--g-line);position:relative;overflow:hidden;display:flex;justify-content:flex-start}
+.g-compare-bar-fill-right{height:100%;background:var(--g-green);border-radius:3px}
+
+/* Compare Per 90 Metrics Table */
+.g-compare-metrics-table{width:100%}
+.g-compare-metrics-table th.g-col-side-a,.g-compare-metrics-table td.g-col-side-a{text-align:left;width:35%}
+.g-compare-metrics-table th.g-col-metric-name,.g-compare-metrics-table td.g-col-metric-name{text-align:center;width:30%;font:12px var(--font-mono),monospace;color:#adb8c5;font-weight:normal}
+.g-compare-metrics-table th.g-col-side-b,.g-compare-metrics-table td.g-col-side-b{text-align:right;width:35%}
+
+@media (max-width:720px){
+  .g-player-card-body{grid-template-columns:1fr;padding:16px}
+  .g-card-main-score{border-right:0;border-bottom:1px solid var(--g-line);padding-right:0;padding-bottom:16px}
+  .g-compare-slots-grid{grid-template-columns:1fr}
+  .g-compare-spine-body{padding:16px}
+  .g-compare-spine-head-row,.g-compare-spine-row{grid-template-columns:minmax(0,1fr) 100px minmax(0,1fr);gap:8px}
+  .g-compare-side-a{grid-template-columns:26px minmax(0,1fr);gap:6px}
+  .g-compare-side-b{grid-template-columns:minmax(0,1fr) 26px;gap:6px}
+  .g-season-detail-grid{padding:14px 16px}
+}
+@media (max-width:440px){
+  .g-compare-spine-head-row,.g-compare-spine-row{grid-template-columns:minmax(0,1fr) 80px minmax(0,1fr);gap:6px}
+  .g-compare-spine-label{font-size:11px}
+  .g-card-attr-row{grid-template-columns:80px minmax(0,1fr) 28px;gap:8px}
+}
+@media (prefers-reduced-motion:reduce){
+  .g-expand-btn,.g-compare-swap-btn{transition:none}
+}
+
