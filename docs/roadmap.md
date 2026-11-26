@@ -1,4 +1,4 @@
-# Roadmap — Smoke & Fire
+# Roadmap — Gallia
 
 > **Superseded 2026-11-25** by `docs/gallia-dev-plan.md`. Kept as history. Stripe checkout,
 > paid tiers and entitlement alerts below are retired: Gallia is a public website.
@@ -10,7 +10,7 @@ real-outcome data. This plan turns the repo into a product without rewriting wha
 
 ## Positioning
 
-Rumour trackers grade sources but never show whether their grades were right. Smoke & Fire's
+Rumour trackers grade sources but never show whether their grades were right. Gallia's
 claim is the opposite: forecasts with a public scorecard, misses included, and denials never
 paywalled. Everything below serves that claim.
 

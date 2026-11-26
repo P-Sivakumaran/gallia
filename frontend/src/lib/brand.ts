@@ -1,5 +1,5 @@
-// Single source for the product name while the rename from "Transfer Hub"
-// is still a proposal — swapping the name later is a one-line change here.
+// Single source for the product name (Gallia; formerly "Transfer Hub" and
+// "Smoke & Fire"). Renaming the product is a one-line change here.
 export const BRAND = {
   name: 'Gallia',
   tagline: 'Transfer rumours, scored — and checked against what actually happened.',

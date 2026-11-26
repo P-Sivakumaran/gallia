@@ -1,7 +1,7 @@
 # Unslop Refinement & Design System Development Plan
 
 **Date**: 2026-11-24  
-**Project**: Smoke & Fire (`transfer-rumour-hub`)  
+**Project**: Gallia (formerly Smoke & Fire / `transfer-rumour-hub`)  
 **Branch**: `feat/unslop-refinement`  
 **Status**: iteration 2 done; open items in section 5  
 
@@ -9,7 +9,7 @@
 
 ## 1. Grounding & Objectives
 
-Smoke & Fire is a real-time football transfer intelligence and credibility forecasting workspace. Its user experience demands high information density, tabular precision, and rapid visual parsing across probabilistic model outputs, confidence intervals, source credibility tiers, and transfer network graphs.
+Gallia is a real-time football transfer intelligence and credibility forecasting workspace. Its user experience demands high information density, tabular precision, and rapid visual parsing across probabilistic model outputs, confidence intervals, source credibility tiers, and transfer network graphs.
 
 The unslop audit tool flagged **388 machine findings** (344 Red, 44 Orange) characterized by:
 1. **Raw hex colors** in SVG charting components (`B-1` - 40 findings).
@@ -125,7 +125,7 @@ Detector: **307 → 5 findings (302 red → 0)**. 95/95 tests, `tsc`, `eslint` a
 - **Faint helper text:** `text-ink-faint` (#475569 on #020617, about 2.6:1) fails WCAG AA at any size. Examples are "Shaded band = uncertainty range" and the graph's keyboard hint. Consider `ink-muted` or `ink-secondary`.
 - **Provenance graph source chips** ("Unknown Twitter", "Sky Sports") just touch evidence chips at the top and bottom of the ring.
 - **Alpha-tint status badges:** decide whether to consolidate `failed-fg` (#f87171) and similar onto the base status colours. That would be a visual change, so it was left out of this pass.
-- **"Transfer Hub" copy** remains in `RemoveAdsBanner`, `AdSlot` and `billing/success`, while `BRAND.name` is "Smoke & Fire". This waits on the rename decision in `lib/brand.ts`.
+- **"Transfer Hub" copy** remains in `RemoveAdsBanner`, `AdSlot` and `billing/success`, while `BRAND.name` is "Gallia". This waits on the rename decision in `lib/brand.ts`.
 
 ---
 
@@ -152,7 +152,7 @@ The raea brand assets (`raea/treewizard/projects/rumour-hub-brand`) are the sour
 
 ### Open
 - **Power-on replays** whenever the feed remounts, for example on a filter change. It takes about 1.8 s in total. Consider `intro={false}` after the first page.
-- **The OG image and radar field are not wired in yet.** The raea `Wordmark` says "Transfer Rumour Hub" while `BRAND.name` is "Smoke & Fire", so this waits on the rename decision.
+- **The OG image and radar field are not wired in yet.** The raea `Wordmark` says "Transfer Rumour Hub" while `BRAND.name` is "Gallia", so this waits on the rename decision.
 
 ---
 
@@ -229,11 +229,11 @@ Closes the open issue where the meter's power-on sweep and entry transitions rep
 Closes the remaining open UI and branding items across the codebase.
 
 ### Brand Copy Alignment
-- Harmonized all occurrences of "Transfer Hub" to dynamically reference `BRAND.name` ("Smoke & Fire"):
-  - `RemoveAdsBanner.tsx`: "Remove ads from Smoke & Fire, forever."
-  - `AdSlot.tsx`: "Get the free Smoke & Fire weekly digest."
-  - `billing/success/page.tsx`: "Back to Smoke & Fire".
-  - `backend/src/routes/billing.ts`: Stripe product name updated to "Smoke & Fire — Remove Ads".
+- Harmonized all occurrences of "Transfer Hub" to dynamically reference `BRAND.name` ("Gallia"):
+  - `RemoveAdsBanner.tsx`: "Remove ads from Gallia, forever."
+  - `AdSlot.tsx`: "Get the free Gallia weekly digest."
+  - `billing/success/page.tsx`: "Back to Gallia".
+  - `backend/src/routes/billing.ts`: Stripe product name updated to "Gallia — Remove Ads".
 
 ### Secondary Surface Polish
 - **Network Page (`/network`):** Added `SectionKicker` ("Deal Ecosystem"), display typography `Transfer Network.`, and upgraded floating node legend, stats pill, and hover detail tooltips to the raea card face (`bg-card/95 shadow-card border-line/60`).

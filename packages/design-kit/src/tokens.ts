@@ -1,5 +1,5 @@
 /**
- * Single-sourced from transfer-rumour-hub/frontend/tailwind.config.ts.
+ * Single-sourced from gallia/frontend/tailwind.config.ts.
  * If that file's `pitch`/status colors ever change, update here too —
  * there is no build-time link between the two, this is a manual mirror.
  */
