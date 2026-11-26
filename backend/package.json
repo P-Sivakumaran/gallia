@@ -1,5 +1,5 @@
 {
-  "name": "transfer-rumour-hub-backend",
+  "name": "gallia-backend",
   "version": "0.1.0",
   "scripts": {
     "dev": "tsx watch src/index.ts",

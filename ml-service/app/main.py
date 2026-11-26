@@ -8,7 +8,7 @@ from app.schemas import ScoringInputs, ScoringOutput
 from app.forecasting.model import load_forecast_model
 from app.forecasting.schemas import ForecastHealthResponse, ForecastScoreRequest, ForecastScoreResponse
 
-app = FastAPI(title="transfer-rumour-hub ML scoring service")
+app = FastAPI(title="Gallia ML scoring service")
 
 # Shared-secret check between the backend and this service (PoLP:
 # docs/polp-security-dev-plan.md Phase 2). Mirrors the existing

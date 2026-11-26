@@ -1,4 +1,4 @@
-# Smoke & Fire
+# Gallia
 
 *Formerly Transfer Rumour Hub. The product name lives in one place: `frontend/src/lib/brand.ts`.*
 
