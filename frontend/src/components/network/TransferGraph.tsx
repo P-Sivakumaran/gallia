@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Graph from 'graphology'
 import Sigma from 'sigma'
 import forceAtlas2 from 'graphology-layout-forceatlas2'
+import { applyEdgeFilter, pathForEdgeClick, pathForNodeClick, NETWORK_STATUS_COLOR, type StatusFilter } from './networkGraph'
 
 interface GraphNode {
   id: string
@@ -52,8 +53,7 @@ const DESK = {
   player: '#9cdeb3',
   club: '#46566a',
   label: '#c3ccd6',
-  muted: '#26303b',
-  status: { HOT: '#f8c36b', PENDING: '#7d8c9b', COMPLETED: '#7de2ac', FAILED: '#ff969c', DENIED: '#ff969c' } as Record<string, string>,
+  status: NETWORK_STATUS_COLOR,
 }
 
 const STATUS_LEGEND = [
@@ -69,14 +69,16 @@ const FILTERS = [
   { value: 'COMPLETED', label: 'Completed' },
   { value: 'FAILED', label: 'Failed' },
 ] as const
-type StatusFilter = (typeof FILTERS)[number]['value']
 
-function applyEdgeFilter(graph: Graph, filter: StatusFilter) {
+function paintEdges(graph: Graph, filter: StatusFilter) {
   graph.forEachEdge((edge, attrs) => {
-    const visible = filter === 'all' || attrs.status === filter
-    graph.setEdgeAttribute(edge, 'color', visible ? (DESK.status[attrs.status as string] ?? DESK.status.PENDING) : DESK.muted)
-    graph.setEdgeAttribute(edge, 'size', visible ? Math.max(1, (attrs.likelihood as number) / 25) : 0.5)
-    graph.setEdgeAttribute(edge, 'hidden', !visible)
+    const next = applyEdgeFilter(
+      { status: String(attrs.status), likelihood: Number(attrs.likelihood) || 0 },
+      filter,
+    )
+    graph.setEdgeAttribute(edge, 'color', next.color)
+    graph.setEdgeAttribute(edge, 'size', next.size)
+    graph.setEdgeAttribute(edge, 'hidden', next.hidden)
   })
 }
 
@@ -140,7 +142,7 @@ export default function TransferGraph() {
       })
     }
 
-    applyEdgeFilter(graph, filterRef.current)
+    paintEdges(graph, filterRef.current)
 
     // One layout pass per fetch. Backend already seeds x/y; FA2 settles overlapping nodes once.
     forceAtlas2.assign(graph, {
@@ -194,13 +196,13 @@ export default function TransferGraph() {
     })
 
     sigma.on('clickNode', ({ node }) => {
-      if (node.startsWith('club-')) router.push(`/club/${node.slice(5)}`)
-      else if (node.startsWith('player-')) router.push(`/player/${node.slice(7)}`)
+      const path = pathForNodeClick(node)
+      if (path) router.push(path)
     })
 
     sigma.on('clickEdge', ({ edge }) => {
-      const rumourId = graph.getEdgeAttribute(edge, 'rumourId') as number | undefined
-      if (rumourId != null) router.push(`/rumour/${rumourId}`)
+      const path = pathForEdgeClick(graph.getEdgeAttribute(edge, 'rumourId') as number | undefined)
+      if (path) router.push(path)
     })
 
     return () => {
@@ -214,7 +216,7 @@ export default function TransferGraph() {
     const graph = graphRef.current
     const sigma = sigmaRef.current
     if (!graph || !sigma) return
-    applyEdgeFilter(graph, filter)
+    paintEdges(graph, filter)
     sigma.refresh()
   }, [filter])
 
