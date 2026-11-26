@@ -13,6 +13,7 @@
 import type { Prisma, PrismaClient } from '@prisma/client'
 import { foldName, resolveClub, type StatsSyncDb } from '../ingestion/statsApiClubSync.js'
 import { DailyBudgetSpent, ProviderError, QuotaReserveReached, type TheStatsApiClient } from './client.js'
+import { recordContract, recordProviderValue, recordTransfer } from '../transfers/ledger.js'
 
 /** Phase 1 scope: top 5 leagues and the Champions League, found by name and country. */
 export const TRACKED_COMPETITIONS: { search: string; country?: string; name: string; priority: number }[] = [
@@ -39,6 +40,7 @@ export interface TsaSquadPlayer {
   id: string; name: string; position: string | null; date_of_birth: string | null; age: number | null
   nationality: string | null; height_cm: number | null; preferred_foot: string | null
   current_team: { id: string; name: string; jersey_number?: number | null } | null; contract_until?: string | null
+  market_value?: number | null; market_value_currency?: string | null
 }
 interface TsaPlayerStats {
   position?: string | null; rating?: number | null; appearances?: number; starts?: number; minutes_played?: number
@@ -89,6 +91,8 @@ export interface FootballSyncSummary {
   playersLinked: number
   playersAmbiguous: number
   playerStats: number
+  movesDetected: number
+  contractsChanged: number
   requests: number
   stoppedBy: string | null
 }
@@ -111,7 +115,7 @@ export async function runFootballDataSync(db: Db, api: TheStatsApiClient, opts: 
   const want = (s: NonNullable<FootballSyncOptions['only']>[number]) => !opts.only?.length || opts.only.includes(s)
   const summary: FootballSyncSummary = {
     competitions: 0, seasons: 0, fixtures: 0, standings: 0, squadPlayers: 0, playersCreated: 0,
-    playersLinked: 0, playersAmbiguous: 0, playerStats: 0, requests: 0, stoppedBy: null,
+    playersLinked: 0, playersAmbiguous: 0, playerStats: 0, movesDetected: 0, contractsChanged: 0, requests: 0, stoppedBy: null,
   }
   const clubDb = db as unknown as StatsSyncDb
   // A Champions League club is also in its domestic league: fetch each squad once per run.
@@ -271,27 +275,39 @@ async function upsertSquadPlayer(
   if (match.kind === 'new') {
     const created = await db.player.create({
       data: {
-        name: sp.name, tsaPlayerId: sp.id, age: sp.age, nationality: sp.nationality, currentClubId: clubId, autoCreated: true,
+        name: sp.name, tsaPlayerId: sp.id, tsaTeamId: sp.current_team?.id ?? null, age: sp.age, nationality: sp.nationality, currentClubId: clubId, autoCreated: true,
         contractEnd: sp.contract_until ? new Date(sp.contract_until) : null, ...profile,
       },
       select: { id: true, name: true, age: true, currentClubId: true, tsaPlayerId: true, nationality: true },
     })
     byTsaId.set(sp.id, created)
     summary.playersCreated++
+    await recordLedger(db, created.id, sp, clubId, summary)
     return created.id
   }
   // linked or matched: fill profile fields; never currentClubId, marketValue, or a non-empty contractEnd
-  const current = await db.player.findUnique({ where: { id: match.playerId }, select: { contractEnd: true, nationality: true, age: true } })
+  const current = await db.player.findUnique({ where: { id: match.playerId }, select: { contractEnd: true, nationality: true, age: true, tsaTeamId: true } })
+  // A different TheStatsAPI team than at the last sync: the player moved (squad diff).
+  const newTeam = sp.current_team?.id ?? null
+  if (current?.tsaTeamId && newTeam && current.tsaTeamId !== newTeam) {
+    const from = await db.club.findFirst({ where: { externalId: `tsa-team-${current.tsaTeamId}` }, select: { id: true, name: true } })
+    await recordTransfer(db, {
+      playerId: match.playerId, fromClubId: from?.id ?? null, fromTeamName: from?.name ?? null, toClubId: clubId, toTeamName: sp.current_team?.name ?? null,
+      date: new Date(), datePrecision: 'detected', type: 'unknown', source: 'thestatsapi', licence: 'api-paid', confidence: 0.7,
+    })
+    summary.movesDetected++
+  }
   await db.player.update({
     where: { id: match.playerId },
     data: {
-      tsaPlayerId: sp.id, ...profile,
+      tsaPlayerId: sp.id, tsaTeamId: newTeam, ...profile,
       ...(current?.nationality ? {} : { nationality: sp.nationality }),
       ...(sp.age != null ? { age: sp.age } : {}),
       ...(current?.contractEnd || !sp.contract_until ? {} : { contractEnd: new Date(sp.contract_until) }),
     },
   })
   if (match.kind === 'matched') summary.playersLinked++
+  await recordLedger(db, match.playerId, sp, clubId, summary)
   const lite = byName.get(foldName(sp.name))?.find((p) => p.id === match.playerId)
   if (lite) { lite.tsaPlayerId = sp.id; byTsaId.set(sp.id, lite) }
   return match.playerId
@@ -307,4 +323,13 @@ async function upsertPlayerSeasonStat(db: Db, playerId: number, seasonId: number
     detail, syncedAt: new Date(),
   }
   await db.playerSeasonStat.upsert({ where: { playerId_seasonId: { playerId, seasonId } }, create: { playerId, seasonId, ...data }, update: data })
+}
+
+/** Contract history and the provider's value (internal benchmark) from a squad entry. */
+async function recordLedger(db: Db, playerId: number, sp: TsaSquadPlayer, clubId: number, summary: FootballSyncSummary) {
+  if (sp.contract_until) {
+    const r = await recordContract(db, playerId, clubId, new Date(sp.contract_until), 'thestatsapi')
+    if (r === 'extended') summary.contractsChanged++
+  }
+  if (sp.market_value != null && sp.market_value > 0) await recordProviderValue(db, playerId, sp.market_value, sp.market_value_currency ?? null)
 }

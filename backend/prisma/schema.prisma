@@ -57,16 +57,21 @@ model Player {
   heightCm      Int?
   preferredFoot String?
   shirtNumber   Int?
+  /// TheStatsAPI team id seen at the last squad sync; a change means the player moved
+  tsaTeamId     String?
   enrichedAt    DateTime? // when Wikidata enrichment last ran
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
-  currentClub   Club?              @relation(fields: [currentClubId], references: [id])
-  rumours       Rumour[]
-  watchlistedBy WatchlistPlayer[]
-  claims        Claim[]
-  agents        PlayerAgent[]
-  seasonStats   PlayerSeasonStat[]
+  currentClub    Club?              @relation(fields: [currentClubId], references: [id])
+  rumours        Rumour[]
+  watchlistedBy  WatchlistPlayer[]
+  claims         Claim[]
+  agents         PlayerAgent[]
+  seasonStats    PlayerSeasonStat[]
+  transfers      Transfer[]
+  contracts      ContractFact[]
+  providerValues ProviderValue[]
 
   @@map("players")
 }
@@ -1038,4 +1043,76 @@ model MatchDetail {
   fixture Fixture @relation(fields: [fixtureId], references: [id], onDelete: Cascade)
 
   @@map("match_details")
+}
+
+// ── Transfers, contracts, values (docs/transfer-database-plan.md) ────────────
+// Every Transfer and ContractFact field is backed by SourcedFact rows (entityType TRANSFER / CONTRACT).
+
+model Transfer {
+  id            Int       @id @default(autoincrement())
+  playerId      Int
+  fromClubId    Int?
+  toClubId      Int?
+  /// Team names and Wikidata ids for clubs Gallia doesn't track yet
+  fromTeamName  String?
+  toTeamName    String?
+  fromTeamQid   String?
+  toTeamQid     String?
+  date          DateTime?
+  /// day | month | year | detected (first seen by a squad sync)
+  datePrecision String    @default("day")
+  /// permanent | loan | loan_end | free | unknown
+  type          String    @default("unknown")
+  feeAmount     Float?
+  feeCurrency   String?
+  /// unknown | disclosed | reported | undisclosed | free
+  feeStatus     String    @default("unknown")
+  /// Best source so far: filing > news > wikidata > thestatsapi
+  source        String
+  confidence    Float
+  /// player|destination|YYYY-MM: one row per move however many sources report it
+  dedupeKey     String    @unique
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  player Player @relation(fields: [playerId], references: [id], onDelete: Cascade)
+
+  @@index([playerId, date])
+  @@index([toClubId, date])
+  @@index([fromClubId, date])
+  @@map("transfers")
+}
+
+/// Contract history: a new row when the expiry changes (an extension), the old one superseded.
+model ContractFact {
+  id           Int       @id @default(autoincrement())
+  playerId     Int
+  clubId       Int?
+  expiresOn    DateTime
+  signedOn     DateTime?
+  source       String
+  observedAt   DateTime  @default(now())
+  supersededAt DateTime?
+
+  player Player @relation(fields: [playerId], references: [id], onDelete: Cascade)
+
+  @@index([playerId, supersededAt])
+  @@index([expiresOn])
+  @@map("contract_facts")
+}
+
+/// TheStatsAPI market value as given. Internal benchmark and model feature only; never shown publicly
+/// (Siva, 2026-11-26).
+model ProviderValue {
+  id         Int      @id @default(autoincrement())
+  playerId   Int
+  value      Float
+  currency   String?
+  observedOn DateTime @db.Date
+  source     String   @default("thestatsapi")
+
+  player Player @relation(fields: [playerId], references: [id], onDelete: Cascade)
+
+  @@unique([playerId, observedOn])
+  @@map("provider_values")
 }
