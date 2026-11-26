@@ -6,7 +6,8 @@ import { broadcast } from '../sse/broadcaster.js'
 import { z } from 'zod'
 import { optionalAuth, type AuthedRequest } from '../middleware/auth.js'
 import { requireAdmin } from '../admin/middleware.js'
-import { recordEntitlementGrant, recordClubLocationAction } from '../admin/auditService.js'
+import { recordEntitlementGrant, recordClubLocationAction, recordAgentLinkAction } from '../admin/auditService.js'
+import { addAgentLink, citationUrlProblem, listPlayerAgents, removeAgentLink } from '../agents/agentLinks.js'
 import type { AdminDb, AdminAuditDb } from '../admin/db.js'
 import { rateLimitMiddleware } from '../lib/rateLimit.js'
 import { logOperationalEvent } from '../analytics/operationalEvents.js'
@@ -577,6 +578,76 @@ router.post('/club-locations/:clubId/manual', async (req: AuthedRequest, res) =>
     correlationId: (req as CorrelatedRequest).correlationId ?? null,
   })
   res.json({ ok: true, clubId, lat, lng, stadium, city })
+})
+
+// ── Player → agent links (cited news only; docs/mapping-layer-plan.md Phase 3) ──
+
+// GET /admin/agents?q= — existing agents and agencies, for picking a name instead of retyping it
+router.get('/agents', async (req, res) => {
+  const q = String(req.query.q ?? '').trim().slice(0, 100)
+  const agents = await prisma.agent.findMany({
+    where: q ? { name: { contains: q, mode: 'insensitive' } } : {},
+    select: { id: true, name: true, kind: true, agency: { select: { name: true } }, _count: { select: { players: true } } },
+    orderBy: { name: 'asc' },
+    take: 20,
+  })
+  res.json(agents.map((a) => ({ id: a.id, name: a.name, kind: a.kind, agency: a.agency?.name ?? null, players: a._count.players })))
+})
+
+// GET /admin/players/:id/agents — a player's links with their citations
+router.get('/players/:id/agents', async (req, res) => {
+  const playerId = parseInt(req.params.id, 10)
+  if (isNaN(playerId)) { res.status(400).json({ error: 'Invalid player id' }); return }
+  res.json(await listPlayerAgents(prisma, playerId))
+})
+
+const agentLinkSchema = z.object({
+  playerId: z.number().int().positive(),
+  agentName: z.string().trim().min(2).max(120),
+  agentKind: z.enum(['PERSON', 'AGENCY']),
+  agencyName: z.string().trim().min(2).max(120).optional().nullable(),
+  role: z.enum(['REPRESENTS', 'NEGOTIATED_DEAL']),
+  rumourId: z.number().int().positive().optional().nullable(),
+  sourceUrl: z.string().max(2000),
+  quote: z.string().trim().max(300).optional().nullable(),
+})
+
+// POST /admin/agent-links — add a link from a cited article (or another citation for an existing link)
+router.post('/agent-links', async (req: AuthedRequest, res) => {
+  const parsed = agentLinkSchema.safeParse(req.body)
+  if (!parsed.success) { res.status(400).json({ error: 'Invalid body', details: parsed.error.issues }); return }
+  const problem = citationUrlProblem(parsed.data.sourceUrl)
+  if (problem) { res.status(400).json({ error: `Citation URL ${problem}` }); return }
+
+  const result = await addAgentLink(prisma, parsed.data)
+  if (result.kind === 'player-not-found') { res.status(404).json({ error: 'Player not found' }); return }
+  if (result.kind === 'rumour-not-found') { res.status(404).json({ error: 'Rumour not found' }); return }
+  if (result.kind === 'duplicate-citation') { res.status(409).json({ error: 'This article is already cited for this link', linkId: result.linkId }); return }
+
+  await recordAgentLinkAction(adminAuditDb, {
+    actingAdminUserId: req.userId!,
+    action: 'AGENT_LINK_ADD',
+    linkId: result.linkId,
+    details: { playerId: parsed.data.playerId, agentId: result.agentId, role: parsed.data.role, citation: result.citationUrl, newLink: result.kind === 'created' ? 1 : 0 },
+    correlationId: (req as CorrelatedRequest).correlationId ?? null,
+  })
+  res.status(result.kind === 'created' ? 201 : 200).json({ ok: true, ...result })
+})
+
+// DELETE /admin/agent-links/:id — remove a link; its citations are superseded, not deleted
+router.delete('/agent-links/:id', async (req: AuthedRequest, res) => {
+  const linkId = parseInt(req.params.id, 10)
+  if (isNaN(linkId)) { res.status(400).json({ error: 'Invalid link id' }); return }
+  const removed = await removeAgentLink(prisma, linkId)
+  if (!removed) { res.status(404).json({ error: 'Link not found' }); return }
+  await recordAgentLinkAction(adminAuditDb, {
+    actingAdminUserId: req.userId!,
+    action: 'AGENT_LINK_REMOVE',
+    linkId,
+    details: { playerId: removed.playerId, agentId: removed.agentId },
+    correlationId: (req as CorrelatedRequest).correlationId ?? null,
+  })
+  res.json({ ok: true, linkId })
 })
 
 export default router
