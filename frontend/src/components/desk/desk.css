@@ -55,6 +55,23 @@
 .g-network-overlay strong{display:block;font-size:13px;font-weight:550;color:#edf1f5}
 .g-network-footer{display:flex;justify-content:space-between;gap:16px;padding:12px 24px;border-top:1px solid var(--g-line);font:12px var(--font-mono),monospace;color:var(--g-muted)}
 .g-network-state{display:grid;place-items:center;height:640px;color:var(--g-muted);font-size:13px}
+.g-network-chrome{display:flex;flex-wrap:wrap;align-items:center;gap:12px 24px;margin-bottom:16px}
+.g-network-chrome .g-feed-tabs{min-height:44px;gap:16px}
+.g-network-chrome .g-feed-tabs>button{min-height:44px;padding:0 4px;font-size:13px;font-weight:500;color:#adb8c5;border-bottom:2px solid transparent}
+.g-network-chrome .g-feed-tabs>button:hover{color:#e8eff2}
+.g-network-chrome .g-feed-tabs>button.active,.g-network-chrome .g-feed-tabs>button[aria-pressed="true"]{color:#def1e4;border-bottom-color:#9cdeb3}
+.g-map-layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(220px,280px);min-height:640px}
+.g-map-canvas{min-width:0;min-height:640px;border-right:1px solid var(--g-line)}
+.g-map-canvas .g-network-surface{height:100%;min-height:640px}
+.g-map-unplaced{display:flex;flex-direction:column;min-width:0;background:var(--g-inset);max-height:640px;overflow:auto}
+.g-map-unplaced .g-panel-heading{padding:12px 16px;border-bottom:1px solid var(--g-line);margin:0}
+.g-map-unplaced .g-list{flex:1}
+@media (max-width:720px){
+  .g-map-layout{grid-template-columns:1fr;min-height:0}
+  .g-map-canvas{border-right:0;border-bottom:1px solid var(--g-line);min-height:440px}
+  .g-map-canvas .g-network-surface{min-height:440px}
+  .g-map-unplaced{max-height:320px}
+}
 
 /* ── Scorecard ── */
 .g-score-grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:24px;margin-bottom:24px;align-items:start}

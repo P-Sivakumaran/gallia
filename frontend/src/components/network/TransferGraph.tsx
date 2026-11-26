@@ -1,9 +1,11 @@
 'use client'
 
 import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { useRouter } from 'next/navigation'
 import Graph from 'graphology'
 import Sigma from 'sigma'
 import forceAtlas2 from 'graphology-layout-forceatlas2'
+import { applyEdgeFilter, pathForEdgeClick, pathForNodeClick, NETWORK_STATUS_COLOR, type StatusFilter } from './networkGraph'
 
 interface GraphNode {
   id: string
@@ -51,8 +53,7 @@ const DESK = {
   player: '#9cdeb3',
   club: '#46566a',
   label: '#c3ccd6',
-  muted: '#26303b',
-  status: { HOT: '#f8c36b', PENDING: '#7d8c9b', COMPLETED: '#7de2ac', FAILED: '#ff969c', DENIED: '#ff969c' } as Record<string, string>,
+  status: NETWORK_STATUS_COLOR,
 }
 
 const STATUS_LEGEND = [
@@ -68,12 +69,25 @@ const FILTERS = [
   { value: 'COMPLETED', label: 'Completed' },
   { value: 'FAILED', label: 'Failed' },
 ] as const
-type StatusFilter = (typeof FILTERS)[number]['value']
+
+function paintEdges(graph: Graph, filter: StatusFilter) {
+  graph.forEachEdge((edge, attrs) => {
+    const next = applyEdgeFilter(
+      { status: String(attrs.status), likelihood: Number(attrs.likelihood) || 0 },
+      filter,
+    )
+    graph.setEdgeAttribute(edge, 'color', next.color)
+    graph.setEdgeAttribute(edge, 'size', next.size)
+    graph.setEdgeAttribute(edge, 'hidden', next.hidden)
+  })
+}
 
 export default function TransferGraph() {
+  const router = useRouter()
   const containerRef = useRef<HTMLDivElement>(null)
   const sigmaRef = useRef<Sigma | null>(null)
   const graphRef = useRef<Graph | null>(null)
+  const filterRef = useRef<StatusFilter>('all')
   const [data, setData] = useState<GraphData | null>(null)
   const [loading, setLoading] = useState(true)
   const [initError, setInitError] = useState<string | null>(null)
@@ -81,7 +95,8 @@ export default function TransferGraph() {
   const [filter, setFilter] = useState<StatusFilter>('all')
   const [includeFeed, setIncludeFeed] = useState(false)
 
-  // Fetch graph data
+  filterRef.current = filter
+
   useEffect(() => {
     setLoading(true)
     fetch(`${process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001'}/graph${includeFeed ? '?include=feed' : ''}`)
@@ -93,14 +108,13 @@ export default function TransferGraph() {
       .catch(() => setLoading(false))
   }, [includeFeed])
 
-  // Build and render graph
+  // Build Sigma once per data load. Filter changes update edge attrs only (no re-layout).
   useEffect(() => {
     if (!data || !containerRef.current) return
 
     const graph = new Graph({ multi: true, type: 'directed' })
     graphRef.current = graph
 
-    // Add nodes — Sigma v3 uses 'circle' as default node type; no custom types needed
     for (const node of data.nodes) {
       graph.addNode(node.id, {
         label: node.label,
@@ -108,31 +122,31 @@ export default function TransferGraph() {
         y: node.y,
         size: node.size,
         color: node.type === 'player' ? DESK.player : DESK.club,
-        nodeType: node.type,   // stored as data attr, not Sigma type
+        nodeType: node.type,
         position: node.position,
         league: node.league,
         marketValue: node.marketValue,
       })
     }
 
-    // Add edges (filtered by status if needed)
     for (const edge of data.edges) {
-      const visible = filter === 'all' || edge.status === filter
       graph.addEdgeWithKey(edge.id, edge.source, edge.target, {
-        color: visible ? (DESK.status[edge.status] ?? DESK.status.PENDING) : DESK.muted,
-        size: visible ? edge.size : 0.5,
+        color: DESK.status[edge.status] ?? DESK.status.PENDING,
+        size: edge.size,
         weight: edge.weight,
         status: edge.status,
         likelihood: edge.likelihood,
         rumourId: edge.rumourId,
         label: edge.label,
-        hidden: !visible,
+        hidden: false,
       })
     }
 
-    // Run ForceAtlas2 layout (non-blocking, limited iterations)
+    paintEdges(graph, filterRef.current)
+
+    // One layout pass per fetch. Backend already seeds x/y; FA2 settles overlapping nodes once.
     forceAtlas2.assign(graph, {
-      iterations: 100,
+      iterations: 80,
       settings: {
         gravity: 1,
         scalingRatio: 10,
@@ -141,25 +155,23 @@ export default function TransferGraph() {
       },
     })
 
-    // Init Sigma
     let sigma: Sigma
     try {
-    sigma = new Sigma(graph, containerRef.current, {
-      renderEdgeLabels: false,
-      labelFont: 'Inter, sans-serif',
-      labelSize: 12,
-      labelWeight: '600',
-      labelColor: { color: DESK.label },
-      minCameraRatio: 0.1,
-      maxCameraRatio: 10,
-    })
+      sigma = new Sigma(graph, containerRef.current, {
+        renderEdgeLabels: false,
+        labelFont: 'Inter, sans-serif',
+        labelSize: 12,
+        labelWeight: '600',
+        labelColor: { color: DESK.label },
+        minCameraRatio: 0.1,
+        maxCameraRatio: 10,
+      })
     } catch (e) {
       setInitError(String(e))
       return
     }
     sigmaRef.current = sigma
 
-    // Hover events
     sigma.on('enterNode', ({ node }) => {
       const attrs = graph.getNodeAttributes(node)
       setHovered({
@@ -169,7 +181,6 @@ export default function TransferGraph() {
         league: attrs.league,
         marketValue: attrs.marketValue,
       })
-      // Highlight connected edges
       graph.edges(node).forEach((e) => {
         graph.setEdgeAttribute(e, 'size', graph.getEdgeAttribute(e, 'size') * 2)
       })
@@ -184,11 +195,30 @@ export default function TransferGraph() {
       sigma.refresh()
     })
 
+    sigma.on('clickNode', ({ node }) => {
+      const path = pathForNodeClick(node)
+      if (path) router.push(path)
+    })
+
+    sigma.on('clickEdge', ({ edge }) => {
+      const path = pathForEdgeClick(graph.getEdgeAttribute(edge, 'rumourId') as number | undefined)
+      if (path) router.push(path)
+    })
+
     return () => {
       sigmaRef.current?.kill()
       sigmaRef.current = null
+      graphRef.current = null
     }
-  }, [data, filter])
+  }, [data, router])
+
+  useEffect(() => {
+    const graph = graphRef.current
+    const sigma = sigmaRef.current
+    if (!graph || !sigma) return
+    paintEdges(graph, filter)
+    sigma.refresh()
+  }, [filter])
 
   const frame = (body: ReactNode) => (
     <section className="g-panel">
@@ -210,7 +240,7 @@ export default function TransferGraph() {
       </div>
       {body}
       <div className="g-network-footer">
-        <span>Scroll to zoom · drag to pan · hover a node for detail</span>
+        <span>Scroll to zoom · drag to pan · click a node or line to open it</span>
         {data && (
           <span>
             {data.meta.nodeCount} nodes · {data.meta.rumourCount ?? Math.round(data.meta.edgeCount / 2)} rumours
