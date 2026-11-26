@@ -40,7 +40,7 @@ export default async function RumoursPage({ searchParams }: { searchParams: Prom
       intro={<>Each likelihood comes from who reported it and how many independent sources agree, then gets checked against what actually happened on the <Link href="/scorecard" className="g-green-link" style={{ display: 'inline' }}>scorecard</Link>.</>}
       actions={<Link href="/network" className="g-button"><Icon name="branch" size={16} />Transfer network</Link>}
     >
-      <div className="g-metrics" style={{ gridTemplateColumns: 'repeat(3,minmax(0,1fr))' }}>
+      <div className="g-metrics g-metrics--trio" aria-label="Rumour ledger overview">
         <Metric label="RUMOURS TRACKED" value={stats.totalRumours} note="All windows" />
         <Metric label="HOT NOW" value={stats.hotRumours} tone="amber" note="Open, 70%+ (model estimate)" />
         <Metric label="SIGNED" value={stats.completedRumours} tone="green" note="Confirmed moves" />

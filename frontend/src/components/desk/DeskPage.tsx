@@ -42,10 +42,10 @@ export default function DeskPage({
 export function Metric({ label, value, note, tone }: { label: string; value: ReactNode; note?: ReactNode; tone?: 'green' | 'amber' | 'red' }) {
   const color = tone === 'green' ? 'var(--signal-fire)' : tone === 'amber' ? 'var(--signal-hot)' : tone === 'red' ? 'var(--signal-denied)' : undefined
   return (
-    <div className="g-metric">
+    <article className="g-metric" aria-label={label}>
       <div><span className="g-eyebrow">{label}</span></div>
       <div className="g-metric-bottom"><div><strong style={color ? { color } : undefined}>{value}</strong>{note && <p>{note}</p>}</div></div>
-    </div>
+    </article>
   )
 }
 
