@@ -7,6 +7,7 @@ import {
   scoreCandidate,
   runWikidataClubSync,
   searchTerms,
+  backfillReviewLabels,
   type WikidataClub,
 } from './wikidataClubSync.js'
 
@@ -105,7 +106,7 @@ describe('wikidata club matching', () => {
 describe('runWikidataClubSync reruns', () => {
   // In-memory stand-in for the two tables the sync touches.
   function fakeDb(clubs: { id: number; name: string; country: string; lat: number | null }[]) {
-    const facts: { entityId: number; source: string; applied: boolean; supersededAt: Date | null; field: string }[] = []
+    const facts: { entityId: number; source: string; applied: boolean; supersededAt: Date | null; field: string; value?: string; sourceUrl?: string | null; confidence?: number }[] = []
     const db = {
       club: {
         findMany: async (args: { where?: { wikidataId?: unknown } }) =>
@@ -117,6 +118,8 @@ describe('runWikidataClubSync reruns', () => {
         },
       },
       sourcedFact: {
+        findMany: async ({ where }: { where: { field: string } }) =>
+          facts.filter((f) => f.field === where.field && !f.applied && !f.supersededAt),
         updateMany: async ({ where, data }: { where: { entityId: number }; data: { supersededAt: Date } }) => {
           for (const f of facts) if (f.entityId === where.entityId && !f.applied && !f.supersededAt) f.supersededAt = data.supersededAt
           return { count: 0 }
@@ -134,9 +137,21 @@ describe('runWikidataClubSync reruns', () => {
     return { db: db as never, facts, clubs }
   }
 
+  it('backfills names for review rows that only have a QID', async () => {
+    const { db, facts } = fakeDb([])
+    facts.push({ entityId: 7, source: 'wikidata', applied: false, supersededAt: null, field: 'wikidataId', value: 'Q210768', sourceUrl: 'https://www.wikidata.org/wiki/Q210768', confidence: 0.7 })
+    const labels = async () => new Response(JSON.stringify({ entities: { Q210768: { labels: { en: { value: 'FC Sheriff Tiraspol' } } } } }), { status: 200 })
+    expect(await backfillReviewLabels(db, labels as never, async () => {})).toBe(1)
+    expect(facts.find((f) => f.field === 'label')).toMatchObject({ entityId: 7, value: 'FC Sheriff Tiraspol', applied: false })
+    // A second pass finds nothing left to fill.
+    expect(await backfillReviewLabels(db, labels as never, async () => {})).toBe(0)
+  })
+
   // Search returns one weak candidate; SPARQL describes it as a Zambian club named differently.
   const fetcher = async (url: string) => {
-    const body = url.includes('wbsearchentities')
+    const body = url.includes('wbgetentities')
+      ? { entities: {} }
+      : url.includes('wbsearchentities')
       ? { search: [{ id: 'Q9' }] }
       : { results: { bindings: [{ c: { value: 'http://www.wikidata.org/entity/Q9' }, cLabel: { value: 'Sheriff Wanderers' }, countryLabel: { value: 'Zambia' }, coord: { value: 'Point(28 -15)' } }] } }
     return new Response(JSON.stringify(body), { status: 200 })

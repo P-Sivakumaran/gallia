@@ -2,6 +2,8 @@ import type { EntitlementTier, EntitlementSource } from '../entitlements/flags.j
 
 export type Role = 'USER' | 'ADMIN'
 
+export type ClubLocationAction = 'CLUB_LOCATION_ACCEPT' | 'CLUB_LOCATION_REJECT' | 'CLUB_LOCATION_MANUAL'
+
 // Minimal injectable interfaces, same DI pattern as evidence/db.ts,
 // forecasting/db.ts, entitlements/db.ts.
 export interface AdminDb {
@@ -13,15 +15,24 @@ export interface AdminDb {
 export interface AdminAuditDb {
   adminAuditEvent: {
     create: (args: {
-      data: {
-        actingAdminUserId: number
-        actionType: 'ENTITLEMENT_GRANT'
-        targetUserId: number
-        previousTier: EntitlementTier | null
-        newTier: EntitlementTier | null
-        entitlementSource: EntitlementSource | null
-        correlationId: string | null
-      }
+      data:
+        | {
+            actingAdminUserId: number
+            actionType: 'ENTITLEMENT_GRANT'
+            targetUserId: number
+            previousTier: EntitlementTier | null
+            newTier: EntitlementTier | null
+            entitlementSource: EntitlementSource | null
+            correlationId: string | null
+          }
+        | {
+            actingAdminUserId: number
+            actionType: ClubLocationAction
+            targetType: 'CLUB'
+            targetId: number
+            details: Record<string, string | number | null>
+            correlationId: string | null
+          }
     }) => Promise<unknown>
   }
 }

@@ -1,4 +1,4 @@
-import type { AdminAuditDb } from './db.js'
+import type { AdminAuditDb, ClubLocationAction } from './db.js'
 import type { EntitlementTier, EntitlementSource } from '../entitlements/flags.js'
 
 export interface RecordEntitlementGrantInput {
@@ -10,7 +10,7 @@ export interface RecordEntitlementGrantInput {
   correlationId?: string | null
 }
 
-// Immutable audit trail — this is the only write path to AdminAuditEvent
+// Immutable audit trail — this file holds the only write paths to AdminAuditEvent
 // anywhere in this codebase (no update/delete call exists). Called only on
 // a successful grant, since previousTier/newTier only mean something for a
 // completed change; failed attempts go through
@@ -25,6 +25,30 @@ export async function recordEntitlementGrant(db: AdminAuditDb, input: RecordEnti
       previousTier: input.previousTier,
       newTier: input.newTier,
       entitlementSource: input.entitlementSource,
+      correlationId: input.correlationId ?? null,
+    },
+  })
+}
+
+export interface RecordClubLocationActionInput {
+  actingAdminUserId: number
+  action: ClubLocationAction
+  clubId: number
+  /** What changed (QID, coordinates, counts). Plain values only, never secrets. */
+  details: Record<string, string | number | null>
+  correlationId?: string | null
+}
+
+// Same immutable trail as entitlement grants, for an admin's decision about a
+// club's location (accepting or rejecting a Wikidata match, or placing it by hand).
+export async function recordClubLocationAction(db: AdminAuditDb, input: RecordClubLocationActionInput): Promise<void> {
+  await db.adminAuditEvent.create({
+    data: {
+      actingAdminUserId: input.actingAdminUserId,
+      actionType: input.action,
+      targetType: 'CLUB',
+      targetId: input.clubId,
+      details: input.details,
       correlationId: input.correlationId ?? null,
     },
   })

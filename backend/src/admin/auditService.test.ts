@@ -44,3 +44,27 @@ describe('recordEntitlementGrant', () => {
     expect(create.mock.calls[0][0].data.correlationId).toBeNull()
   })
 })
+
+describe('recordClubLocationAction', () => {
+  it('writes a CLUB-targeted audit row with no user target', async () => {
+    const calls: unknown[] = []
+    const db = { adminAuditEvent: { create: async (args: unknown) => { calls.push(args) } } }
+    const { recordClubLocationAction } = await import('./auditService.js')
+    await recordClubLocationAction(db, {
+      actingAdminUserId: 3,
+      action: 'CLUB_LOCATION_ACCEPT',
+      clubId: 42,
+      details: { wikidataId: 'Q19467', lat: 51.39, lng: -0.08 },
+    })
+    expect(calls).toEqual([{
+      data: {
+        actingAdminUserId: 3,
+        actionType: 'CLUB_LOCATION_ACCEPT',
+        targetType: 'CLUB',
+        targetId: 42,
+        details: { wikidataId: 'Q19467', lat: 51.39, lng: -0.08 },
+        correlationId: null,
+      },
+    }])
+  })
+})
