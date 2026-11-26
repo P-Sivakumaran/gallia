@@ -2,10 +2,11 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { api } from '@/lib/api'
-import type { AdminRumour, AdminSource, Player, RumourStatus } from '@/types'
+import type { AdminRumour, Player, RumourStatus } from '@/types'
 import DeskPage from '@/components/desk/DeskPage'
 import DeskStatus from '@/components/desk/DeskStatus'
 import ReviewQueue from '@/components/admin/ReviewQueue'
+import SourcesLicencePanel from '@/components/admin/SourcesLicencePanel'
 
 const STATUS_FILTERS: Array<RumourStatus | 'ALL'> = ['ALL', 'PENDING', 'HOT', 'COMPLETED', 'FAILED', 'DENIED']
 
@@ -139,52 +140,6 @@ function RumoursPanel() {
   )
 }
 
-function SourcesPanel() {
-  const [sources, setSources] = useState<AdminSource[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-
-  useEffect(() => {
-    api.admin
-      .sources()
-      .then(setSources)
-      .catch(() => setError('Failed to load sources — is the backend running?'))
-      .finally(() => setLoading(false))
-  }, [])
-
-  if (loading) return <p className="g-note" style={{ padding: '16px 24px' }}>Loading…</p>
-  if (error) return <p className="g-error" style={{ padding: '16px 24px' }}>{error}</p>
-
-  return (
-    <div style={{ overflowX: 'auto' }}>
-      <table className="g-table">
-        <thead>
-          <tr>
-            <th>SOURCE</th>
-            <th>TYPE</th>
-            <th className="num">RELIABILITY</th>
-            <th className="num">HITS</th>
-            <th className="num">MISSES</th>
-            <th className="num">RUMOURS</th>
-          </tr>
-        </thead>
-        <tbody>
-          {sources.map((s) => (
-            <tr key={s.id}>
-              <td style={{ fontWeight: 550, color: '#edf1f5' }}>{s.name}</td>
-              <td className="g-muted">{s.type.replace(/_/g, ' ').toLowerCase()}</td>
-              <td className="num">{Math.round(s.reliabilityScore * 100)}%</td>
-              <td className="num" style={{ color: 'var(--signal-fire)' }}>{s.hitCount}</td>
-              <td className="num" style={{ color: 'var(--signal-denied)' }}>{s.missCount}</td>
-              <td className="num">{s._count.rumours}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  )
-}
-
 function EnrichPanel() {
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<Player[]>([])
@@ -268,7 +223,7 @@ export default function AdminPage() {
         </div>
         {tab === 'review' && <ReviewQueue />}
         {tab === 'rumours' && <RumoursPanel />}
-        {tab === 'sources' && <SourcesPanel />}
+        {tab === 'sources' && <SourcesLicencePanel />}
         {tab === 'enrich' && <EnrichPanel />}
       </section>
     </DeskPage>
