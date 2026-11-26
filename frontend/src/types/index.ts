@@ -304,3 +304,23 @@ export interface ClubLocationsReviewResponse {
   candidates: ClubLocationCandidate[]
   unplaced: UnplacedClub[]
 }
+
+export type AgentKind = 'PERSON' | 'AGENCY'
+export type PlayerAgentRole = 'REPRESENTS' | 'NEGOTIATED_DEAL'
+
+/** Cited agent link on a player page (public GET /players/:id/agents). */
+export interface PlayerAgentLink {
+  linkId: number
+  role: PlayerAgentRole
+  rumourId: number | null
+  agent: { id: number; name: string; kind: AgentKind; agency: string | null }
+  citations: { url: string; host: string; quote: string | null; addedAt: string }[]
+}
+
+export interface AdminAgentSuggestion {
+  id: number
+  name: string
+  kind: AgentKind
+  agency: string | null
+  players: number
+}
