@@ -15,7 +15,7 @@ describe('closedMatchdays', () => {
     expect(closedMatchdays(fixtures, NOW + SETTLE_MS)).toEqual([10, 11])
   })
 
-  it('treats postponed matches as done', () => {
-    expect(closedMatchdays([f(5, 'finished', 30), f(5, 'postponed', 30)], NOW)).toEqual([5])
+  it('does not close a matchday while any fixture is postponed', () => {
+    expect(closedMatchdays([f(5, 'finished', 30), f(5, 'postponed', 30)], NOW)).toEqual([])
   })
 })

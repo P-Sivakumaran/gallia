@@ -32,19 +32,30 @@ async function lastRequest(db: PrismaClient, kind: string, competitionId?: numbe
 export async function runFootballTick(db: PrismaClient, api: TheStatsApiClient, now = Date.now(), log: (m: string) => void = () => {}): Promise<TickSummary> {
   const out: TickSummary = { fixtures: [], tables: [], snapshots: [], matchDetails: 0, squads: false, pruned: 0, stoppedBy: null, requests: 0 }
   const comps = await db.competition.findMany({ where: { tracked: true }, orderBy: { priority: 'asc' }, include: { seasons: { where: { isCurrent: true } } } })
+  const refreshedTables = new Set<number>()
   try {
     for (const comp of comps) {
       const season = comp.seasons[0]
       if (!season) continue
       const lastFixtures = await lastRequest(db, 'fixtures', comp.id)
+      const lastStandings = await lastRequest(db, 'standings', comp.id)
       // A match that kicked off since the last fixture refresh and has now settled.
       const settled = await db.fixture.count({
         where: { seasonId: season.id, kickoffAt: { gt: new Date(lastFixtures - SETTLE_MS), lte: new Date(now - SETTLE_MS) }, status: { not: 'finished' } },
       })
-      if (now - lastFixtures > DAY || settled > 0) {
-        await runFootballDataSync(db, api, { only: settled > 0 ? ['fixtures', 'standings'] : ['fixtures'], competitionTsaIds: [comp.tsaId], log })
+      // A finished match since the last table refresh means the table/form/xG may have changed,
+      // even if fixtures were refreshed by a manual or daily fixtures-only run.
+      const standingsDue = await db.fixture.count({
+        where: { seasonId: season.id, kickoffAt: { gt: new Date(lastStandings - SETTLE_MS), lte: new Date(now - SETTLE_MS) }, status: 'finished' },
+      })
+      if (now - lastFixtures > DAY || settled > 0 || standingsDue > 0) {
+        const needsStandings = settled > 0 || standingsDue > 0
+        await runFootballDataSync(db, api, { only: needsStandings ? ['fixtures', 'standings'] : ['fixtures'], competitionTsaIds: [comp.tsaId], log })
         out.fixtures.push(comp.name)
-        if (settled > 0) out.tables.push(comp.name)
+        if (needsStandings) {
+          refreshedTables.add(comp.id)
+          out.tables.push(comp.name)
+        }
       }
 
       const fixtures = await db.fixture.findMany({ where: { seasonId: season.id }, select: { matchday: true, status: true, kickoffAt: true, homeClubId: true, awayClubId: true } })
@@ -54,6 +65,11 @@ export async function runFootballTick(db: PrismaClient, api: TheStatsApiClient, 
       const latest = closedMatchdays(fixtures, now).pop()
       if (latest != null && !done.has(latest)) {
         const clubIds = new Set(fixtures.filter((f) => f.matchday === latest).flatMap((f) => [f.homeClubId, f.awayClubId]).filter((c): c is number => c != null))
+        if (!refreshedTables.has(comp.id)) {
+          await runFootballDataSync(db, api, { only: ['standings'], competitionTsaIds: [comp.tsaId], log })
+          refreshedTables.add(comp.id)
+          out.tables.push(comp.name)
+        }
         await runFootballDataSync(db, api, { only: ['player-stats'], competitionTsaIds: [comp.tsaId], clubIds, statsFreshMs: 12 * HOUR, log })
         await writeSnapshot(db, season.id, latest)
         out.snapshots.push(`${comp.name} MD${latest}`)

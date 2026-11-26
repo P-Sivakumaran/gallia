@@ -8,7 +8,7 @@ import type { Prisma, PrismaClient } from '@prisma/client'
 import { computeCards, type Card } from './card.js'
 
 export const SETTLE_MS = 3 * 3_600_000
-const DONE = new Set(['finished', 'postponed', 'cancelled', 'canceled', 'abandoned', 'awarded'])
+const DONE = new Set(['finished', 'cancelled', 'canceled', 'abandoned', 'awarded'])
 
 export interface FixtureLite { matchday: number | null; status: string; kickoffAt: Date }
 
