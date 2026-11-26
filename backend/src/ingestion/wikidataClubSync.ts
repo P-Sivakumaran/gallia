@@ -23,6 +23,7 @@ export const MIN_MARGIN = 0.08
 /** Don't re-check a club the sync already looked at within this window. */
 const RECHECK_DAYS = 30
 const DETAIL_BATCH = 40
+const SEARCH_PAUSE_MS = 1000
 
 export interface WikidataClub {
   qid: string
@@ -36,6 +37,8 @@ export interface WikidataClub {
   description?: string | null
   /** The item has a dissolution date (P576): a defunct club */
   dissolved?: boolean
+  /** Labels in every language plus aliases ("Sparta Praha", "FC København", "Hearts"). */
+  names?: string[]
   /** Position of this item in the search results it came from (0 = top). */
   rank: number
 }
@@ -52,6 +55,9 @@ const COUNTRY_ALIASES: Record<string, string> = {
   scotland: 'united kingdom',
   wales: 'united kingdom',
   'northern ireland': 'united kingdom',
+  // British Overseas Territory: Wikidata gives its clubs country = United Kingdom.
+  gibraltar: 'united kingdom',
+  'republic of ireland': 'ireland',
   turkiye: 'turkey',
   czechia: 'czech republic',
   'kingdom of the netherlands': 'netherlands',
@@ -71,20 +77,52 @@ export function isSideTeam(label: string, description?: string | null): boolean 
   return SIDE_TEAM.test(foldClubName(label.replace(/\./g, ''))) || SIDE_TEAM.test(foldName(description ?? ''))
 }
 
-/** 0–1 similarity between two club names after removing FC/AFC/CF noise. */
+// Letters NFD doesn't decompose, so "Bodø" and "Bodo" fold the same.
+const LETTERS: Record<string, string> = { ø: 'o', æ: 'ae', œ: 'oe', ß: 'ss', đ: 'd', ł: 'l', ħ: 'h', ı: 'i', þ: 'th', ð: 'd' }
+// Club-form prefixes and suffixes in the languages UEFA clubs use (FK, HNK, KF, PFC...).
+const MATCH_NOISE = new Set([
+  'fc', 'afc', 'cf', 'fk', 'sk', 'nk', 'hnk', 'kf', 'ks', 'pfc', 'ss', 'sc', 'ac', 'as', 'cd', 'ud', 'sd', 'bk', 'ik', 'if',
+  'sv', 'fsv', 'tsv', 'vfb', 'vfl', 'rcd', 'gnk', 'pfk', 'mfk', 'ofk', 'sfc', 'jk', 'fcsb', 'club', 'football', 'futbol', 'futebol', 'calcio',
+])
+
+/** Fold a club name for matching: accents and punctuation (including "/") gone, club-form tokens dropped. */
+export function matchFold(name: string): string {
+  const base = name
+    .toLowerCase()
+    .replace(/[øæœßđłħıþð]/g, (ch) => LETTERS[ch] ?? ch)
+    .normalize('NFD')
+    .replace(/\p{M}/gu, '')
+    .replace(/[.'’`]/g, '')
+  const tokens = base.split(/[^\p{L}\p{N}]+/u).filter(Boolean)
+  const kept = tokens.filter((t) => !MATCH_NOISE.has(t) && !/^u\d{2}$/.test(t))
+  // A name that is only noise ("FCSB") keeps its tokens.
+  return (kept.length ? kept : tokens).join(' ')
+}
+
+/** 0–1 similarity between two club names after removing FC/FK/HNK-style noise. */
 export function nameSimilarity(a: string, b: string): number {
-  // "F.C." → "FC" before folding, so it is dropped as noise like "FC".
-  const x = foldClubName(a.replace(/\./g, ''))
-  const y = foldClubName(b.replace(/\./g, ''))
+  const x = matchFold(a)
+  const y = matchFold(b)
   if (!x || !y) return 0
   if (x === y) return 1
   // A women's, youth or reserve side is a different club from the senior men's team.
   if (SIDE_TEAM.test(y) !== SIDE_TEAM.test(x)) return 0.3
-  if (x.includes(y) || y.includes(x)) return 0.85
   const tx = new Set(x.split(' '))
   const ty = new Set(y.split(' '))
+  // Whole words only: "Auda" is not "Audax", "KÍ" is not "Kiisto".
   const shared = [...tx].filter((t) => ty.has(t)).length
+  if (shared === Math.min(tx.size, ty.size)) return 0.85
   return shared / new Set([...tx, ...ty]).size
+}
+
+/** Best similarity against the item's label and all its other names. */
+export function bestNameSimilarity(ours: string, cand: Pick<WikidataClub, 'label' | 'names'>): number {
+  let best = nameSimilarity(ours, cand.label)
+  for (const n of cand.names ?? []) {
+    if (best === 1) break
+    best = Math.max(best, nameSimilarity(ours, n))
+  }
+  return best
 }
 
 /**
@@ -92,7 +130,7 @@ export function nameSimilarity(a: string, b: string): number {
  * with a small bonus for being the search engine's top hit.
  */
 export function scoreCandidate(club: ClubToPlace, cand: WikidataClub): number {
-  let name = nameSimilarity(club.name, cand.label)
+  let name = bestNameSimilarity(club.name, cand)
   if (isSideTeam(cand.label, cand.description) && !isSideTeam(club.name)) name = Math.min(name, 0.3)
   if (cand.dissolved) name *= 0.5
   const ours = normaliseCountry(club.country)
@@ -129,14 +167,6 @@ export function pickClub(club: ClubToPlace, candidates: WikidataClub[]): PickRes
   return { kind: 'matched', candidate: best.c, confidence: best.s }
 }
 
-/** Search terms for one club: the name as stored, plus the common "F.C." forms. */
-export function searchTerms(name: string): string[] {
-  const base = name.trim()
-  const terms = [base]
-  if (!/\b(f\.?c\.?|a\.?f\.?c\.?|c\.?f\.?)\b/i.test(base)) terms.push(`${base} F.C.`, `FC ${base}`)
-  return terms
-}
-
 type Fetch = (url: string, init?: RequestInit) => Promise<Response>
 
 async function fetchJson(fetcher: Fetch, url: string, init: RequestInit, sleep: (ms: number) => Promise<void>): Promise<unknown> {
@@ -162,6 +192,35 @@ async function fetchJson(fetcher: Fetch, url: string, init: RequestInit, sleep: 
     return res.json()
   }
   throw new Error('Wikidata kept rate-limiting')
+}
+
+/**
+ * Full-text search limited to items that are football clubs (P31 = Q476028). Finds clubs whose
+ * short name is also a city or a word ("Rijeka", "Apollon", "Virtus") that label search ranks low.
+ */
+export async function searchClubQids(fetcher: Fetch, name: string, sleep: (ms: number) => Promise<void>): Promise<string[]> {
+  const url = `${SEARCH_URL}?${new URLSearchParams({
+    action: 'query', list: 'search', srsearch: `${name} haswbstatement:P31=Q476028`, srnamespace: '0', srlimit: '7', format: 'json',
+  })}`
+  const data = (await fetchJson(fetcher, url, {}, sleep)) as { query?: { search?: { title: string }[] } }
+  return (data.query?.search ?? []).map((s) => s.title).filter((t) => /^Q\d+$/.test(t))
+}
+
+/** Labels (every language) and aliases for items, 50 per call. */
+export async function fetchNames(fetcher: Fetch, qids: string[], sleep: (ms: number) => Promise<void>): Promise<Map<string, string[]>> {
+  const out = new Map<string, string[]>()
+  for (let i = 0; i < qids.length; i += 50) {
+    const url = `${SEARCH_URL}?${new URLSearchParams({ action: 'wbgetentities', ids: qids.slice(i, i + 50).join('|'), props: 'labels|aliases', format: 'json' })}`
+    const data = (await fetchJson(fetcher, url, {}, sleep)) as {
+      entities?: Record<string, { labels?: Record<string, { value: string }>; aliases?: Record<string, { value: string }[]> }>
+    }
+    for (const [qid, e] of Object.entries(data.entities ?? {})) {
+      const names = [...Object.values(e.labels ?? {}).map((l) => l.value), ...Object.values(e.aliases ?? {}).flat().map((a) => a.value)]
+      out.set(qid, [...new Set(names)])
+    }
+    await sleep(SEARCH_PAUSE_MS)
+  }
+  return out
 }
 
 export async function searchQids(fetcher: Fetch, term: string, sleep: (ms: number) => Promise<void>): Promise<string[]> {
@@ -290,13 +349,14 @@ export interface ClubSyncSummary {
 
 type ClubSyncDb = Pick<PrismaClient, 'club' | 'sourcedFact' | '$transaction'>
 
-export async function clubsToPlace(db: ClubSyncDb, limit: number): Promise<ClubToPlace[]> {
+export async function clubsToPlace(db: ClubSyncDb, limit: number, recheck = false): Promise<ClubToPlace[]> {
   const cutoff = new Date(Date.now() - RECHECK_DAYS * 86_400_000)
   return db.club.findMany({
     where: {
       isPlaceholder: false,
       lat: null,
-      OR: [{ geoCheckedAt: null }, { geoCheckedAt: { lt: cutoff } }],
+      // recheck: every unplaced club, e.g. after the matcher improves.
+      ...(recheck ? {} : { OR: [{ geoCheckedAt: null }, { geoCheckedAt: { lt: cutoff } }] }),
     },
     select: { id: true, name: true, country: true },
     orderBy: { id: 'asc' },
@@ -306,7 +366,7 @@ export async function clubsToPlace(db: ClubSyncDb, limit: number): Promise<ClubT
 
 export async function runWikidataClubSync(
   db: ClubSyncDb,
-  opts: { limit?: number; fetcher?: Fetch; sleep?: (ms: number) => Promise<void>; log?: (msg: string) => void } = {},
+  opts: { limit?: number; recheck?: boolean; fetcher?: Fetch; sleep?: (ms: number) => Promise<void>; log?: (msg: string) => void } = {},
 ): Promise<ClubSyncSummary> {
   const fetcher = opts.fetcher ?? fetch
   const sleep = opts.sleep ?? ((ms) => new Promise((r) => setTimeout(r, ms)))
@@ -319,15 +379,18 @@ export async function runWikidataClubSync(
     log(`label backfill failed: ${(err as Error).message}`)
   }
 
-  const clubs = await clubsToPlace(db, opts.limit ?? 500)
+  const clubs = await clubsToPlace(db, opts.limit ?? 500, opts.recheck)
   const ranked = new Map<number, { qid: string; rank: number }[]>()
   for (const club of clubs) {
     const hits: { qid: string; rank: number }[] = []
     try {
-      for (const term of searchTerms(club.name)) {
-        ;(await searchQids(fetcher, term, sleep)).forEach((qid, rank) => hits.push({ qid, rank }))
-        await sleep(300)
-      }
+      // Two calls per club, a second apart: Wikimedia rate-limits unidentified clients hard (HTTP 429).
+      // Label search finds the club by name or alias; the club-only full-text search covers
+      // "F.C."/"FK" forms and short names that are also places ("Rijeka", "Apollon").
+      ;(await searchQids(fetcher, club.name.trim(), sleep)).forEach((qid, rank) => hits.push({ qid, rank }))
+      await sleep(SEARCH_PAUSE_MS)
+      ;(await searchClubQids(fetcher, club.name, sleep)).forEach((qid, rank) => hits.push({ qid, rank: rank + 1 }))
+      await sleep(SEARCH_PAUSE_MS)
     } catch (err) {
       summary.errors++
       log(`search failed for "${club.name}": ${(err as Error).message}`)
@@ -342,6 +405,13 @@ export async function runWikidataClubSync(
     summary.errors++
     log(`detail batch failed: ${err.message}`)
   })
+  let names = new Map<string, string[]>()
+  try {
+    names = await fetchNames(fetcher, [...details.keys()], sleep)
+  } catch (err) {
+    summary.errors++
+    log(`name fetch failed: ${(err as Error).message}`)
+  }
   // Don't stamp clubs as checked when their candidates may be in a failed batch.
   const stampChecked = detailFailures === 0
   const taken = new Set(
@@ -352,7 +422,7 @@ export async function runWikidataClubSync(
     summary.checked++
     const candidates = (ranked.get(club.id) ?? []).flatMap((h) => {
       const d = details.get(h.qid)
-      return d ? [{ ...d, rank: h.rank }] : []
+      return d ? [{ ...d, names: names.get(h.qid), rank: h.rank }] : []
     })
     const pick = pickClub(club, candidates)
     const now = new Date()

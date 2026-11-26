@@ -1,12 +1,13 @@
 import { describe, expect, it } from 'vitest'
 import {
   nameSimilarity,
+  matchFold,
+  bestNameSimilarity,
   normaliseCountry,
   parsePoint,
   pickClub,
   scoreCandidate,
   runWikidataClubSync,
-  searchTerms,
   backfillReviewLabels,
   type WikidataClub,
 } from './wikidataClubSync.js'
@@ -72,10 +73,6 @@ describe('wikidata club matching', () => {
     expect(pickClub({ id: 1, name: 'Nowhere', country: 'Spain' }, []).kind).toBe('none')
   })
 
-  it('adds F.C. search forms only when the name lacks them', () => {
-    expect(searchTerms('Chelsea')).toEqual(['Chelsea', 'Chelsea F.C.', 'FC Chelsea'])
-    expect(searchTerms('FC Midtjylland')).toEqual(['FC Midtjylland'])
-  })
 
   it('parses WKT points as lng lat', () => {
     expect(parsePoint('Point(-0.108611 51.555)')).toEqual({ lat: 51.555, lng: -0.108611 })
@@ -166,5 +163,37 @@ describe('runWikidataClubSync reruns', () => {
     expect(new Set(live.map((f) => f.field)).size).toBe(live.length)
     expect(facts.length).toBe(live.length * 2)
     expect(clubs[0].lat).toBeNull()
+  })
+})
+
+describe('matcher: aliases, word boundaries, club-form tokens', () => {
+  it('folds club-form tokens, slashes and letters NFD keeps', () => {
+    expect(matchFold('FK Bodø/Glimt')).toBe('bodo glimt')
+    expect(matchFold('Bodø / Glimt')).toBe('bodo glimt')
+    expect(matchFold('HNK Rijeka')).toBe('rijeka')
+    expect(matchFold('Ħamrun Spartans F.C.')).toBe('hamrun spartans')
+    expect(matchFold('FCSB')).toBe('fcsb')
+    expect(matchFold("St Joseph's F.C.")).toBe(matchFold('St Josephs FC'))
+  })
+
+  it('matches whole words only', () => {
+    expect(nameSimilarity('KÍ', 'FC Kiisto')).toBe(0)
+    expect(nameSimilarity('Auda', 'Audax Italiano')).toBe(0)
+    expect(nameSimilarity('Rijeka', 'HNK Rijeka')).toBe(1)
+    expect(nameSimilarity('Virtus', 'Virtus Entella')).toBe(0.85)
+  })
+
+  it('uses other-language labels and aliases', () => {
+    const sparta = { label: 'AC Sparta Prague', names: ['AC Sparta Praha', 'Sparta Prag'] }
+    expect(nameSimilarity('Sparta Praha', sparta.label)).toBeLessThan(0.85)
+    expect(bestNameSimilarity('Sparta Praha', sparta)).toBe(1)
+    expect(bestNameSimilarity('Hearts', { label: 'Heart of Midlothian F.C.', names: ['Hearts'] })).toBe(1)
+  })
+
+  it('treats Republic of Ireland as Ireland', () => {
+    expect(normaliseCountry('Republic of Ireland')).toBe('ireland')
+    expect(normaliseCountry('Gibraltar')).toBe('united kingdom')
+    const club = { id: 1, name: 'Shamrock Rovers', country: 'Republic of Ireland' }
+    expect(pickClub(club, [cand({ qid: 'Q1', label: 'Shamrock Rovers F.C.', country: 'Ireland', rank: 0 })]).kind).toBe('matched')
   })
 })
