@@ -6,7 +6,7 @@ import { broadcast } from '../sse/broadcaster.js'
 import { z } from 'zod'
 import { optionalAuth, type AuthedRequest } from '../middleware/auth.js'
 import { requireAdmin } from '../admin/middleware.js'
-import { recordEntitlementGrant } from '../admin/auditService.js'
+import { recordEntitlementGrant, recordClubLocationAction } from '../admin/auditService.js'
 import type { AdminDb, AdminAuditDb } from '../admin/db.js'
 import { rateLimitMiddleware } from '../lib/rateLimit.js'
 import { logOperationalEvent } from '../analytics/operationalEvents.js'
@@ -323,7 +323,8 @@ router.get('/club-locations/review', async (_req, res) => {
       },
       candidate: {
         wikidataId,
-        label: wikidataId, // QID label, fallback from facts
+        // The club's Wikidata name, stored by the sync as a 'label' fact; older rows fall back to the QID.
+        label: getField('label') ?? wikidataId,
         lat: latStr ? parseFloat(latStr) : null,
         lng: lngStr ? parseFloat(lngStr) : null,
         stadium,
@@ -455,6 +456,13 @@ router.post('/club-locations/:clubId/accept', async (req: AuthedRequest, res) =>
     throw err
   }
 
+  await recordClubLocationAction(adminAuditDb, {
+    actingAdminUserId: req.userId!,
+    action: 'CLUB_LOCATION_ACCEPT',
+    clubId,
+    details: { wikidataId, lat, lng, stadium, city },
+    correlationId: (req as CorrelatedRequest).correlationId ?? null,
+  })
   res.json({ ok: true, clubId, wikidataId, lat, lng, stadium, city })
 })
 
@@ -477,6 +485,13 @@ router.post('/club-locations/:clubId/reject', async (req: AuthedRequest, res) =>
     },
   })
 
+  await recordClubLocationAction(adminAuditDb, {
+    actingAdminUserId: req.userId!,
+    action: 'CLUB_LOCATION_REJECT',
+    clubId,
+    details: { rejectedCount: result.count },
+    correlationId: (req as CorrelatedRequest).correlationId ?? null,
+  })
   res.json({ ok: true, clubId, rejectedCount: result.count })
 })
 
@@ -554,6 +569,13 @@ router.post('/club-locations/:clubId/manual', async (req: AuthedRequest, res) =>
     }),
   ])
 
+  await recordClubLocationAction(adminAuditDb, {
+    actingAdminUserId: req.userId!,
+    action: 'CLUB_LOCATION_MANUAL',
+    clubId,
+    details: { lat, lng, stadium: stadium ?? null, city: city ?? null },
+    correlationId: (req as CorrelatedRequest).correlationId ?? null,
+  })
   res.json({ ok: true, clubId, lat, lng, stadium, city })
 })
 

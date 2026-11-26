@@ -696,6 +696,9 @@ model ClaimForecast {
 
 enum AdminActionType {
   ENTITLEMENT_GRANT
+  CLUB_LOCATION_ACCEPT
+  CLUB_LOCATION_REJECT
+  CLUB_LOCATION_MANUAL
 }
 
 // Immutable audit trail for privileged admin actions — append-only,
@@ -706,7 +709,13 @@ model AdminAuditEvent {
   id                Int                @id @default(autoincrement())
   actingAdminUserId Int
   actionType        AdminActionType
-  targetUserId      Int
+  /// Set for actions on a user account (entitlement grants)
+  targetUserId      Int?
+  /// Set for actions on reference data, e.g. targetType "CLUB" + the club id
+  targetType        String?
+  targetId          Int?
+  /// What changed, e.g. { wikidataId, lat, lng } or { rejectedCount }. Never secrets.
+  details           Json?
   previousTier      EntitlementTier?
   newTier           EntitlementTier?
   entitlementSource EntitlementSource?
@@ -714,9 +723,10 @@ model AdminAuditEvent {
   createdAt         DateTime           @default(now())
 
   actingAdmin User @relation("AdminAuditActor", fields: [actingAdminUserId], references: [id])
-  targetUser  User @relation("AdminAuditTarget", fields: [targetUserId], references: [id])
+  targetUser  User? @relation("AdminAuditTarget", fields: [targetUserId], references: [id], onDelete: Restrict)
 
   @@index([targetUserId, createdAt])
+  @@index([targetType, targetId, createdAt])
   @@index([actingAdminUserId, createdAt])
   @@map("admin_audit_events")
 }

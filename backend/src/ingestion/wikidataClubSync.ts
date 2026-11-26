@@ -247,6 +247,37 @@ export async function fetchClubDetails(
   return out
 }
 
+/**
+ * Review rows written before the sync stored labels have only a QID. Fetch the
+ * names for those (one call per 50 items) and add them as unapplied 'label'
+ * facts next to the rest of that reading. Returns how many labels were added.
+ */
+export async function backfillReviewLabels(db: ClubSyncDb, fetcher: Fetch, sleep: (ms: number) => Promise<void>): Promise<number> {
+  const live = { entityType: 'CLUB', source: 'wikidata', applied: false, supersededAt: null }
+  const qidFacts = await db.sourcedFact.findMany({ where: { ...live, field: 'wikidataId' } })
+  const labelled = new Set(
+    (await db.sourcedFact.findMany({ where: { ...live, field: 'label' }, select: { entityId: true } })).map((f) => f.entityId),
+  )
+  const missing = qidFacts.filter((f) => !labelled.has(f.entityId) && /^Q\d+$/.test(f.value))
+  let added = 0
+  for (let i = 0; i < missing.length; i += 50) {
+    const batch = missing.slice(i, i + 50)
+    const url = `${SEARCH_URL}?${new URLSearchParams({
+      action: 'wbgetentities', ids: [...new Set(batch.map((f) => f.value))].join('|'), props: 'labels', languages: 'en', format: 'json',
+    })}`
+    const data = (await fetchJson(fetcher, url, {}, sleep)) as { entities?: Record<string, { labels?: { en?: { value: string } } }> }
+    const rows = batch.flatMap((f) => {
+      const label = data.entities?.[f.value]?.labels?.en?.value
+      return label
+        ? [{ entityType: 'CLUB', entityId: f.entityId, field: 'label', value: label, source: 'wikidata', sourceUrl: f.sourceUrl, licence: 'CC0', confidence: f.confidence, applied: false }]
+        : []
+    })
+    if (rows.length) await db.sourcedFact.createMany({ data: rows })
+    added += rows.length
+  }
+  return added
+}
+
 export interface ClubSyncSummary {
   checked: number
   placed: number
@@ -254,6 +285,7 @@ export interface ClubSyncSummary {
   none: number
   conflicts: number
   errors: number
+  labelsBackfilled: number
 }
 
 type ClubSyncDb = Pick<PrismaClient, 'club' | 'sourcedFact' | '$transaction'>
@@ -279,7 +311,13 @@ export async function runWikidataClubSync(
   const fetcher = opts.fetcher ?? fetch
   const sleep = opts.sleep ?? ((ms) => new Promise((r) => setTimeout(r, ms)))
   const log = opts.log ?? (() => {})
-  const summary: ClubSyncSummary = { checked: 0, placed: 0, weak: 0, none: 0, conflicts: 0, errors: 0 }
+  const summary: ClubSyncSummary = { checked: 0, placed: 0, weak: 0, none: 0, conflicts: 0, errors: 0, labelsBackfilled: 0 }
+  try {
+    summary.labelsBackfilled = await backfillReviewLabels(db, fetcher, sleep)
+  } catch (err) {
+    summary.errors++
+    log(`label backfill failed: ${(err as Error).message}`)
+  }
 
   const clubs = await clubsToPlace(db, opts.limit ?? 500)
   const ranked = new Map<number, { qid: string; rank: number }[]>()
@@ -331,6 +369,8 @@ export async function runWikidataClubSync(
     const apply = pick.kind === 'matched' && !conflict
     const facts = [
       ['wikidataId', c.qid],
+      // The item's own name, so a reviewer sees "FC Sheriff Tiraspol", not just a QID.
+      ['label', c.label],
       ['lat', String(c.lat)],
       ['lng', String(c.lng)],
       ...(c.stadium ? [['stadium', c.stadium]] : []),

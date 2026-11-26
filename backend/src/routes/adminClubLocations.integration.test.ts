@@ -67,6 +67,8 @@ afterAll(async () => {
     })
   }
 
+  // Audit rows are append-only in the app; test cleanup removes this run's rows so its users can go.
+  await prisma.adminAuditEvent.deleteMany({ where: { actingAdminUserId: { in: [adminUserId, nonAdminUserId] } } })
   await prisma.user.deleteMany({
     where: { email: { startsWith: RUN_ID } },
   })
@@ -145,6 +147,17 @@ describe('Club Location Review API', () => {
           {
             entityType: 'CLUB',
             entityId: club1.id,
+            field: 'label',
+            value: 'Test Club Label FC',
+            source: 'wikidata',
+            sourceUrl: `https://www.wikidata.org/wiki/Q_NEW_${RUN_ID}`,
+            licence: 'CC0',
+            confidence: 0.65,
+            applied: false,
+          },
+          {
+            entityType: 'CLUB',
+            entityId: club1.id,
             field: 'stadium',
             value: 'Test Ground',
             source: 'wikidata',
@@ -157,6 +170,11 @@ describe('Club Location Review API', () => {
       })
 
       try {
+        // The review list shows the Wikidata name, not just the QID
+        const reviewRes = await fetch(`${baseUrl}/admin/club-locations/review`, { headers: { Cookie: cookieFor(adminUserId) } })
+        const review = (await reviewRes.json()) as { candidates: { club: { id: number }; candidate: { label: string } }[] }
+        expect(review.candidates.find((c) => c.club.id === club1.id)?.candidate.label).toBe('Test Club Label FC')
+
         // Attempting to accept a wikidataId already held by club2 should 409
         const conflictRes = await fetch(`${baseUrl}/admin/club-locations/${club1.id}/accept`, {
           method: 'POST',
@@ -186,6 +204,12 @@ describe('Club Location Review API', () => {
         const facts = await prisma.sourcedFact.findMany({ where: { entityType: 'CLUB', entityId: club1.id } })
         expect(facts.every((f) => f.applied)).toBe(true)
         expect(facts.every((f) => f.supersededAt === null)).toBe(true)
+
+        // The decision is in the admin audit trail, once (the 409 attempt changed nothing and isn't logged)
+        const audit = await prisma.adminAuditEvent.findMany({ where: { targetType: 'CLUB', targetId: club1.id } })
+        expect(audit).toHaveLength(1)
+        expect(audit[0]).toMatchObject({ actionType: 'CLUB_LOCATION_ACCEPT', actingAdminUserId: adminUserId, targetUserId: null })
+        expect(audit[0].details).toMatchObject({ wikidataId: `Q_NEW_${RUN_ID}`, stadium: 'Test Ground' })
       } finally {
         await prisma.sourcedFact.deleteMany({ where: { entityType: 'CLUB', entityId: { in: [club1.id, club2.id] } } })
         await prisma.club.deleteMany({ where: { id: { in: [club1.id, club2.id] } } })
@@ -226,6 +250,10 @@ describe('Club Location Review API', () => {
         const fact = await prisma.sourcedFact.findFirst({ where: { entityType: 'CLUB', entityId: club.id } })
         expect(fact?.applied).toBe(false)
         expect(fact?.supersededAt).not.toBeNull()
+
+        const audit = await prisma.adminAuditEvent.findMany({ where: { targetType: 'CLUB', targetId: club.id } })
+        expect(audit.map((a) => a.actionType)).toEqual(['CLUB_LOCATION_REJECT'])
+        expect(audit[0].details).toMatchObject({ rejectedCount: 1 })
       } finally {
         await prisma.sourcedFact.deleteMany({ where: { entityType: 'CLUB', entityId: club.id } })
         await prisma.club.deleteMany({ where: { id: club.id } })
@@ -279,6 +307,11 @@ describe('Club Location Review API', () => {
         const facts = await prisma.sourcedFact.findMany({ where: { entityType: 'CLUB', entityId: club.id, source: 'manual' } })
         expect(facts.length).toBe(4)
         expect(facts.every((f) => f.licence === 'manual' && f.confidence === 1 && f.applied)).toBe(true)
+
+        // Only the accepted request is audited; the two 400s changed nothing
+        const audit = await prisma.adminAuditEvent.findMany({ where: { targetType: 'CLUB', targetId: club.id } })
+        expect(audit.map((a) => a.actionType)).toEqual(['CLUB_LOCATION_MANUAL'])
+        expect(audit[0].details).toMatchObject({ lat: 40.4168, lng: -3.7038, stadium: 'Estadio Manual', city: 'Madrid' })
       } finally {
         await prisma.sourcedFact.deleteMany({ where: { entityType: 'CLUB', entityId: club.id } })
         await prisma.club.deleteMany({ where: { id: club.id } })
