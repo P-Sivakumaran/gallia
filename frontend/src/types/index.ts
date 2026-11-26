@@ -123,6 +123,20 @@ export interface AdminReviewItem {
   suggestedKnownAt: string | null
 }
 
+export type SourceLicenceStatus =
+  | 'CLEARED'
+  | 'NEEDS_LICENCE'
+  | 'PERSONAL_ONLY'
+  | 'BLOCKED'
+  | 'UNKNOWN'
+
+export interface SourceDisplayRights {
+  headline: boolean
+  snippetChars: number
+  link: boolean
+  embed: boolean
+}
+
 export interface AdminSource {
   id: number
   name: string
@@ -132,6 +146,11 @@ export interface AdminSource {
   missCount: number
   country: string | null
   url: string | null
+  licenceStatus: SourceLicenceStatus
+  licenceNote: string | null
+  termsUrl: string | null
+  displayRights: SourceDisplayRights | null
+  licenceReviewedAt: string | null
   _count: { rumours: number }
 }
 
