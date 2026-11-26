@@ -19,6 +19,7 @@ import { runPlayerClubSyncWithPrisma } from '../ingestion/playerClubSync.js'
 import { runStatsApiClubSyncWithPrisma } from '../ingestion/statsApiClubSync.js'
 import { runRetentionPurge, type RetentionDb, type PurgeHealthDb } from '../analytics/retention.js'
 import { logOperationalEvent, type OperationalEventDb } from '../analytics/operationalEvents.js'
+import { licenceWarning } from '../sources/licences.js'
 
 const prisma = new PrismaClient()
 
@@ -79,6 +80,9 @@ async function processIngest(job: { data: IngestJobData }) {
     const defaultReliability = feedMeta?.defaultReliability ?? 0.50
 
     const signals = await fetchRSSSignals(feedUrl, sourceName)
+    // Licence registry: record now, enforce later (docs/news-scanner-plan.md Phase A).
+    const licenceNote = licenceWarning(sourceName)
+    if (licenceNote) console.warn(licenceNote)
     let matched = 0
     const enrichedPlayers = new Set<number>() // avoid duplicate enrich jobs per batch
 

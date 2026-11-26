@@ -259,6 +259,17 @@ model Source {
   // source specializes in, e.g. ["Serie A"].
   // Null = general/unclassified coverage.
   manualReviewStatus SourceReviewStatus @default(UNREVIEWED)
+  // Licence registry (docs/news-scanner-plan.md Phase A). Recorded now, enforced later: collectors
+  // log sources that aren't CLEARED; public display rules switch on when a licensed feed replaces them.
+  licenceStatus      SourceLicenceStatus @default(UNKNOWN)
+  licenceNote        String?
+  termsUrl           String?
+  /// e.g. { "headline": true, "snippetChars": 0, "link": true, "embed": false }
+  displayRights      Json?
+  /// May article text be stored, or only processed in memory?
+  storeFullText      Boolean            @default(false)
+  dailyRequestBudget Int?
+  licenceReviewedAt  DateTime?
   profileVersion     Int                @default(1) // bump whenever tier/type/coverage
   // is edited by a human reviewer.
   createdAt          DateTime           @default(now())
@@ -449,6 +460,14 @@ enum EvidenceDirection {
   CONFIRMS
   DENIES
   CONTEXTUAL
+}
+
+enum SourceLicenceStatus {
+  CLEARED // terms allow Gallia's use (state what in displayRights)
+  NEEDS_LICENCE // usable only with permission, a paid plan or written terms
+  PERSONAL_ONLY // terms allow personal, non-commercial use only
+  BLOCKED // must not be used (terms forbid it, or retired by the owner)
+  UNKNOWN // not reviewed yet
 }
 
 enum SourceReviewStatus {

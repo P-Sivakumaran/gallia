@@ -75,6 +75,7 @@ router.get('/sources', async (_req, res) => {
     select: {
       id: true, name: true, type: true, reliabilityScore: true,
       hitCount: true, missCount: true, country: true, url: true,
+      licenceStatus: true, licenceNote: true, termsUrl: true, displayRights: true, licenceReviewedAt: true,
       _count: { select: { rumours: true } },
     },
   })
