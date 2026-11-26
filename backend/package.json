@@ -12,7 +12,8 @@
     "generate": "prisma generate",
     "test": "vitest run",
     "sync:wikidata-clubs": "tsx src/scripts/syncWikidataClubs.ts",
-    "sources:licences": "tsx src/scripts/applySourceLicences.ts"
+    "sources:licences": "tsx src/scripts/applySourceLicences.ts",
+    "sync:football-data": "tsx src/scripts/syncFootballData.ts"
   },
   "dependencies": {
     "@prisma/client": "^5.10.2",

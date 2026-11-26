@@ -8,25 +8,25 @@ datasource db {
 }
 
 model Club {
-  id          Int      @id @default(autoincrement())
-  externalId  String?  @unique
-  name        String
-  shortName   String?
-  league      String   @default("Unknown")
-  country     String   @default("Unknown")
-  logoUrl     String?
-  autoCreated Boolean  @default(false)
+  id            Int       @id @default(autoincrement())
+  externalId    String?   @unique
+  name          String
+  shortName     String?
+  league        String    @default("Unknown")
+  country       String    @default("Unknown")
+  logoUrl       String?
+  autoCreated   Boolean   @default(false)
   /// Data-feed stand-in such as "TBC" (destination not known); never placed on the map
-  isPlaceholder Boolean @default(false)
-  city        String?
-  stadium     String?
-  lat         Float?
-  lng         Float?
-  wikidataId  String?  @unique
+  isPlaceholder Boolean   @default(false)
+  city          String?
+  stadium       String?
+  lat           Float?
+  lng           Float?
+  wikidataId    String?   @unique
   /// When the Wikidata club sync last looked at this row
-  geoCheckedAt DateTime?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  geoCheckedAt  DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
   players     Player[]
   rumoursFrom Rumour[] @relation("FromClub")
@@ -50,15 +50,23 @@ model Player {
   photoUrl      String?
   autoCreated   Boolean   @default(false)
   wikidataId    String? // Wikidata entity QID (e.g. "Q59306386")
+  // TheStatsAPI profile (docs/football-data-plan.md). All nullable: filled by the football-data sync.
+  tsaPlayerId   String?   @unique
+  positionGroup String? // GK | DEF | MID | FWD (TheStatsAPI only gives G/D/M/F; `position` keeps the finer value)
+  dateOfBirth   DateTime?
+  heightCm      Int?
+  preferredFoot String?
+  shirtNumber   Int?
   enrichedAt    DateTime? // when Wikidata enrichment last ran
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
-  currentClub   Club?             @relation(fields: [currentClubId], references: [id])
+  currentClub   Club?              @relation(fields: [currentClubId], references: [id])
   rumours       Rumour[]
   watchlistedBy WatchlistPlayer[]
   claims        Claim[]
   agents        PlayerAgent[]
+  seasonStats   PlayerSeasonStat[]
 
   @@map("players")
 }
@@ -82,7 +90,7 @@ model Agent {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
-  players     PlayerAgent[]
+  players PlayerAgent[]
 
   @@map("agents")
 }
@@ -103,8 +111,8 @@ model PlayerAgent {
   validTo   DateTime?
   createdAt DateTime        @default(now())
 
-  player    Player          @relation(fields: [playerId], references: [id], onDelete: Cascade)
-  agent     Agent           @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  player Player @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  agent  Agent  @relation(fields: [agentId], references: [id], onDelete: Cascade)
 
   @@unique([playerId, agentId, role, rumourId])
   @@index([agentId])
@@ -157,10 +165,10 @@ model User {
   // never by a user acting on themself, see requireAdmin/adminController.
   role Role @default(USER)
 
-  watchlist               WatchlistPlayer[]
-  productEvents           ProductEvent[]
-  apiKeys                 ApiKey[]
-  adminAuditEventsActed   AdminAuditEvent[] @relation("AdminAuditActor")
+  watchlist                WatchlistPlayer[]
+  productEvents            ProductEvent[]
+  apiKeys                  ApiKey[]
+  adminAuditEventsActed    AdminAuditEvent[] @relation("AdminAuditActor")
   adminAuditEventsTargeted AdminAuditEvent[] @relation("AdminAuditTarget")
 
   @@map("users")
@@ -238,12 +246,12 @@ model ProductEvent {
 }
 
 model Source {
-  id                 Int                @id @default(autoincrement())
-  name               String             @unique
+  id                 Int                 @id @default(autoincrement())
+  name               String              @unique
   type               SourceType
-  reliabilityScore   Float              @default(0.5) // 0.0 – 1.0
-  hitCount           Int                @default(0) // rumours that completed
-  missCount          Int                @default(0) // rumours that failed/denied
+  reliabilityScore   Float               @default(0.5) // 0.0 – 1.0
+  hitCount           Int                 @default(0) // rumours that completed
+  missCount          Int                 @default(0) // rumours that failed/denied
   country            String?
   url                String?
   // Source-quality metadata — evidence-model fields (2026-08-14). Distinct
@@ -258,7 +266,7 @@ model Source {
   leagueCoverage     Json? // array of league/competition names this
   // source specializes in, e.g. ["Serie A"].
   // Null = general/unclassified coverage.
-  manualReviewStatus SourceReviewStatus @default(UNREVIEWED)
+  manualReviewStatus SourceReviewStatus  @default(UNREVIEWED)
   // Licence registry (docs/news-scanner-plan.md Phase A). Recorded now, enforced later: collectors
   // log sources that aren't CLEARED; public display rules switch on when a licensed feed replaces them.
   licenceStatus      SourceLicenceStatus @default(UNKNOWN)
@@ -267,13 +275,13 @@ model Source {
   /// e.g. { "headline": true, "snippetChars": 0, "link": true, "embed": false }
   displayRights      Json?
   /// May article text be stored, or only processed in memory?
-  storeFullText      Boolean            @default(false)
+  storeFullText      Boolean             @default(false)
   dailyRequestBudget Int?
   licenceReviewedAt  DateTime?
-  profileVersion     Int                @default(1) // bump whenever tier/type/coverage
+  profileVersion     Int                 @default(1) // bump whenever tier/type/coverage
   // is edited by a human reviewer.
-  createdAt          DateTime           @default(now())
-  updatedAt          DateTime           @updatedAt
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
 
   rumours       Rumour[]
   evidenceItems EvidenceItem[]
@@ -315,9 +323,9 @@ model Rumour {
   toClub   Club   @relation("ToClub", fields: [toClubId], references: [id])
   source   Source @relation(fields: [sourceId], references: [id])
 
-  contradictsRel Rumour?         @relation("RumourContradiction", fields: [contradicts], references: [id])
-  contradictedBy Rumour[]        @relation("RumourContradiction")
-  history        RumourHistory[]
+  contradictsRel   Rumour?           @relation("RumourContradiction", fields: [contradicts], references: [id])
+  contradictedBy   Rumour[]          @relation("RumourContradiction")
+  history          RumourHistory[]
   scoringSnapshots ScoringSnapshot[]
 
   @@map("rumours")
@@ -339,7 +347,7 @@ model ScoringSnapshot {
   distinctSourceCount    Int
   baseProbability        Float?
   score                  Float
-  scoreSource            String   // "heuristic" | "ml"
+  scoreSource            String // "heuristic" | "ml"
   createdAt              DateTime @default(now())
 
   rumour Rumour @relation(fields: [rumourId], references: [id])
@@ -743,7 +751,7 @@ model AdminAuditEvent {
   correlationId     String?
   createdAt         DateTime           @default(now())
 
-  actingAdmin User @relation("AdminAuditActor", fields: [actingAdminUserId], references: [id])
+  actingAdmin User  @relation("AdminAuditActor", fields: [actingAdminUserId], references: [id])
   targetUser  User? @relation("AdminAuditTarget", fields: [targetUserId], references: [id], onDelete: Restrict)
 
   @@index([targetUserId, createdAt])
@@ -859,4 +867,153 @@ model PurgeHealth {
   updatedAt          DateTime  @updatedAt
 
   @@map("purge_health")
+}
+
+// ── Football data (TheStatsAPI; docs/football-data-plan.md) ──────────────────
+// Stored only as far as Gallia's pages need: current season, previous at most.
+
+model Competition {
+  id             Int      @id @default(autoincrement())
+  tsaId          String   @unique
+  name           String
+  country        String?
+  countryCode    String?
+  type           String // league | cup | tournament
+  hasPlayerStats Boolean  @default(false)
+  xgAvailable    Boolean  @default(false)
+  /// Synced only when true; priority orders spare budget (lower = first)
+  tracked        Boolean  @default(false)
+  priority       Int      @default(100)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  seasons Season[]
+
+  @@map("competitions")
+}
+
+model Season {
+  id            Int      @id @default(autoincrement())
+  tsaId         String   @unique
+  competitionId Int
+  name          String
+  startYear     Int?
+  endYear       Int?
+  isCurrent     Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  competition Competition        @relation(fields: [competitionId], references: [id], onDelete: Cascade)
+  fixtures    Fixture[]
+  standings   Standing[]
+  playerStats PlayerSeasonStat[]
+  snapshots   GameweekSnapshot[]
+
+  @@index([competitionId, isCurrent])
+  @@map("seasons")
+}
+
+model Fixture {
+  id              Int       @id @default(autoincrement())
+  tsaId           String    @unique
+  seasonId        Int
+  matchday        Int?
+  kickoffAt       DateTime
+  status          String // as given by TheStatsAPI, e.g. scheduled | live | finished | postponed
+  homeClubId      Int?
+  awayClubId      Int?
+  homeGoals       Int?
+  awayGoals       Int?
+  /// Set once the post-match detail (lineups, stats, shotmap) has been fetched
+  detailFetchedAt DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  season Season @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+
+  @@index([seasonId, matchday])
+  @@index([status, kickoffAt])
+  @@map("fixtures")
+}
+
+model Standing {
+  id             Int      @id @default(autoincrement())
+  seasonId       Int
+  clubId         Int
+  groupLabel     String   @default("")
+  position       Int
+  played         Int
+  wins           Int
+  draws          Int
+  losses         Int
+  goalsFor       Int
+  goalsAgainst   Int
+  goalDifference Int
+  points         Int
+  form           String?
+  xgFor          Float?
+  xgAgainst      Float?
+  updatedAt      DateTime @updatedAt
+
+  season Season @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+
+  @@unique([seasonId, clubId, groupLabel])
+  @@map("standings")
+}
+
+model PlayerSeasonStat {
+  id            Int      @id @default(autoincrement())
+  playerId      Int
+  seasonId      Int
+  clubId        Int?
+  positionGroup String?
+  rating        Float?
+  appearances   Int      @default(0)
+  starts        Int      @default(0)
+  minutes       Int      @default(0)
+  goals         Int      @default(0)
+  assists       Int      @default(0)
+  xg            Float?
+  xa            Float?
+  /// The provider's nested stat groups (scoring, shooting, passing, duels, defending, discipline…)
+  detail        Json
+  syncedAt      DateTime @default(now())
+
+  player Player @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  season Season @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+
+  @@unique([playerId, seasonId])
+  @@index([seasonId, positionGroup])
+  @@map("player_season_stats")
+}
+
+/// Frozen at the close of a gameweek; pages read these instead of calling the provider.
+model GameweekSnapshot {
+  id       Int      @id @default(autoincrement())
+  seasonId Int
+  matchday Int
+  /// { standings, leaders, cards } as served to pages
+  payload  Json
+  closedAt DateTime @default(now())
+
+  season Season @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+
+  @@unique([seasonId, matchday])
+  @@map("gameweek_snapshots")
+}
+
+/// One row per provider request (never the key): drives the pacer and the admin spend view.
+model ProviderRequest {
+  id             Int       @id @default(autoincrement())
+  provider       String // thestatsapi
+  kind           String // standings | squad | player-stats | fixtures | match-detail | …
+  path           String
+  status         Int
+  quotaRemaining Int?
+  quotaResetAt   DateTime?
+  competitionId  Int?
+  at             DateTime  @default(now())
+
+  @@index([provider, at])
+  @@map("provider_requests")
 }
