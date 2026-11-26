@@ -91,7 +91,7 @@ function ReviewCard({ item, onResolved }: { item: AdminReviewItem; onResolved: (
           <ul className="g-list" style={{ display: 'grid', gap: 4 }}>
             {item.textSignals.map((s, i) => (
               <li key={i}>
-                <span style={{ color: '#e6ecf1', fontWeight: 550 }}>{s.outcome === 'COMPLETED' ? 'Suggests done' : 'Suggests off'}</span>
+                <span style={{ color: 'var(--g-c-e6ecf1)', fontWeight: 550 }}>{s.outcome === 'COMPLETED' ? 'Suggests done' : 'Suggests off'}</span>
                 <span className="g-muted">
                   {s.sourceName}, {formatDate(s.publishedAt)}:
                 </span>
