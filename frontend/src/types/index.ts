@@ -484,3 +484,127 @@ export interface PlayerFootballStatsResponse {
   seasons: PlayerSeasonLine[]
 }
 
+export interface MatchSide {
+  id: number | null
+  name: string
+  goals: number | null
+}
+
+export interface MatchdayFixture {
+  id: number
+  kickoffAt: string
+  status: string
+  hasDetail: boolean
+  home: MatchSide
+  away: MatchSide
+}
+
+export interface MatchdayFixturesResponse {
+  source: string
+  matchday: number
+  fixtures: MatchdayFixture[]
+}
+
+export interface MatchLineupPlayer {
+  id: string
+  name: string
+  position: string | null
+  shirt: number | null
+}
+
+export interface MatchLineupSide {
+  teamId: string
+  formation: string | null
+  startingXi: MatchLineupPlayer[]
+  bench: MatchLineupPlayer[]
+}
+
+export interface MatchLineups {
+  confirmed: boolean
+  home: MatchLineupSide | null
+  away: MatchLineupSide | null
+}
+
+export interface MatchEventRef {
+  id: string
+  name: string
+}
+
+export interface MatchEvent {
+  minute: number | null
+  extra: number
+  period: string | number | null
+  type: string
+  team: MatchEventRef | null
+  player: MatchEventRef | null
+  related: MatchEventRef | null
+}
+
+export interface MatchTeamStatPair {
+  home: number | null
+  away: number | null
+}
+
+export type MatchTeamStats = Record<string, MatchTeamStatPair | unknown>
+
+export interface MatchPlayerStat {
+  playerId: string
+  name: string
+  teamId: string
+  position: string | null
+  rating: number | null
+  started: boolean
+  minutes: number
+  goals: number
+  assists: number
+  xg: number | null
+  xa: number | null
+  shots: number
+  onTarget: number
+  passes: number
+  accuratePasses: number
+  keyPasses: number
+  tackles: number | null
+  interceptions: number | null
+  duelsWon: number | null
+  saves: number | null
+}
+
+export interface MatchShot {
+  playerId: string
+  player: string
+  teamId: string
+  minute: number | null
+  x: number
+  y: number
+  xg: number | null
+  result: string | null
+  situation: string | null
+  bodyPart: string | null
+  isGoal: boolean
+}
+
+export interface MatchDetailPayload {
+  lineups: MatchLineups
+  events: MatchEvent[]
+  teamStats: MatchTeamStats
+  playerStats: MatchPlayerStat[]
+  shots: MatchShot[]
+}
+
+export interface MatchResponse {
+  source: string
+  match: {
+    id: number
+    competition: { id: number; name: string }
+    season: string
+    matchday: number
+    kickoffAt: string
+    status: string
+    home: MatchSide
+    away: MatchSide
+  }
+  galliaPlayerIds: Record<string, number>
+  detail: MatchDetailPayload | null
+}
+

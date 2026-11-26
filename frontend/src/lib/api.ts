@@ -13,6 +13,8 @@ import type {
   FootballCompetition,
   CompetitionTable,
   ClubSquad,
+  MatchdayFixturesResponse,
+  MatchResponse,
   RumourDetail,
   RumourStatus,
   Rumour,
@@ -132,6 +134,12 @@ export const api = {
   football: {
     competitions: () => get<{ source: string; competitions: FootballCompetition[] }>('/football/competitions'),
     table: (competitionId: number) => get<CompetitionTable>(`/football/competitions/${competitionId}/table`),
+    fixtures: (competitionId: number, matchday?: number) =>
+      get<MatchdayFixturesResponse>(
+        `/football/competitions/${competitionId}/fixtures`,
+        matchday != null ? { matchday } : undefined,
+      ),
+    match: (id: number) => get<MatchResponse>(`/football/matches/${id}`),
     squad: (clubId: number) => get<ClubSquad>(`/football/clubs/${clubId}/squad`),
     player: (id: number) => get<import('@/types').PlayerFootballStatsResponse>(`/football/players/${id}`),
   },
