@@ -14,7 +14,7 @@
 .lockup {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 4px;
 }
 
 .mark {
@@ -24,7 +24,7 @@
   flex-shrink: 0;
   width: 33px;
   height: 36px;
-  padding-right: 3px;
+  padding-right: 4px;
   color: var(--signal-fire);
   font-size: 25px;
   font-weight: 500;
@@ -69,7 +69,7 @@
   align-self: flex-start;
   width: 6px;
   height: 6px;
-  margin: 7px 0 0 3px;
+  margin: 8px 0 0 4px;
   border-radius: 50%;
   background: var(--signal-fire);
 }
@@ -85,7 +85,7 @@
 }
 
 .wordmark:hover .frame {
-  color: #b4edc8;
+  color: var(--g-c-b4edc8);
 }
 
 /* The resting logo is visible by default; motion is strictly opt-in. */

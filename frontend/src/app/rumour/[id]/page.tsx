@@ -80,7 +80,7 @@ export default async function RumourDetailPage({ params }: { params: Promise<{ i
         <aside className="g-panel">
           <PanelHeading title="Source" right={<span className="g-count-label">{rumour.source.type.replace(/_/g, ' ')}</span>} />
           <div className="g-panel-body">
-            <p style={{ fontSize: 16, color: '#edf1f5', fontWeight: 550 }}>{rumour.source.name}</p>
+            <p style={{ fontSize: 16, color: 'var(--g-c-edf1f5)', fontWeight: 550 }}>{rumour.source.name}</p>
             <div className="g-row-prob" style={{ alignItems: 'flex-start', marginTop: 16 }}>
               <strong>{reliability}<small>%</small></strong>
               <span className="g-probability-track" style={{ width: '100%' }}><i style={{ width: `${reliability}%`, background: 'var(--g-green)' }} /></span>
