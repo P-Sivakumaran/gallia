@@ -35,6 +35,7 @@ export type PlayerSyncJobData = Record<string, never>
 export type MaintenanceJobData =
   | { task: 'purge-product-events' }
   | { task: 'resolve-window-outcomes' }
+  | { task: 'football-tick' }
 
 const defaultOpts = { connection: createRedisConnection() }
 

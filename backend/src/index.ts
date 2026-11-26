@@ -22,6 +22,7 @@ import researchRouter from './routes/research.js'
 import analyticsRouter from './routes/analytics.js'
 import apiKeysRouter from './routes/apiKeys.js'
 import galliaRouter from './routes/gallia.js'
+import footballRouter from './routes/football.js'
 import { addClient, clientCount } from './sse/broadcaster.js'
 import { startWorkers } from './queue/workers.js'
 import { scheduleRecurringJobs } from './queue/scheduler.js'
@@ -46,6 +47,7 @@ app.use('/stats', statsRouter)
 app.use('/gallia', galliaRouter)
 app.use('/graph', graphRouter)
 app.use('/map', mapRouter)
+app.use('/football', footballRouter)
 // Additive — parallel provenance/evidence model, does not change /rumours'
 // existing contract. See docs/forecasting-audit.md.
 app.use('/claims', claimsRouter)

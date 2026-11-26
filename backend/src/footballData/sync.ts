@@ -97,6 +97,12 @@ export interface FootballSyncOptions {
   only?: ('fixtures' | 'standings' | 'squads' | 'player-stats')[]
   /** Max squads (teams) to process this run, for incremental runs */
   teamLimit?: number
+  /** Only these competitions (TheStatsAPI ids); default all tracked */
+  competitionTsaIds?: string[]
+  /** Only these clubs' squads and player stats (e.g. the clubs that just played) */
+  clubIds?: Set<number>
+  /** Player stats younger than this are skipped (default 6 days; 0 = always refresh) */
+  statsFreshMs?: number
   log?: (m: string) => void
 }
 
@@ -113,6 +119,8 @@ export async function runFootballDataSync(db: Db, api: TheStatsApiClient, opts: 
 
   try {
     for (const tc of TRACKED_COMPETITIONS) {
+      const known = await db.competition.findFirst({ where: { name: tc.name, tracked: true }, select: { tsaId: true } })
+      if (opts.competitionTsaIds && (!known || !opts.competitionTsaIds.includes(known.tsaId))) continue
       const comp = await syncCompetition(db, api, tc)
       if (!comp) { log(`competition not found: ${tc.name}`); continue }
       summary.competitions++
@@ -171,6 +179,7 @@ export async function runFootballDataSync(db: Db, api: TheStatsApiClient, opts: 
         }
         let processed = 0
         for (const team of teams.values()) {
+          if (opts.clubIds && !opts.clubIds.has(team.clubId)) continue
           if (opts.teamLimit != null && processed >= opts.teamLimit) break
           processed++
           let squad = squads.get(team.id)
@@ -183,7 +192,7 @@ export async function runFootballDataSync(db: Db, api: TheStatsApiClient, opts: 
             const playerId = await upsertSquadPlayer(db, sp, team.clubId, byTsaId, byName, summary)
             if (playerId == null || !want('player-stats') || !comp.hasPlayerStats) continue
             const existing = await db.playerSeasonStat.findUnique({ where: { playerId_seasonId: { playerId, seasonId: season.id } }, select: { syncedAt: true } })
-            if (existing && Date.now() - existing.syncedAt.getTime() < STATS_FRESH_MS) continue
+            if (existing && Date.now() - existing.syncedAt.getTime() < (opts.statsFreshMs ?? STATS_FRESH_MS)) continue
             const res = await api
               .get<{ data: TsaPlayerStats | null }>(`/football/players/${sp.id}/stats?${path}`, 'player-stats', comp.id)
               .catch((e) => {
