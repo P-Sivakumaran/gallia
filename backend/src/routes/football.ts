@@ -120,4 +120,51 @@ router.get('/players/:id', async (req: Request, res: Response) => {
   res.json({ source: SOURCE, player, seasons: lines })
 })
 
+// GET /football/competitions/:id/fixtures?matchday=N — fixtures for a matchday (default: the latest played)
+router.get('/competitions/:id/fixtures', async (req: Request, res: Response) => {
+  const id = parseInt(req.params.id, 10)
+  if (isNaN(id)) { res.status(400).json({ error: 'Invalid competition id' }); return }
+  const season = await prisma.season.findFirst({ where: { competitionId: id, isCurrent: true, competition: { tracked: true } } })
+  if (!season) { res.status(404).json({ error: 'Competition not found' }); return }
+  let matchday = req.query.matchday != null ? parseInt(String(req.query.matchday), 10) : NaN
+  if (isNaN(matchday)) {
+    const latest = await prisma.fixture.findFirst({ where: { seasonId: season.id, status: 'finished' }, orderBy: { kickoffAt: 'desc' }, select: { matchday: true } })
+    matchday = latest?.matchday ?? 1
+  }
+  const fixtures = await prisma.fixture.findMany({ where: { seasonId: season.id, matchday }, orderBy: { kickoffAt: 'asc' } })
+  const clubs = new Map((await prisma.club.findMany({ where: { id: { in: fixtures.flatMap((f) => [f.homeClubId, f.awayClubId]).filter((c): c is number => c != null) } }, select: { id: true, name: true } })).map((c) => [c.id, c.name]))
+  cacheUntilNextGameweek(res)
+  res.json({
+    source: SOURCE, matchday,
+    fixtures: fixtures.map((f) => ({
+      id: f.id, kickoffAt: f.kickoffAt, status: f.status, hasDetail: f.detailFetchedAt != null,
+      home: { id: f.homeClubId, name: f.homeClubId ? clubs.get(f.homeClubId) ?? '?' : '?', goals: f.homeGoals },
+      away: { id: f.awayClubId, name: f.awayClubId ? clubs.get(f.awayClubId) ?? '?' : '?', goals: f.awayGoals },
+    })),
+  })
+})
+
+// GET /football/matches/:id — one match: score, lineups, key events, team stats, player lines, shots
+router.get('/matches/:id', async (req: Request, res: Response) => {
+  const id = parseInt(req.params.id, 10)
+  if (isNaN(id)) { res.status(400).json({ error: 'Invalid match id' }); return }
+  const f = await prisma.fixture.findUnique({ where: { id }, include: { detail: true, season: { select: { name: true, competition: { select: { id: true, name: true } } } } } })
+  if (!f) { res.status(404).json({ error: 'Match not found' }); return }
+  const clubs = new Map((await prisma.club.findMany({ where: { id: { in: [f.homeClubId, f.awayClubId].filter((c): c is number => c != null) } }, select: { id: true, name: true } })).map((c) => [c.id, c.name]))
+  // Link provider player ids to Gallia players, so the page can link to /player/[id].
+  const tsaIds = ((f.detail?.playerStats as { playerId: string }[] | undefined) ?? []).map((p) => p.playerId)
+  const players = tsaIds.length ? await prisma.player.findMany({ where: { tsaPlayerId: { in: tsaIds } }, select: { id: true, tsaPlayerId: true } }) : []
+  cacheUntilNextGameweek(res)
+  res.json({
+    source: SOURCE,
+    match: {
+      id: f.id, competition: f.season.competition, season: f.season.name, matchday: f.matchday, kickoffAt: f.kickoffAt, status: f.status,
+      home: { id: f.homeClubId, name: f.homeClubId ? clubs.get(f.homeClubId) ?? '?' : '?', goals: f.homeGoals },
+      away: { id: f.awayClubId, name: f.awayClubId ? clubs.get(f.awayClubId) ?? '?' : '?', goals: f.awayGoals },
+    },
+    galliaPlayerIds: Object.fromEntries(players.map((p) => [p.tsaPlayerId, p.id])),
+    detail: f.detail ? { lineups: f.detail.lineups, events: f.detail.events, teamStats: f.detail.teamStats, playerStats: f.detail.playerStats, shots: f.detail.shots } : null,
+  })
+})
+
 export default router

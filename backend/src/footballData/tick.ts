@@ -10,11 +10,15 @@ import type { PrismaClient } from '@prisma/client'
 import { DailyBudgetSpent, QuotaReserveReached, type TheStatsApiClient } from './client.js'
 import { runFootballDataSync } from './sync.js'
 import { SETTLE_MS, closedMatchdays, pruneSnapshots, writeSnapshot } from './snapshot.js'
+import { fetchMatchDetail } from './matchDetail.js'
+
+/** Match pages: at most this many matches get their detail fetched per tick (5 requests each). */
+const DETAIL_PER_TICK = 30
 
 const HOUR = 3_600_000
 const DAY = 24 * HOUR
 
-export interface TickSummary { fixtures: string[]; tables: string[]; snapshots: string[]; squads: boolean; pruned: number; stoppedBy: string | null; requests: number }
+export interface TickSummary { fixtures: string[]; tables: string[]; snapshots: string[]; matchDetails: number; squads: boolean; pruned: number; stoppedBy: string | null; requests: number }
 
 async function lastRequest(db: PrismaClient, kind: string, competitionId?: number): Promise<number> {
   const r = await db.providerRequest.findFirst({
@@ -26,7 +30,7 @@ async function lastRequest(db: PrismaClient, kind: string, competitionId?: numbe
 }
 
 export async function runFootballTick(db: PrismaClient, api: TheStatsApiClient, now = Date.now(), log: (m: string) => void = () => {}): Promise<TickSummary> {
-  const out: TickSummary = { fixtures: [], tables: [], snapshots: [], squads: false, pruned: 0, stoppedBy: null, requests: 0 }
+  const out: TickSummary = { fixtures: [], tables: [], snapshots: [], matchDetails: 0, squads: false, pruned: 0, stoppedBy: null, requests: 0 }
   const comps = await db.competition.findMany({ where: { tracked: true }, orderBy: { priority: 'asc' }, include: { seasons: { where: { isCurrent: true } } } })
   try {
     for (const comp of comps) {
@@ -54,6 +58,17 @@ export async function runFootballTick(db: PrismaClient, api: TheStatsApiClient, 
         await writeSnapshot(db, season.id, latest)
         out.snapshots.push(`${comp.name} MD${latest}`)
       }
+    }
+
+    // Match pages: detail for settled matches that don't have it yet, newest first, top competitions first.
+    const needDetail = await db.fixture.findMany({
+      where: { status: 'finished', detailFetchedAt: null, kickoffAt: { lte: new Date(now - SETTLE_MS) }, season: { isCurrent: true, competition: { tracked: true } } },
+      orderBy: [{ kickoffAt: 'desc' }],
+      take: DETAIL_PER_TICK,
+      select: { id: true, tsaId: true, season: { select: { competitionId: true } } },
+    })
+    for (const f of needDetail) {
+      if (await fetchMatchDetail(db, api, f, f.season.competitionId)) out.matchDetails++
     }
 
     if (now - (await lastRequest(db, 'squad')) > 7 * DAY) {

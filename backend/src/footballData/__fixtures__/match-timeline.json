@@ -1,0 +1,188 @@
+{
+ "data": {
+  "match_id": "mt_test",
+  "coverage": "full",
+  "events": [
+   {
+    "sequence": 1,
+    "minute": 1,
+    "extra_time": 0,
+    "period": "first_half",
+    "type": "period_start",
+    "team": null,
+    "player": null
+   },
+   {
+    "sequence": 2,
+    "minute": 5,
+    "extra_time": 0,
+    "period": "first_half",
+    "type": "foul",
+    "team": {
+     "id": "tm_a",
+     "name": "Away FC"
+    },
+    "player": {
+     "id": "pl_t21",
+     "name": "pl_t21"
+    }
+   },
+   {
+    "sequence": 3,
+    "minute": 9,
+    "extra_time": 0,
+    "period": "first_half",
+    "type": "corner_kick",
+    "team": {
+     "id": "tm_h",
+     "name": "Home FC"
+    },
+    "player": null
+   },
+   {
+    "sequence": 4,
+    "minute": 12,
+    "extra_time": 0,
+    "period": "first_half",
+    "type": "goal",
+    "team": {
+     "id": "tm_h",
+     "name": "Home FC"
+    },
+    "player": {
+     "id": "pl_t10",
+     "name": "pl_t10"
+    }
+   },
+   {
+    "sequence": 5,
+    "minute": 30,
+    "extra_time": 0,
+    "period": "first_half",
+    "type": "yellow_card",
+    "team": {
+     "id": "tm_a",
+     "name": "Away FC"
+    },
+    "player": {
+     "id": "pl_t25",
+     "name": "pl_t25"
+    }
+   },
+   {
+    "sequence": 6,
+    "minute": 44,
+    "extra_time": 0,
+    "period": "first_half",
+    "type": "goal",
+    "team": {
+     "id": "tm_h",
+     "name": "Home FC"
+    },
+    "player": {
+     "id": "pl_t11",
+     "name": "pl_t11"
+    }
+   },
+   {
+    "sequence": 7,
+    "minute": 45,
+    "extra_time": 0,
+    "period": "first_half",
+    "type": "period_end",
+    "team": null,
+    "player": null
+   },
+   {
+    "sequence": 8,
+    "minute": 60,
+    "extra_time": 0,
+    "period": "second_half",
+    "type": "substitution",
+    "team": {
+     "id": "tm_h",
+     "name": "Home FC"
+    },
+    "player": {
+     "id": "pl_t12",
+     "name": "pl_t12"
+    }
+   },
+   {
+    "sequence": 9,
+    "minute": 70,
+    "extra_time": 0,
+    "period": "second_half",
+    "type": "var",
+    "team": {
+     "id": "tm_a",
+     "name": "Away FC"
+    },
+    "player": null
+   },
+   {
+    "sequence": 10,
+    "minute": 75,
+    "extra_time": 0,
+    "period": "second_half",
+    "type": "goal",
+    "team": {
+     "id": "tm_h",
+     "name": "Home FC"
+    },
+    "player": {
+     "id": "pl_t10",
+     "name": "pl_t10"
+    }
+   },
+   {
+    "sequence": 11,
+    "minute": 80,
+    "extra_time": 0,
+    "period": "second_half",
+    "type": "red_card",
+    "team": {
+     "id": "tm_a",
+     "name": "Away FC"
+    },
+    "player": {
+     "id": "pl_t24",
+     "name": "pl_t24"
+    }
+   },
+   {
+    "sequence": 12,
+    "minute": 88,
+    "extra_time": 0,
+    "period": "second_half",
+    "type": "goal",
+    "team": {
+     "id": "tm_h",
+     "name": "Home FC"
+    },
+    "player": {
+     "id": "pl_t13",
+     "name": "pl_t13"
+    }
+   },
+   {
+    "sequence": 13,
+    "minute": 90,
+    "extra_time": 0,
+    "period": "second_half",
+    "type": "shot_blocked",
+    "team": {
+     "id": "tm_a",
+     "name": "Away FC"
+    },
+    "player": {
+     "id": "pl_t30",
+     "name": "pl_t30"
+    }
+   }
+  ]
+ },
+ "meta": {
+  "total": 13
+ }
+}

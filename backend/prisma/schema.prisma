@@ -929,7 +929,8 @@ model Fixture {
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 
-  season Season @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+  season Season       @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+  detail MatchDetail?
 
   @@index([seasonId, matchday])
   @@index([status, kickoffAt])
@@ -1016,4 +1017,25 @@ model ProviderRequest {
 
   @@index([provider, at])
   @@map("provider_requests")
+}
+
+/// Post-match detail, trimmed to what the match page shows (docs/football-data-plan.md, phase 4/match pages).
+model MatchDetail {
+  id          Int      @id @default(autoincrement())
+  fixtureId   Int      @unique
+  /// { home: { formation, startingXi, bench }, away: {...} } with TheStatsAPI player ids
+  lineups     Json
+  /// Key events only: goals, cards, substitutions, VAR, penalties, period markers
+  events      Json
+  /// Team stat overview (possession, xG, shots, …) by period
+  teamStats   Json
+  /// Per-player line: rating, minutes, goals, assists, xG, xA, shots, key passes, tackles, …
+  playerStats Json
+  /// Shots: player, team, minute, x, y, xG, result, situation, body part
+  shots       Json
+  fetchedAt   DateTime @default(now())
+
+  fixture Fixture @relation(fields: [fixtureId], references: [id], onDelete: Cascade)
+
+  @@map("match_details")
 }

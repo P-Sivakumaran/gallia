@@ -1,0 +1,44 @@
+{
+ "data": {
+  "match_id": "mt_test",
+  "overview": {
+   "ball_possession": {
+    "all": {
+     "home": 60,
+     "away": 40
+    },
+    "first_half": {
+     "home": 30,
+     "away": 20
+    },
+    "second_half": {
+     "home": 30,
+     "away": 20
+    }
+   },
+   "expected_goals": {
+    "all": {
+     "home": 2.1,
+     "away": 0.4
+    }
+   },
+   "total_shots": {
+    "all": {
+     "home": 14,
+     "away": 5
+    },
+    "first_half": {
+     "home": 7,
+     "away": 2
+    },
+    "second_half": {
+     "home": 7,
+     "away": 3
+    }
+   }
+  }
+ },
+ "meta": {
+  "detailed_stats": "available"
+ }
+}

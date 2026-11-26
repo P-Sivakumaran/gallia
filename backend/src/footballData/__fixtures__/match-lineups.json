@@ -1,0 +1,176 @@
+{
+ "data": {
+  "match_id": "mt_test",
+  "confirmed": true,
+  "bench_available": true,
+  "type": "played",
+  "home": {
+   "id": "tm_h",
+   "name": "Home FC",
+   "formation": "4-4-2",
+   "starting_xi": [
+    {
+     "id": "pl_t1",
+     "name": "Test Player 1",
+     "position": "G",
+     "jersey_number": 1
+    },
+    {
+     "id": "pl_t2",
+     "name": "Test Player 2",
+     "position": "D",
+     "jersey_number": 2
+    },
+    {
+     "id": "pl_t3",
+     "name": "Test Player 3",
+     "position": "D",
+     "jersey_number": 3
+    },
+    {
+     "id": "pl_t4",
+     "name": "Test Player 4",
+     "position": "D",
+     "jersey_number": 4
+    },
+    {
+     "id": "pl_t5",
+     "name": "Test Player 5",
+     "position": "D",
+     "jersey_number": 5
+    },
+    {
+     "id": "pl_t6",
+     "name": "Test Player 6",
+     "position": "M",
+     "jersey_number": 6
+    },
+    {
+     "id": "pl_t7",
+     "name": "Test Player 7",
+     "position": "M",
+     "jersey_number": 7
+    },
+    {
+     "id": "pl_t8",
+     "name": "Test Player 8",
+     "position": "M",
+     "jersey_number": 8
+    },
+    {
+     "id": "pl_t9",
+     "name": "Test Player 9",
+     "position": "M",
+     "jersey_number": 9
+    },
+    {
+     "id": "pl_t10",
+     "name": "Test Player 10",
+     "position": "F",
+     "jersey_number": 10
+    },
+    {
+     "id": "pl_t11",
+     "name": "Test Player 11",
+     "position": "F",
+     "jersey_number": 11
+    }
+   ],
+   "substitutes": [
+    {
+     "id": "pl_t12",
+     "name": "Test Player 12",
+     "position": "M",
+     "jersey_number": 12
+    },
+    {
+     "id": "pl_t13",
+     "name": "Test Player 13",
+     "position": "F",
+     "jersey_number": 13
+    }
+   ]
+  },
+  "away": {
+   "id": "tm_a",
+   "name": "Away FC",
+   "formation": "4-3-3",
+   "starting_xi": [
+    {
+     "id": "pl_t21",
+     "name": "Test Player 21",
+     "position": "G",
+     "jersey_number": 21
+    },
+    {
+     "id": "pl_t22",
+     "name": "Test Player 22",
+     "position": "D",
+     "jersey_number": 22
+    },
+    {
+     "id": "pl_t23",
+     "name": "Test Player 23",
+     "position": "D",
+     "jersey_number": 23
+    },
+    {
+     "id": "pl_t24",
+     "name": "Test Player 24",
+     "position": "D",
+     "jersey_number": 24
+    },
+    {
+     "id": "pl_t25",
+     "name": "Test Player 25",
+     "position": "D",
+     "jersey_number": 25
+    },
+    {
+     "id": "pl_t26",
+     "name": "Test Player 26",
+     "position": "M",
+     "jersey_number": 26
+    },
+    {
+     "id": "pl_t27",
+     "name": "Test Player 27",
+     "position": "M",
+     "jersey_number": 27
+    },
+    {
+     "id": "pl_t28",
+     "name": "Test Player 28",
+     "position": "M",
+     "jersey_number": 28
+    },
+    {
+     "id": "pl_t29",
+     "name": "Test Player 29",
+     "position": "M",
+     "jersey_number": 29
+    },
+    {
+     "id": "pl_t30",
+     "name": "Test Player 30",
+     "position": "F",
+     "jersey_number": 30
+    },
+    {
+     "id": "pl_t31",
+     "name": "Test Player 31",
+     "position": "F",
+     "jersey_number": 31
+    }
+   ],
+   "substitutes": [
+    {
+     "id": "pl_t32",
+     "name": "Test Player 32",
+     "position": "D",
+     "jersey_number": 32
+    }
+   ]
+  }
+ }
+}

@@ -1,0 +1,57 @@
+{
+ "data": [
+  {
+   "player_id": "pl_t10",
+   "player_name": "Test Player 10",
+   "team_id": "tm_h",
+   "position": "F",
+   "rating": 8.4,
+   "started": true,
+   "played": true,
+   "minutes_played": 90,
+   "passing": {
+    "total_passes": 30,
+    "accurate_passes": 24,
+    "key_passes": 2,
+    "assists": 0
+   },
+   "shooting": {
+    "goals": 2,
+    "total_shots": 5,
+    "shots_on_target": 3,
+    "expected_goals": 1.3,
+    "expected_assists": 0.2
+   },
+   "defending": {
+    "tackles": 1,
+    "interceptions": 0
+   },
+   "duels": {
+    "total_duels_won": 6
+   }
+  },
+  {
+   "player_id": "pl_t21",
+   "player_name": "Test Player 21",
+   "team_id": "tm_a",
+   "position": "G",
+   "rating": 5.9,
+   "started": true,
+   "played": true,
+   "minutes_played": 90,
+   "passing": {
+    "total_passes": 25,
+    "accurate_passes": 20
+   },
+   "shooting": {
+    "goals": 0
+   },
+   "goalkeeping": {
+    "saves": 3
+   }
+  }
+ ],
+ "meta": {
+  "detailed_stats": "available"
+ }
+}
