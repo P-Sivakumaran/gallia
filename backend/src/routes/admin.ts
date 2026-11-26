@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import { PrismaClient, RumourStatus } from '@prisma/client'
+import { Prisma, PrismaClient, RumourStatus } from '@prisma/client'
 import { applyOutcome, detectOutcome, isPastWindowGrace } from '../ingestion/outcomeDetector.js'
 import { enrichQueue, playerSyncQueue } from '../queue/queues.js'
 import { broadcast } from '../sse/broadcaster.js'
@@ -270,6 +270,291 @@ router.get('/purge-health', async (_req, res) => {
     return
   }
   res.json(health)
+})
+
+// --- Club Location Review Routes ---
+
+// GET /admin/club-locations/review — unapplied candidate facts & unplaced clubs awaiting review
+router.get('/club-locations/review', async (_req, res) => {
+  const unappliedFacts = await prisma.sourcedFact.findMany({
+    where: {
+      entityType: 'CLUB',
+      source: 'wikidata',
+      applied: false,
+      supersededAt: null,
+    },
+    orderBy: { id: 'asc' },
+  })
+
+  // Group facts by clubId
+  const factsByClub = new Map<number, typeof unappliedFacts>()
+  for (const fact of unappliedFacts) {
+    const list = factsByClub.get(fact.entityId) ?? []
+    list.push(fact)
+    factsByClub.set(fact.entityId, list)
+  }
+
+  const clubIdsWithFacts = [...factsByClub.keys()]
+  const clubsWithFacts = clubIdsWithFacts.length
+    ? await prisma.club.findMany({
+        where: { id: { in: clubIdsWithFacts } },
+        select: { id: true, name: true, country: true, league: true, lat: true, lng: true },
+      })
+    : []
+
+  const candidates = clubsWithFacts.map((club) => {
+    const facts = factsByClub.get(club.id) ?? []
+    const getField = (field: string) => facts.find((f) => f.field === field)?.value ?? null
+    const wikidataId = getField('wikidataId')
+    const latStr = getField('lat')
+    const lngStr = getField('lng')
+    const stadium = getField('stadium')
+    const city = getField('city')
+    const firstFact = facts[0]
+
+    return {
+      club: {
+        id: club.id,
+        name: club.name,
+        country: club.country,
+        league: club.league,
+        currentLat: club.lat,
+        currentLng: club.lng,
+      },
+      candidate: {
+        wikidataId,
+        label: wikidataId, // QID label, fallback from facts
+        lat: latStr ? parseFloat(latStr) : null,
+        lng: lngStr ? parseFloat(lngStr) : null,
+        stadium,
+        city,
+        confidence: firstFact?.confidence ?? 0,
+        sourceUrl: firstFact?.sourceUrl ?? (wikidataId ? `https://www.wikidata.org/wiki/${wikidataId}` : null),
+      },
+    }
+  })
+
+  // Unplaced clubs: non-placeholder clubs with lat=null, geoCheckedAt not null, and no unapplied facts
+  const unplacedClubs = await prisma.club.findMany({
+    where: {
+      isPlaceholder: false,
+      lat: null,
+      geoCheckedAt: { not: null },
+      ...(clubIdsWithFacts.length ? { id: { notIn: clubIdsWithFacts } } : {}),
+    },
+    select: { id: true, name: true, country: true, league: true },
+    orderBy: { name: 'asc' },
+  })
+
+  res.json({
+    candidates,
+    unplaced: unplacedClubs,
+  })
+})
+
+const acceptLocationSchema = z.object({
+  wikidataId: z.string().min(1),
+})
+
+// POST /admin/club-locations/:clubId/accept — accept candidate Wikidata facts for a club
+router.post('/club-locations/:clubId/accept', async (req: AuthedRequest, res) => {
+  const clubId = parseInt(req.params.clubId, 10)
+  if (isNaN(clubId)) { res.status(400).json({ error: 'Invalid clubId' }); return }
+
+  const parsed = acceptLocationSchema.safeParse(req.body)
+  if (!parsed.success) {
+    res.status(400).json({ error: 'Invalid body', details: parsed.error.issues })
+    return
+  }
+
+  const { wikidataId } = parsed.data
+
+  // Check unique wikidataId across other clubs
+  const existingHoldingClub = await prisma.club.findFirst({
+    where: { wikidataId, id: { not: clubId } },
+    select: { id: true, name: true },
+  })
+  if (existingHoldingClub) {
+    res.status(409).json({
+      error: `Wikidata item ${wikidataId} is already held by club "${existingHoldingClub.name}"`,
+      heldBy: existingHoldingClub.name,
+    })
+    return
+  }
+
+  // Find candidate unapplied facts for this club matching the wikidataId
+  const facts = await prisma.sourcedFact.findMany({
+    where: {
+      entityType: 'CLUB',
+      entityId: clubId,
+      source: 'wikidata',
+      applied: false,
+      supersededAt: null,
+    },
+  })
+
+  if (!facts.length) {
+    res.status(404).json({ error: 'No unapplied candidate facts found for this club' })
+    return
+  }
+
+  const factQid = facts.find((f) => f.field === 'wikidataId')?.value
+  if (factQid && factQid !== wikidataId) {
+    res.status(400).json({ error: `Wikidata ID mismatch: expected ${factQid}, got ${wikidataId}` })
+    return
+  }
+
+  const getField = (field: string) => facts.find((f) => f.field === field)?.value ?? null
+  const latStr = getField('lat')
+  const lngStr = getField('lng')
+  const stadium = getField('stadium')
+  const city = getField('city')
+
+  const lat = latStr ? parseFloat(latStr) : null
+  const lng = lngStr ? parseFloat(lngStr) : null
+  const now = new Date()
+
+  try {
+    await prisma.$transaction([
+      prisma.club.update({
+        where: { id: clubId },
+        data: {
+          wikidataId,
+          lat,
+          lng,
+          stadium,
+          city,
+          geoCheckedAt: now,
+        },
+      }),
+      prisma.sourcedFact.updateMany({
+        where: {
+          entityType: 'CLUB',
+          entityId: clubId,
+          source: 'wikidata',
+          applied: false,
+          supersededAt: null,
+        },
+        data: {
+          applied: true,
+        },
+      }),
+    ])
+  } catch (err: unknown) {
+    if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002') {
+      const conflictClub = await prisma.club.findFirst({
+        where: { wikidataId, id: { not: clubId } },
+        select: { name: true },
+      })
+      res.status(409).json({
+        error: `Wikidata item ${wikidataId} is already held by club "${conflictClub?.name ?? 'another club'}"`,
+        heldBy: conflictClub?.name ?? 'another club',
+      })
+      return
+    }
+    throw err
+  }
+
+  res.json({ ok: true, clubId, wikidataId, lat, lng, stadium, city })
+})
+
+// POST /admin/club-locations/:clubId/reject — mark candidate unapplied facts superseded
+router.post('/club-locations/:clubId/reject', async (req: AuthedRequest, res) => {
+  const clubId = parseInt(req.params.clubId, 10)
+  if (isNaN(clubId)) { res.status(400).json({ error: 'Invalid clubId' }); return }
+
+  const now = new Date()
+  const result = await prisma.sourcedFact.updateMany({
+    where: {
+      entityType: 'CLUB',
+      entityId: clubId,
+      source: 'wikidata',
+      applied: false,
+      supersededAt: null,
+    },
+    data: {
+      supersededAt: now,
+    },
+  })
+
+  res.json({ ok: true, clubId, rejectedCount: result.count })
+})
+
+const manualLocationSchema = z.object({
+  lat: z.number().min(-90).max(90),
+  lng: z.number().min(-180).max(180),
+  stadium: z.string().max(200).optional().nullable(),
+  city: z.string().max(200).optional().nullable(),
+})
+
+// POST /admin/club-locations/:clubId/manual — manual coordinates for clubs with no match
+router.post('/club-locations/:clubId/manual', async (req: AuthedRequest, res) => {
+  const clubId = parseInt(req.params.clubId, 10)
+  if (isNaN(clubId)) { res.status(400).json({ error: 'Invalid clubId' }); return }
+
+  const parsed = manualLocationSchema.safeParse(req.body)
+  if (!parsed.success) {
+    res.status(400).json({ error: 'Invalid body', details: parsed.error.issues })
+    return
+  }
+
+  const { lat, lng, stadium, city } = parsed.data
+
+  const club = await prisma.club.findUnique({ where: { id: clubId } })
+  if (!club) {
+    res.status(404).json({ error: 'Club not found' })
+    return
+  }
+
+  const now = new Date()
+  const manualFacts = [
+    ['lat', String(lat)],
+    ['lng', String(lng)],
+    ...(stadium ? [['stadium', stadium]] : []),
+    ...(city ? [['city', city]] : []),
+  ].map(([field, value]) => ({
+    entityType: 'CLUB',
+    entityId: clubId,
+    field,
+    value,
+    source: 'manual',
+    sourceUrl: null,
+    licence: 'manual',
+    confidence: 1,
+    applied: true,
+  }))
+
+  await prisma.$transaction([
+    prisma.club.update({
+      where: { id: clubId },
+      data: {
+        lat,
+        lng,
+        ...(stadium ? { stadium } : {}),
+        ...(city ? { city } : {}),
+        geoCheckedAt: now,
+      },
+    }),
+    prisma.sourcedFact.updateMany({
+      where: {
+        entityType: 'CLUB',
+        entityId: clubId,
+        applied: true,
+        supersededAt: null,
+        field: {
+          in: ['lat', 'lng', ...(stadium ? ['stadium'] : []), ...(city ? ['city'] : [])],
+        },
+      },
+      data: {
+        supersededAt: now,
+      },
+    }),
+    prisma.sourcedFact.createMany({
+      data: manualFacts,
+    }),
+  ])
+
+  res.json({ ok: true, clubId, lat, lng, stadium, city })
 })
 
 export default router

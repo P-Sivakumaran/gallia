@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { api } from '@/lib/api'
 import type { AdminReviewItem, ReviewReason } from '@/types'
 import DeskStatus from '@/components/desk/DeskStatus'
+import ClubLocationsReview from './ClubLocationsReview'
 
 type Outcome = 'COMPLETED' | 'FAILED' | 'DENIED'
 
@@ -174,6 +175,7 @@ export default function ReviewQueue() {
           <ReviewCard key={item.id} item={item} onResolved={(id) => setItems((prev) => prev.filter((r) => r.id !== id))} />
         ))}
       </ul>
+      <ClubLocationsReview />
     </div>
   )
 }

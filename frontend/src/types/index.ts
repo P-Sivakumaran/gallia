@@ -271,3 +271,36 @@ export interface WatchlistItem {
   createdAt: string
   player: Player & { currentClub: Club | null }
 }
+
+export interface ClubLocationCandidate {
+  club: {
+    id: number
+    name: string
+    country: string
+    league: string
+    currentLat: number | null
+    currentLng: number | null
+  }
+  candidate: {
+    wikidataId: string | null
+    label: string | null
+    lat: number | null
+    lng: number | null
+    stadium: string | null
+    city: string | null
+    confidence: number
+    sourceUrl: string | null
+  }
+}
+
+export interface UnplacedClub {
+  id: number
+  name: string
+  country: string
+  league: string
+}
+
+export interface ClubLocationsReviewResponse {
+  candidates: ClubLocationCandidate[]
+  unplaced: UnplacedClub[]
+}

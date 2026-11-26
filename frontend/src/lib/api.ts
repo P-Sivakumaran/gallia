@@ -2,6 +2,7 @@ import type {
   AdminReviewItem,
   AdminRumour,
   AdminSource,
+  ClubLocationsReviewResponse,
   ClubDetail,
   PaginatedResponse,
   Player,
@@ -167,5 +168,12 @@ export const api = {
       send<{ id: number; status: string }>('PATCH', `/admin/rumours/${id}/outcome`, knownAt ? { status, knownAt } : { status }),
     enrichPlayer: (playerId: number) =>
       send<{ queued: boolean; playerId: number; playerName: string }>('POST', `/admin/players/${playerId}/enrich`),
+    clubLocationsReview: () => getFresh<ClubLocationsReviewResponse>('/admin/club-locations/review'),
+    acceptClubLocation: (clubId: number, wikidataId: string) =>
+      send<{ ok: boolean; clubId: number }>('POST', `/admin/club-locations/${clubId}/accept`, { wikidataId }),
+    rejectClubLocation: (clubId: number) =>
+      send<{ ok: boolean; clubId: number }>('POST', `/admin/club-locations/${clubId}/reject`),
+    manualClubLocation: (clubId: number, data: { lat: number; lng: number; stadium?: string | null; city?: string | null }) =>
+      send<{ ok: boolean; clubId: number }>('POST', `/admin/club-locations/${clubId}/manual`, data),
   },
 }
