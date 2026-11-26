@@ -1,0 +1,85 @@
+# Listed-Club Regulatory Filing Portals & Access Terms Survey
+
+**Date:** 2026-11-26  
+**Scope:** European listed football clubs subject to public disclosure mandates (Borsa Italiana / Euronext / SEC / CMVM / LSE / Nasdaq Nordic / XETRA / BIST).  
+**Policy:** Respect terms and robots.txt; polite access rates ($\ge 2\text{s}$ interval); descriptive User-Agent (`GalliaTransferBot/1.0`); stop and report portals forbidding automated access.
+
+---
+
+## 1. Overview Matrix
+
+| Club / Group | Country | Exchange / Platform | Announcement URL / Feed | Fees Stated? | Contract Length? | Format | Automated Access? | Terms / Compliance Notes |
+|---|---|---|---|---|---|---|---|---|
+| **Juventus FC** | Italy | Borsa Italiana (JUVE) / 1Info SDIR | `https://www.juventus.com/en/club/investor-relations/press-releases-notices/price-sensitve-press-releases` | Yes | Yes | PDF / HTML | **Allowed** | `robots.txt` disallows only internal test/mobile paths. Polite rate limits ($\ge 2\text{s}$) with bot contact. |
+| **KAP Turkey** *(Galatasaray, Fenerbahçe, Beşiktaş, Trabzonspor)* | Turkey | Borsa Istanbul (BIST) | `https://www.kap.org.tr/en/` | Yes | Yes | HTML | **BLOCKED** | WAF edge protection blocks automated access (`error 5198321-PPE1`). Policy mandate: **Stop and report**. Requires licensed MKK data feed or manual entry. |
+| **Manchester United** | UK / US | NYSE (MANU) / SEC EDGAR | `https://data.sec.gov/submissions/CIK0001549107.json` | Yes | No | JSON / HTML | **Allowed** | Official SEC REST API. Rate limited to 10 req/s. User-Agent must include contact email. |
+| **S.S. Lazio** | Italy | Borsa Italiana (SSL) / 1Info SDIR | `https://www.sslazio.it/it/societa/investor-relations` | Yes | Yes | PDF | **Allowed** | Disclosed pursuant to Art. 17 MAR. Polite crawl permitted under statutory investor transparency rules. |
+| **SL Benfica** | Portugal | Euronext Lisbon (SLBS) | `https://www.cmvm.pt` (SDI) | Yes | Yes | PDF | **Allowed** | CMVM statutory public dissemination repository. Mandatory disclosures quote base fee, commissions, and retention clauses. |
+| **FC Porto** | Portugal | Euronext Lisbon (FCP) | `https://www.cmvm.pt` (SDI) | Yes | Yes | PDF | **Allowed** | CMVM SDI public registry. Polite rate limits apply. |
+| **Sporting CP** | Portugal | Euronext Lisbon (SCP) | `https://www.cmvm.pt` (SDI) | Yes | Yes | PDF | **Allowed** | CMVM SDI statutory disclosures. Detailed breakdown of solidarity mechanism and variable bonuses. |
+| **AFC Ajax** | Netherlands | Euronext Amsterdam (AJAX) | `https://www.ajax.nl/club-info/investor-relations/` | Yes | Yes | HTML | **Allowed** | `robots.txt` permits news/IR crawl. Stated transfer fee, variables, and contract end date. |
+| **Celtic FC** | UK | LSE AIM (CCP) / LSE RNS | `https://www.celticfc.com/investor-relations/` | Yes | Yes | HTML | **Allowed** | LSE RNS feed is proprietary, but Celtic IR mirror is open for polite crawling. |
+| **Borussia Dortmund** | Germany | XETRA (BVB) | `https://aktie.bvb.de/eng/IR-News/Ad-Hoc-News` | Yes | Yes | HTML | **Allowed** | Ad-hoc announcements under Art. 17 MAR and WpHG when EBITDA guidance is materially affected. |
+| **Parken / FC Copenhagen** | Denmark | Nasdaq Nordic Copenhagen (PARKEN) | `https://www.parken.dk/investor-relations/selskabsmeddelelser` | Yes | No | HTML / PDF | **Allowed** | Company announcements adjust pre-tax profit (EBT) guidance, quoting gross transfer amounts. |
+| **Eagle Football Group (Lyon)** | France | Euronext Paris (EFG) | `https://www.eaglefootballgroup.com/` | Yes | Yes | PDF | **Allowed** | French AMF statutory releases detailing fixed indemnity, incentives, and future sell-on shares. |
+
+---
+
+## 2. Portal Verification Details
+
+### Juventus IR (Borsa Italiana / 1Info SDIR)
+- **Primary Source:** Juventus Investor Relations Price Sensitive Press Releases & Computershare 1Info SDIR.
+- **Announcement Frequency:** Material definitive transfers, loans with options/obligations, terminations, and contract extensions.
+- **Data Points Disclosed:**
+  - Consideration (fee in € million), payment instalments (number of financial years).
+  - Ancillary costs and performance-related bonuses.
+  - Capital gain / loss and net book value impact.
+  - Contract expiration date (employment contract duration).
+- **Robots & Access Terms:**
+  - `juventus.com/robots.txt` checked 2026-11-26: Disallows `/_libraries/*`, `/en/automatedtest/*`, `/en/catalogue/*`, `/en/mobileapp/*`, `/en/opta_test/*`, `/en/thirdparties/*`.
+  - Price-sensitive press releases under `/en/club/investor-relations/` are permitted.
+  - Access delay: minimum 2 seconds per document.
+
+### KAP Turkey (PDP / Kamuyu Aydınlatma Platformu)
+- **Clubs:** Galatasaray SK (`GSRAY`), Fenerbahçe SK (`FENER`), Beşiktaş JK (`BJKAS`), Trabzonspor (`TSPOR`).
+- **Data Points Disclosed:** Comprehensive player wages, transfer fee, agent commissions, and contract dates.
+- **Verification Result:** Automated requests fail with HTTP 500 error code `5198321-PPE1` generated by Turkish capital markets cloud security.
+- **Policy Compliance:** **STOP AND REPORT.** Do NOT scrape or bypass KAP WAF. Ingestion requires official licensed MKK data vendor API or manual data entry for Turkish transfers.
+
+### SEC EDGAR (Manchester United plc - Form 6-K / Form 20-F)
+- **Primary Source:** SEC EDGAR REST API `https://data.sec.gov/submissions/CIK0001549107.json`.
+- **Policy Compliance:**
+  - Fair Access Limit: maximum 10 requests per second.
+  - Mandatory User-Agent header containing contact email.
+  - Approved by Siva (Post `zl0foo`): User-Agent format `GalliaTransferBot/1.0 (+https://gallia.club; AdminContact@<sample company domain>.com)`.
+
+---
+
+## 3. Data Ingestion Architecture
+
+```
+   [Listed-Club Regulatory Portals]
+          │ (Polite HTTP, >= 2s, identifying UA)
+          ▼
+   [Filing Ingestion Engine]
+   ├── Portal Survey & Terms Check (portals.ts)
+   ├── Lightweight PDF Text Extractor (pdfExtractor.ts)
+   └── Club Parser (e.g. juventus.ts)
+          │
+          ▼
+   [ExtractedTransferFact]
+          │
+          ├──> [DB Match: Player & Club Found]
+          │       │
+          │       ├──> recordTransfer(source: 'filing', confidence: 0.95, licence: 'primary-disclosure')
+          │       │       └── creates/upgrades Transfer + SourcedFact(field: 'fee')
+          │       │
+          │       └──> recordContract(source: 'filing', confidence: 0.95)
+          │               └── updates ContractFact + SourcedFact(field: 'contract')
+          │
+          └──> [DB Match: Unmatched Player or Club]
+                  │
+                  └──> recordUnmatchedFiling()
+                          └── SourcedFact(entityType: 'UNMATCHED_TRANSFER', applied: false)
+                                  [Admin Review Queue]
+```
