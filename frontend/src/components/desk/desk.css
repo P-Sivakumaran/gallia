@@ -436,3 +436,83 @@
   .g-expand-btn,.g-compare-swap-btn{transition:none}
 }
 
+/* Hallmark · v2.0.0 · shape: app screen · theme: Console (1/3, graphite) · screen: matchday fixtures + match page
+ * dealt: gallia-matchday-match-pages·f75641aa·2026-11-26·r0 · shell: Gallia desk · density: SofaScore-like
+ * critique: formation pitch + shotmap use shape/label (not colour alone) for goals; sticky ratings col at 390px */
+.g-matchday-heading{display:flex;align-items:center;justify-content:space-between;gap: 12px;flex-wrap:wrap}
+.g-matchday-nav{display:flex;gap: var(--space-7)}
+.g-matchday-btn{display:inline-flex;align-items:center;min-height:36px;padding: 0 12px;border:1px solid var(--g-line);border-radius:4px;background:var(--g-inset);color:var(--g-c-e8eff2);font:500 12px var(--font-mono),monospace}
+.g-matchday-btn:hover{border-color:var(--g-c-536e59);color:var(--g-green)}
+.g-matchday-btn.is-disabled{opacity:.45;pointer-events:none}
+.g-fixture-list{list-style:none;margin: 0;padding: 0}
+.g-fixture-list>li{border-bottom:1px solid var(--g-line)}
+.g-fixture-list>li:last-child{border-bottom:0}
+.g-fixture-row{display:grid;grid-template-columns:minmax(7rem,9rem) minmax(0,1fr) auto;gap: 12px;align-items:center;padding: 12px 16px;min-height:56px;color:inherit;text-decoration:none}
+.g-fixture-row:hover,.g-fixture-row:focus-visible{background:var(--g-hover)}
+.g-fixture-kickoff{font:12px var(--font-mono),monospace;color:var(--g-muted)}
+.g-fixture-sides{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap: 8px;align-items:center;min-width:0}
+.g-fixture-home{text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:550}
+.g-fixture-away{text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:550}
+.g-fixture-score{display:inline-flex;gap: var(--space-5);font:600 15px/1 var(--font-mono),monospace;font-variant-numeric:tabular-nums;color:var(--g-c-edf1f5)}
+.g-fixture-status{font:11px var(--font-mono),monospace;color:var(--g-muted);text-transform:capitalize}
+
+.g-match-scoreboard{margin-bottom: 16px}
+.g-match-scoreline{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap: 16px;align-items:center;padding: 20px 16px;border:1px solid var(--g-line);border-radius:5px;background:var(--g-inset)}
+.g-match-team{font-size:16px;font-weight:550;min-width:0}
+.g-match-team.is-home{text-align:right}
+.g-match-team.is-away{text-align:left}
+.g-match-score-nums{display:inline-flex;gap: var(--space-7);align-items:center;font:700 28px/1 var(--font-mono),monospace;font-variant-numeric:tabular-nums;color:var(--g-c-edf1f5)}
+.g-match-detail{display:grid;gap: 16px}
+.g-lineups-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap: 16px;padding: 16px}
+.g-formation-meta{display:flex;justify-content:space-between;gap: 8px;padding: 0 0 12px;font-size:13px}
+.g-pitch{display:flex;flex-direction:column;gap: 10px;padding: 16px 12px;border:1px solid var(--g-c-355f46);border-radius:5px;background:var(--g-c-183025);min-height:220px}
+.g-pitch-row{display:flex;justify-content:space-evenly;gap: 4px}
+.g-pitch-dot{display:flex;flex-direction:column;align-items:center;gap: var(--space-3);min-width:0;max-width:72px}
+.g-pitch-shirt{display:inline-grid;place-items:center;width:28px;height:28px;border-radius:50%;border:1px solid var(--g-c-536e59);background:var(--g-c-0b0e11);font:700 11px var(--font-mono),monospace;color:var(--g-c-c3edcf)}
+.g-pitch-name{font-size:10px;line-height:12px;text-align:center;overflow:hidden;text-overflow:ellipsis;max-width:100%;white-space:nowrap}
+.g-pitch-name .g-green-link{font-size:10px!important;display:inline}
+.g-lineup-list{padding: 12px 0 0;font-size:13px}
+.g-lineup-list summary{cursor:pointer;color:var(--g-c-c0cbc4);font:12px var(--font-mono),monospace}
+.g-lineup-list ol,.g-lineup-list ul{margin: 8px 0 0;padding-left: 1.2rem}
+
+.g-match-timeline{list-style:none;margin: 0;padding: 8px 0}
+.g-match-timeline>li{display:grid;grid-template-columns:3.5rem 7.5rem minmax(0,1fr);gap: 8px;align-items:baseline;padding: 8px 16px;border-bottom:1px solid var(--g-line);font-size:13px}
+.g-match-timeline>li:last-child{border-bottom:0}
+.g-timeline-min{font:12px var(--font-mono),monospace;color:var(--g-muted);font-variant-numeric:tabular-nums}
+.g-timeline-type{font:500 12px var(--font-mono),monospace;color:var(--g-c-e6ecf1)}
+
+.g-stat-bars{list-style:none;margin: 0;padding: 8px 16px 16px;display:grid;gap: 12px}
+.g-stat-bar-label{display:grid;grid-template-columns:3rem minmax(0,1fr) 3rem;gap: 8px;align-items:center;font:12px var(--font-mono),monospace;font-variant-numeric:tabular-nums;margin-bottom: var(--space-5)}
+.g-stat-bar-label>span:nth-child(2){text-align:center;color:var(--g-muted)}
+.g-stat-bar-track{display:flex;height:8px;border-radius:3px;overflow:hidden;background:var(--g-c-0b0e11);border:1px solid var(--g-line)}
+.g-stat-bar-home{background:var(--g-c-9cdeb3);height:100%}
+.g-stat-bar-away{background:var(--g-c-6b5a32);height:100%;margin-left:auto}
+
+.g-shotmap{padding: 12px 16px 16px}
+.g-shotmap-svg{width:100%;max-width:420px;height:auto;display:block;margin: 0 auto;border:1px solid var(--g-line);border-radius:5px;background:var(--g-c-183025)}
+.g-shotmap-turf{fill:var(--g-c-183025)}
+.g-shotmap-line,.g-shotmap-box{stroke:var(--g-c-536e59);stroke-width:.6;fill:none}
+.g-shot-home{fill:var(--g-c-9cdeb3);stroke:var(--g-c-355f46);stroke-width:.4}
+.g-shot-away{fill:var(--g-c-f2d89a);stroke:var(--g-c-6b5a32);stroke-width:.4}
+.g-shot-goal{fill:var(--g-c-ffc4c8);stroke:var(--g-c-6b3840);stroke-width:.5}
+.g-shot-label{fill:var(--g-c-ffc4c8);font-size:3px;font-family:var(--font-mono),monospace}
+.g-shotmap-legend{display:flex;flex-wrap:wrap;gap: 8px 16px;list-style:none;margin: 12px 0 0;padding: 0;font-size:12px;color:var(--g-c-c0ccd5)}
+.g-shot-swatch{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right: var(--space-5);vertical-align:middle;border:1px solid var(--g-line)}
+.g-shot-swatch.is-tri{border-radius:0;clip-path:polygon(50% 0,100% 100%,0 100%)}
+.g-ratings-table{min-width:560px}
+.g-ratings-table th,.g-ratings-table td{white-space:nowrap;font-variant-numeric:tabular-nums}
+
+@media (max-width:720px){
+  .g-fixture-row{grid-template-columns:1fr;gap: var(--space-6);padding: 12px}
+  .g-fixture-sides{grid-template-columns:minmax(0,1fr) auto minmax(0,1fr)}
+  .g-fixture-status{justify-self:start}
+  .g-lineups-grid{grid-template-columns:1fr;padding: 12px}
+  .g-match-scoreline{grid-template-columns:1fr;gap: 12px;text-align:center}
+  .g-match-team.is-home,.g-match-team.is-away{text-align:center}
+  .g-match-score-nums{justify-content:center}
+  .g-match-timeline>li{grid-template-columns:2.75rem minmax(0,1fr);gap: var(--space-6)}
+  .g-timeline-type{grid-column:2}
+  .g-timeline-who{grid-column:2}
+}
+
+
