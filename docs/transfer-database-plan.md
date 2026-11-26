@@ -90,8 +90,8 @@ The options:
 - **Hugging Face models:** optional, for fee and contract extraction alongside the LLM claim extraction.
 - **crosswalk:** tasks, review hand-offs and digests.
 
-## Decisions for Siva
+## Decisions (Siva, 2026-11-26)
 
-1. Wikipedia: lead source only (A) or a CC BY-SA ledger (B).
-2. Show TheStatsAPI's market value publicly next to Gallia Value, or keep it as an internal benchmark.
-3. Approve phase 1 (schema and migration, Siva merges).
+1. **Wikipedia: lead source only (A).** We find transfers and their cited articles through it, store facts with the article as citation, and never bulk-copy tables.
+2. **TheStatsAPI market value: internal benchmark only.** It's a model feature and backtest target. Pages show Gallia Value with its range and drivers.
+3. **Phase 1 approved.** Claude Code builds it; the migration PR is Siva's to merge.
