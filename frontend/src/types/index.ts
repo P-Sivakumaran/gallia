@@ -427,3 +427,60 @@ export interface ClubSquad {
   club: { id: number; name: string }
   players: SquadPlayer[]
 }
+
+export interface CardAttributes {
+  finishing: number
+  creation: number
+  passing: number
+  dribbling: number
+  defending: number
+  duels: number
+  discipline: number
+}
+
+export interface PlayerCardData {
+  playerId?: number
+  positionGroup: string
+  overall: number
+  attributes: CardAttributes
+  limitedSample: boolean
+  minutes?: number
+  poolSize?: number
+}
+
+export interface PlayerSeasonLine {
+  competition: { id: number; name: string }
+  season: string
+  current: boolean
+  clubId: number | null
+  appearances: number
+  starts: number
+  minutes: number
+  goals: number
+  assists: number
+  xg: number | null
+  xa: number | null
+  rating: number | null
+  detail: Record<string, Record<string, number | null>> | null
+  card: PlayerCardData | null
+}
+
+export interface PlayerProfile {
+  id: number
+  name: string
+  age: number | null
+  nationality: string | null
+  positionGroup: string | null
+  dateOfBirth: string | null
+  heightCm: number | null
+  preferredFoot: string | null
+  shirtNumber: number | null
+  currentClubId: number | null
+}
+
+export interface PlayerFootballStatsResponse {
+  source: string
+  player: PlayerProfile
+  seasons: PlayerSeasonLine[]
+}
+
