@@ -7,7 +7,7 @@ export default function NetworkPage() {
       eyebrow="DEAL ECOSYSTEM"
       title="Transfer network"
       accent="."
-      intro="Players, clubs and the rumours that connect them. Node size follows market value; each line is a rumour, thicker when more likely, coloured by status."
+      intro="Players, clubs and the rumours that connect them. Switch to Map for clubs placed by Wikidata coordinates. Click a node, line or pin to open it."
     >
       <TransferGraphClient />
     </DeskPage>

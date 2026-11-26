@@ -2,9 +2,12 @@
 
 import dynamic from 'next/dynamic'
 
-// Sigma requires window — load client-side only
-const TransferGraph = dynamic(() => import('@/components/network/TransferGraph'), { ssr: false })
+// Sigma and MapLibre need window — load client-side only
+const NetworkExplorer = dynamic(() => import('@/components/network/NetworkExplorer'), {
+  ssr: false,
+  loading: () => <div className="g-network-state">Loading the transfer network…</div>,
+})
 
 export default function TransferGraphClient() {
-  return <TransferGraph />
+  return <NetworkExplorer />
 }
