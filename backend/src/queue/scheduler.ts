@@ -69,6 +69,19 @@ export async function scheduleRecurringJobs(): Promise<void> {
     { name: 'resolve-window-outcomes', data: { task: 'resolve-window-outcomes' } },
   )
 
+  // Football data (docs/football-data-plan.md): an hourly tick that decides what is worth a
+  // TheStatsAPI request (fixtures, settled matches, gameweek snapshots, weekly squads). Opt-in so
+  // environments without the key never spend quota; the tick paces itself within the shared quota.
+  if (process.env.FOOTBALL_SYNC_ENABLED === '1') {
+    await maintenanceQueue.upsertJobScheduler(
+      'football-tick-recurring',
+      { every: 60 * 60 * 1000 },
+      { name: 'football-tick', data: { task: 'football-tick' } },
+    )
+  } else {
+    await maintenanceQueue.removeJobScheduler('football-tick-recurring')
+  }
+
   // upsertJobScheduler only ever adds/updates — it never removes a scheduler
   // for a feed that's since been renamed or deleted from RSS_FEEDS. Found
   // live (2026-08-13): "Goal.com" and "Football365" kept firing every

@@ -20,6 +20,8 @@ import { runStatsApiClubSyncWithPrisma } from '../ingestion/statsApiClubSync.js'
 import { runRetentionPurge, type RetentionDb, type PurgeHealthDb } from '../analytics/retention.js'
 import { logOperationalEvent, type OperationalEventDb } from '../analytics/operationalEvents.js'
 import { licenceWarning } from '../sources/licences.js'
+import { pacedClient } from '../footballData/factory.js'
+import { runFootballTick } from '../footballData/tick.js'
 
 const prisma = new PrismaClient()
 
@@ -384,6 +386,13 @@ async function processPlayerSync(_job: { data: PlayerSyncJobData }) {
 // ─── Maintenance worker (public-beta readiness, 2026-08-14) ────────────────
 
 async function processMaintenance(job: { data: MaintenanceJobData }) {
+  if (job.data.task === 'football-tick') {
+    const api = await pacedClient(prisma)
+    const summary = await runFootballTick(prisma, api, Date.now(), (m) => console.log(`[worker:football] ${m}`))
+    console.log(`[worker:football] tick ${JSON.stringify(summary)}`)
+    return summary
+  }
+
   if (job.data.task === 'resolve-window-outcomes') {
     const summary = await resolveWindowOutcomes(prisma)
     console.log(
