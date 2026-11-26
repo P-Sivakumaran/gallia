@@ -699,6 +699,8 @@ enum AdminActionType {
   CLUB_LOCATION_ACCEPT
   CLUB_LOCATION_REJECT
   CLUB_LOCATION_MANUAL
+  AGENT_LINK_ADD
+  AGENT_LINK_REMOVE
 }
 
 // Immutable audit trail for privileged admin actions — append-only,

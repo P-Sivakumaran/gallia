@@ -1,4 +1,4 @@
-import type { AdminAuditDb, ClubLocationAction } from './db.js'
+import type { AdminAuditDb, AgentLinkAction, ClubLocationAction } from './db.js'
 import type { EntitlementTier, EntitlementSource } from '../entitlements/flags.js'
 
 export interface RecordEntitlementGrantInput {
@@ -48,6 +48,30 @@ export async function recordClubLocationAction(db: AdminAuditDb, input: RecordCl
       actionType: input.action,
       targetType: 'CLUB',
       targetId: input.clubId,
+      details: input.details,
+      correlationId: input.correlationId ?? null,
+    },
+  })
+}
+
+export interface RecordAgentLinkActionInput {
+  actingAdminUserId: number
+  action: AgentLinkAction
+  /** PlayerAgent row id */
+  linkId: number
+  /** Player, agent and the citation URL. Plain values only, never secrets. */
+  details: Record<string, string | number | null>
+  correlationId?: string | null
+}
+
+// An admin adding or removing a cited player → agent link (cited news only, owner decision 2026-11-26).
+export async function recordAgentLinkAction(db: AdminAuditDb, input: RecordAgentLinkActionInput): Promise<void> {
+  await db.adminAuditEvent.create({
+    data: {
+      actingAdminUserId: input.actingAdminUserId,
+      actionType: input.action,
+      targetType: 'PLAYER_AGENT',
+      targetId: input.linkId,
       details: input.details,
       correlationId: input.correlationId ?? null,
     },

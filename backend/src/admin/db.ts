@@ -4,6 +4,8 @@ export type Role = 'USER' | 'ADMIN'
 
 export type ClubLocationAction = 'CLUB_LOCATION_ACCEPT' | 'CLUB_LOCATION_REJECT' | 'CLUB_LOCATION_MANUAL'
 
+export type AgentLinkAction = 'AGENT_LINK_ADD' | 'AGENT_LINK_REMOVE'
+
 // Minimal injectable interfaces, same DI pattern as evidence/db.ts,
 // forecasting/db.ts, entitlements/db.ts.
 export interface AdminDb {
@@ -29,6 +31,14 @@ export interface AdminAuditDb {
             actingAdminUserId: number
             actionType: ClubLocationAction
             targetType: 'CLUB'
+            targetId: number
+            details: Record<string, string | number | null>
+            correlationId: string | null
+          }
+        | {
+            actingAdminUserId: number
+            actionType: AgentLinkAction
+            targetType: 'PLAYER_AGENT'
             targetId: number
             details: Record<string, string | number | null>
             correlationId: string | null
