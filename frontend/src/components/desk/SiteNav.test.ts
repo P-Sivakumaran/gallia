@@ -12,4 +12,9 @@ describe('SiteNav isActive', () => {
     expect(isActive('/rumour/12', '/rumours')).toBe(true)
     expect(isActive('/scorecard', '/rumours')).toBe(false)
   })
+  it('marks Leagues active on hub and table pages', () => {
+    expect(isActive('/leagues', '/leagues')).toBe(true)
+    expect(isActive('/leagues/3', '/leagues')).toBe(true)
+    expect(isActive('/club/1', '/leagues')).toBe(false)
+  })
 })
