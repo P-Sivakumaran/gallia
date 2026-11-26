@@ -71,6 +71,24 @@
 .g-public-link > span { color: var(--signal-fire); font-size: 16px; }
 .g-public-link:hover { color: var(--signal-fire); text-decoration: underline; }
 :where(button,a,input,select,summary):focus-visible { outline: 2px solid #b9edcc; outline-offset: 4px; }
+.g-skip-link {
+  position: absolute;
+  left: 16px;
+  top: 16px;
+  z-index: 100;
+  padding: 10px 14px;
+  border-radius: 4px;
+  background: #183025;
+  color: #c3edcf;
+  font-size: 13px;
+  font-weight: 550;
+  transform: translateY(-200%);
+}
+.g-skip-link:focus {
+  outline: 2px solid #b9edcc;
+  outline-offset: 4px;
+  transform: translateY(0);
+}
 @media (max-width: 1100px) { :root { --page-gutter: 24px; } }
 @media (max-width: 768px) {
   .g-header { height: 76px; gap: 24px; }

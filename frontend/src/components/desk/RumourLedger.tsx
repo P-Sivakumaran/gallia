@@ -103,7 +103,7 @@ export function LedgerRow({ rumour, change }: { rumour: Rumour; change?: LiveCha
           </span>
           <span className="g-feed-route">
             <Link href={`/club/${origin.club.id}`}>{origin.club.name}</Link>{origin.unconfirmed && ' (unconfirmed)'}
-            {' '}<span aria-hidden="true">→</span><span className="sr-only">to</span>{' '}
+            {' '}<span aria-hidden="true">→</span><span className="g-sr-only">to</span>{' '}
             <Link href={`/club/${rumour.toClub.id}`}>{rumour.toClub.name}</Link>
           </span>
         </span>

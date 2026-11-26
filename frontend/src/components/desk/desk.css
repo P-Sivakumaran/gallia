@@ -1,14 +1,15 @@
 /* Pages outside the home desk, in the desk's own vocabulary (gallia.css). */
 
 /* ── Site navigation: one row, desk tab style, active page underlined ── */
-.g-site-nav{display:flex;align-items:stretch;height:48px;padding-inline:max(var(--page-gutter),calc((100vw - 1600px)/2 + var(--page-gutter)));border-bottom:1px solid var(--border-subtle);background:#0b0e11}
-.g-site-tabs{display:flex;align-items:stretch;gap:32px;overflow-x:auto;scrollbar-width:none}
-.g-site-tabs>a{display:flex;align-items:center;border-bottom:2px solid transparent;color:var(--ink-muted);font-size:13px;font-weight:500;white-space:nowrap;transition:color .16s,border-color .16s}
+.g-site-nav{display:flex;align-items:stretch;min-height:48px;padding-inline:max(var(--page-gutter),calc((100vw - 1600px)/2 + var(--page-gutter)));border-bottom:1px solid var(--border-subtle);background:#0b0e11}
+.g-site-tabs{display:flex;align-items:stretch;gap:8px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.g-site-tabs>a{display:flex;align-items:center;min-height:44px;padding:0 12px;border-bottom:2px solid transparent;color:#c3ccd6;font-size:13px;font-weight:500;white-space:nowrap;transition:color .16s,border-color .16s}
 .g-site-tabs>a:hover{color:#e8eff2}
 .g-site-tabs>a[aria-current="page"]{color:var(--signal-fire);border-bottom-color:var(--signal-fire)}
 
 /* ── Page shell ── */
-.g-desk-page{padding-bottom:64px}
+.g-desk-page{padding-bottom:64px;overflow-x:clip}
+.g-desk-page .g-workspace{min-width:0}
 .g-desk-page .g-page-heading{align-items:flex-end}
 .g-desk-page .g-page-heading p{max-width:640px}
 .g-heading-actions{display:flex;gap:8px;flex-shrink:0}
@@ -90,18 +91,35 @@
   .g-ledger-columns,.g-ledger-row{grid-template-columns:minmax(0,1fr) 96px 112px}
   .g-ledger-columns>span:nth-child(2),.g-ledger-columns>span:nth-child(3),.g-ledger-row>.g-ledger-source,.g-ledger-row>.g-ledger-fee{display:none}
 }
+/* Three-stat strips (Rumours): keep 3 columns on desktop; stack on phones so nothing sits alone in a 2-col hole. */
+.g-metrics.g-metrics--trio{grid-template-columns:repeat(3,minmax(0,1fr))}
+.g-metrics.g-metrics--trio>.g-metric:nth-child(3){border-right:0}
+
+@media (max-width:820px){
+  .g-metrics.g-metrics--trio{grid-template-columns:1fr}
+  .g-metrics.g-metrics--trio>.g-metric{border-right:0;border-bottom:1px solid var(--g-line)}
+  .g-metrics.g-metrics--trio>.g-metric:last-child{border-bottom:0}
+  /* Override gallia.css 2-col nth-child borders for trio strips */
+  .g-metrics.g-metrics--trio>.g-metric:nth-child(-n+2){border-bottom:1px solid var(--g-line)}
+  .g-metrics.g-metrics--trio>.g-metric:nth-child(even){border-right:0}
+}
+
 @media (max-width:720px){
   .g-desk-page .g-page-heading{flex-direction:column;align-items:flex-start}
   .g-ledger-columns,.g-ledger-row{grid-template-columns:minmax(0,1fr) 88px;padding:0 16px;gap:12px}
   .g-ledger-columns>span:nth-child(5),.g-ledger-row>.g-ledger-status{display:none}
   .g-ledger-tools,.g-network-tools{padding:12px 16px}
+  .g-ledger-tools .g-feed-tabs>a{min-height:44px;padding-inline:4px}
   .g-scale-legend,.g-stat-row{grid-template-columns:repeat(2,minmax(0,1fr))}
   .g-scale-legend>div:nth-child(2){border-right:0}
   .g-stat-row>div:nth-child(2){border-right:0}
   .g-network-canvas>.g-network-surface,.g-network-state{height:440px}
   .g-ledger-mini th,.g-ledger-mini td{padding:10px 16px}
   .g-ledger-mini th:last-child,.g-ledger-mini td:last-child{display:none}
-  .g-metrics[data-testid="scorecard-ledger"],.g-desk-page .g-metrics{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  /* 4-metric ledgers → 2×2; 3-metric trios keep the stack rule above */
+  .g-metrics[data-testid="scorecard-ledger"],.g-desk-page .g-metrics:not(.g-metrics--trio){grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  .g-desk-page .g-metrics.g-metrics--trio{grid-template-columns:1fr!important}
+  .g-heading-actions .g-button,.g-heading-actions a{min-height:44px}
 }
 
 /* The calibration chart brings its own card; inside a desk panel it sits flush. */
