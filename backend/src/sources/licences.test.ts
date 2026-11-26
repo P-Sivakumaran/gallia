@@ -13,7 +13,8 @@ describe('source licence registry', () => {
   })
 
   it('warns for uncleared or unknown sources and stays quiet for cleared ones', () => {
-    expect(licenceWarning('ESPN Soccer')).toBeNull()
+    for (const [name, l] of Object.entries(SOURCE_LICENCES)) if (l.status === 'CLEARED') expect(licenceWarning(name)).toBeNull()
+    expect(licenceWarning('ESPN Soccer')).toMatch(/NEEDS_LICENCE/)
     expect(licenceWarning('BBC Sport')).toMatch(/NEEDS_LICENCE/)
     expect(licenceWarning('Some New Feed')).toMatch(/no licence entry/)
   })

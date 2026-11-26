@@ -42,7 +42,9 @@ export const SOURCE_LICENCES: Record<string, SourceLicence> = {
   'Marca Football': { status: 'NEEDS_LICENCE', note: 'Marca restricts commercial reuse.', displayRights: LINK_ONLY },
   Marca: { status: 'NEEDS_LICENCE', note: 'Marca restricts commercial reuse.', displayRights: LINK_ONLY },
   "L'Équipe Mercato": { status: 'NEEDS_LICENCE', note: "L'Équipe restricts commercial reuse.", displayRights: LINK_ONLY },
-  'ESPN Soccer': { status: 'CLEARED', note: 'ESPN RSS allows unmodified display with credit and a link.', displayRights: LINK_ONLY },
+  // ESPN RSS terms: unmodified, credited, linked, and "You may not incorporate advertising into any ESPN RSS content."
+  // Fine for an ad-free Gallia; an ad-supported one needs a licence. Disney's site terms are personal, non-commercial.
+  'ESPN Soccer': { status: 'NEEDS_LICENCE', note: 'ESPN RSS terms forbid advertising on or around feed content; ad-free display only, unmodified, credited, linked.', termsUrl: 'https://www.espn.com/espn/news/story?page=rssinfo', displayRights: LINK_ONLY },
   'Football Italia': { status: 'UNKNOWN', note: 'Terms not reviewed yet.' },
   // Social and community
   'Reddit Transfers': { status: 'NEEDS_LICENCE', note: 'Reddit Data API: commercial use needs written approval; ads beside Reddit content may be banned.', termsUrl: 'https://redditinc.com/policies/data-api-terms' },
