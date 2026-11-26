@@ -20,6 +20,10 @@ export interface TransferInput {
   date: Date | null
   datePrecision: 'day' | 'month' | 'year' | 'detected'
   type: 'permanent' | 'loan' | 'loan_end' | 'free' | 'unknown'
+  feeAmount?: number | null
+  feeCurrency?: string | null
+  feeStatus?: 'disclosed' | 'reported' | 'undisclosed' | 'free' | 'unknown'
+  details?: Record<string, unknown> | null
   source: 'wikidata' | 'thestatsapi' | 'news' | 'filing' | 'manual'
   sourceUrl?: string | null
   licence: string
@@ -39,7 +43,9 @@ export async function recordTransfer(db: PrismaClient, t: TransferInput): Promis
   const data = {
     playerId: t.playerId, fromClubId: t.fromClubId ?? null, toClubId: t.toClubId ?? null,
     fromTeamName: t.fromTeamName ?? null, toTeamName: t.toTeamName ?? null, fromTeamQid: t.fromTeamQid ?? null, toTeamQid: t.toTeamQid ?? null,
-    date: t.date, datePrecision: t.datePrecision, type: t.type, source: t.source, confidence: t.confidence,
+    date: t.date, datePrecision: t.datePrecision, type: t.type,
+    feeAmount: t.feeAmount ?? null, feeCurrency: t.feeCurrency ?? null, feeStatus: t.feeStatus ?? 'unknown',
+    source: t.source, confidence: t.confidence,
   }
   let result: 'created' | 'upgraded' | 'kept'
   let id: number
@@ -59,6 +65,9 @@ export async function recordTransfer(db: PrismaClient, t: TransferInput): Promis
           fromClubId: t.fromClubId ?? existing.fromClubId,
           fromTeamName: t.fromTeamName ?? existing.fromTeamName,
           fromTeamQid: t.fromTeamQid ?? existing.fromTeamQid,
+          feeAmount: t.feeAmount ?? existing.feeAmount,
+          feeCurrency: t.feeCurrency ?? existing.feeCurrency,
+          feeStatus: (t.feeStatus && t.feeStatus !== 'unknown') ? t.feeStatus : existing.feeStatus,
         },
       })
       result = 'upgraded'
@@ -67,8 +76,8 @@ export async function recordTransfer(db: PrismaClient, t: TransferInput): Promis
     }
   }
   // Each source's reading of the move, once per source.
-  const seen = await db.sourcedFact.findFirst({ where: { entityType: 'TRANSFER', entityId: id, field: 'move', source: t.source, supersededAt: null } })
-  if (!seen) {
+  const seenMove = await db.sourcedFact.findFirst({ where: { entityType: 'TRANSFER', entityId: id, field: 'move', source: t.source, supersededAt: null } })
+  if (!seenMove) {
     await db.sourcedFact.create({
       data: {
         entityType: 'TRANSFER', entityId: id, field: 'move',
@@ -77,16 +86,96 @@ export async function recordTransfer(db: PrismaClient, t: TransferInput): Promis
       },
     })
   }
+  // Each source's fee facts and details (instalments, add-ons, options).
+  if (t.feeAmount != null || (t.feeStatus && t.feeStatus !== 'unknown') || t.details) {
+    const seenFee = await db.sourcedFact.findFirst({ where: { entityType: 'TRANSFER', entityId: id, field: 'fee', source: t.source, supersededAt: null } })
+    if (!seenFee) {
+      await db.sourcedFact.create({
+        data: {
+          entityType: 'TRANSFER', entityId: id, field: 'fee',
+          value: JSON.stringify({
+            amount: t.feeAmount ?? null,
+            currency: t.feeCurrency ?? null,
+            status: t.feeStatus ?? 'unknown',
+            ...(t.details ?? {}),
+          }),
+          source: t.source, sourceUrl: t.sourceUrl ?? null, licence: t.licence, confidence: t.confidence, applied: result !== 'kept',
+        },
+      })
+    }
+  }
   return result
 }
 
 /** Keep one live contract row per player; a new expiry supersedes the old (an extension or a new club). */
-export async function recordContract(db: PrismaClient, playerId: number, clubId: number | null, expiresOn: Date, source: string): Promise<'created' | 'extended' | 'unchanged'> {
+export async function recordContract(
+  db: PrismaClient,
+  playerId: number,
+  clubId: number | null,
+  expiresOn: Date,
+  source: string,
+  sourceUrl?: string | null,
+  licence = 'primary-disclosure',
+  confidence = 0.95
+): Promise<'created' | 'extended' | 'unchanged'> {
   const live = await db.contractFact.findFirst({ where: { playerId, supersededAt: null }, orderBy: { observedAt: 'desc' } })
   if (live && live.expiresOn.getTime() === expiresOn.getTime() && live.clubId === clubId) return 'unchanged'
   if (live) await db.contractFact.update({ where: { id: live.id }, data: { supersededAt: new Date() } })
-  await db.contractFact.create({ data: { playerId, clubId, expiresOn, source } })
+  const created = await db.contractFact.create({ data: { playerId, clubId, expiresOn, source } })
+
+  // Backed by SourcedFact for entityType CONTRACT
+  await db.sourcedFact.create({
+    data: {
+      entityType: 'CONTRACT',
+      entityId: created.id,
+      field: 'expiry',
+      value: JSON.stringify({ expiresOn: expiresOn.toISOString().slice(0, 10), clubId }),
+      source,
+      sourceUrl: sourceUrl ?? null,
+      licence,
+      confidence,
+      applied: true,
+    },
+  })
+
   return live ? 'extended' : 'created'
+}
+
+/**
+ * Record an unmatched regulatory filing for admin review as an unapplied SourcedFact row.
+ * Never auto-creates unmatched players or clubs.
+ */
+export async function recordUnmatchedFiling(
+  db: PrismaClient,
+  fact: {
+    playerName: string
+    counterpartyName?: string | null
+    portal: string
+    sourceUrl: string
+    publishedAt?: Date | null
+    raw?: Record<string, unknown>
+  }
+): Promise<number> {
+  const sf = await db.sourcedFact.create({
+    data: {
+      entityType: 'UNMATCHED_TRANSFER',
+      entityId: 0,
+      field: 'filing_unmatched',
+      value: JSON.stringify({
+        player: fact.playerName,
+        counterparty: fact.counterpartyName ?? null,
+        portal: fact.portal,
+        publishedAt: fact.publishedAt ? fact.publishedAt.toISOString().slice(0, 10) : null,
+        ...(fact.raw ?? {}),
+      }),
+      source: 'filing',
+      sourceUrl: fact.sourceUrl,
+      licence: 'primary-disclosure',
+      confidence: 0.95,
+      applied: false,
+    },
+  })
+  return sf.id
 }
 
 /** One provider value per player per day. */
