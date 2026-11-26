@@ -7,6 +7,7 @@ import './desk.css'
 const LINKS = [
   { href: '/', label: 'Desk' },
   { href: '/rumours', label: 'Rumours' },
+  { href: '/leagues', label: 'Leagues' },
   { href: '/network', label: 'Network' },
   { href: '/scorecard', label: 'Scorecard' },
 ]
@@ -15,6 +16,7 @@ export function isActive(pathname: string, href: string): boolean {
   if (href === '/') return pathname === '/'
   // /rumour/[id] belongs to Rumours.
   if (href === '/rumours') return pathname.startsWith('/rumours') || pathname.startsWith('/rumour/')
+  if (href === '/leagues') return pathname.startsWith('/leagues')
   return pathname.startsWith(href)
 }
 

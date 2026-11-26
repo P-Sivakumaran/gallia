@@ -10,6 +10,9 @@ import type {
   AdminAgentSuggestion,
   AgentKind,
   PlayerAgentRole,
+  FootballCompetition,
+  CompetitionTable,
+  ClubSquad,
   RumourDetail,
   RumourStatus,
   Rumour,
@@ -125,6 +128,11 @@ export const api = {
   clubs: {
     list: (league?: string) => get<Club[]>('/clubs', league ? { league } : undefined),
     get: (id: number) => get<ClubDetail>(`/clubs/${id}`),
+  },
+  football: {
+    competitions: () => get<{ source: string; competitions: FootballCompetition[] }>('/football/competitions'),
+    table: (competitionId: number) => get<CompetitionTable>(`/football/competitions/${competitionId}/table`),
+    squad: (clubId: number) => get<ClubSquad>(`/football/clubs/${clubId}/squad`),
   },
   stats: {
     sources: () => get<(import('@/types').Source & { _count: { rumours: number } })[]>('/stats/sources'),

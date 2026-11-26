@@ -343,3 +343,87 @@ export interface AdminAgentSuggestion {
   agency: string | null
   players: number
 }
+
+// ─── Football data (TheStatsAPI snapshots) ───
+
+export interface FootballCompetition {
+  id: number
+  name: string
+  country: string
+  type: string
+  season: { id: number; name: string } | null
+}
+
+export interface StandingRow {
+  position: number
+  clubId: number
+  club: string
+  played: number
+  wins: number
+  draws: number
+  losses: number
+  goalsFor: number
+  goalsAgainst: number
+  goalDifference: number
+  points: number
+  form: string | null
+  xgFor: number | null
+  xgAgainst: number | null
+  groupLabel: string
+}
+
+export interface LeaderEntry {
+  playerId: number
+  name: string
+  clubId: number | null
+  value: number
+}
+
+export interface CompetitionTable {
+  source: string
+  competition: string
+  season: string
+  matchday: number | null
+  frozenAt: string | null
+  standings: StandingRow[]
+  leaders: {
+    goals: LeaderEntry[]
+    assists: LeaderEntry[]
+    xg: LeaderEntry[]
+    rating: LeaderEntry[]
+  } | null
+}
+
+export interface SquadPlayer {
+  id: number
+  name: string
+  positionGroup: string | null
+  shirtNumber: number | null
+  age: number | null
+  nationality: string | null
+  competition: string
+  appearances: number
+  minutes: number
+  goals: number
+  assists: number
+  rating: number | null
+  card: {
+    overall: number
+    attributes: {
+      finishing: number
+      creation: number
+      passing: number
+      dribbling: number
+      defending: number
+      duels: number
+      discipline: number
+    }
+    limitedSample: boolean
+  } | null
+}
+
+export interface ClubSquad {
+  source: string
+  club: { id: number; name: string }
+  players: SquadPlayer[]
+}
