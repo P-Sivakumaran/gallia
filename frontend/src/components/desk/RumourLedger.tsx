@@ -127,9 +127,16 @@ export function LedgerRow({ rumour, change }: { rumour: Rumour; change?: LiveCha
   )
 }
 
+const FILTER_KEYS = ['status', 'league', 'position', 'window'] as const
+
+export function ledgerFiltersActive(params: URLSearchParams): boolean {
+  return FILTER_KEYS.some((k) => Boolean(params.get(k)))
+}
+
 export default function RumourLedger({ total, page, totalPages }: { total: number; page: number; totalPages: number }) {
   const { rumours, live } = useFeed()
   const params = useSearchParams()
+  const hasFilters = ledgerFiltersActive(params)
   const pageHref = (p: number) => {
     const next = new URLSearchParams(params.toString())
     next.set('page', String(p))
@@ -146,7 +153,18 @@ export default function RumourLedger({ total, page, totalPages }: { total: numbe
         <span>PLAYER / TRANSFER ROUTE</span><span>SOURCE</span><span>FEE</span><span>LIKELIHOOD</span><span>STATUS</span>
       </div>
       {rumours.map((r) => <LedgerRow key={r.id} rumour={r} change={live[r.id]} />)}
-      {rumours.length === 0 && <p className="g-empty" style={{ padding: 24 }}>No rumours match these filters.</p>}
+      {rumours.length === 0 && (
+        <div className="g-empty" style={{ padding: 24 }} data-testid="ledger-empty">
+          <p>No rumours match these filters.</p>
+          {hasFilters && (
+            <p style={{ marginTop: 12 }}>
+              <Link href="/rumours" className="g-green-link" data-testid="ledger-clear-filters-cta">
+                Clear filters →
+              </Link>
+            </p>
+          )}
+        </div>
+      )}
       {totalPages > 1 && (
         <nav className="g-pagination" aria-label="Pages">
           {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
