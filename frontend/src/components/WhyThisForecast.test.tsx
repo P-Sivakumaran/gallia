@@ -17,6 +17,7 @@ describe('WhyThisForecast — states', () => {
   it('renders an empty state for a null claim', () => {
     render(<WhyThisForecast claim={null} />)
     expect(screen.getByTestId('why-empty')).toBeInTheDocument()
+    expect(screen.getByTestId('why-empty-rumours-cta')).toHaveAttribute('href', '/rumours')
   })
 })
 
