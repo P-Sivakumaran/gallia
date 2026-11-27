@@ -59,7 +59,15 @@ export default async function PlayerPage({ params }: { params: Promise<{ id: str
       <div className="g-metrics">
         <Metric
           label="CURRENT CLUB"
-          value={<span style={{ fontSize: 20 }}>{player.currentClub?.name ?? 'Unknown'}</span>}
+          value={
+            player.currentClub ? (
+              <Link href={`/club/${player.currentClub.id}`} className="g-green-link" style={{ fontSize: 20 }}>
+                {player.currentClub.name}
+              </Link>
+            ) : (
+              <span style={{ fontSize: 20 }}>Unknown</span>
+            )
+          }
           note="From the nightly club sync"
         />
         <Metric
