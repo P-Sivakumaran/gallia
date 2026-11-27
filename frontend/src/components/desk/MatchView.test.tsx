@@ -157,4 +157,21 @@ describe('MatchView', () => {
     expect(screen.getByTestId('match-ratings')).toHaveTextContent('8.2')
     expect(screen.getByTestId('formation-arsenal')).toBeInTheDocument()
   })
+
+  it('links empty team stats to the league table', () => {
+    render(
+      <MatchView
+        data={baseMatch({
+          detail: {
+            lineups: null,
+            events: [],
+            teamStats: {},
+            playerStats: [],
+            shots: [],
+          },
+        })}
+      />,
+    )
+    expect(screen.getByTestId('match-stats-empty-league-cta')).toHaveAttribute('href', '/leagues/1')
+  })
 })
