@@ -41,6 +41,14 @@ describe('ReviewQueue', () => {
     expect(screen.getByText('Article wording')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Here we go for Test Player' })).toHaveAttribute('href', 'https://example.com/a')
     expect(screen.getByTestId('review-count')).toHaveTextContent('1 waiting for review')
+    expect(screen.queryByTestId('review-empty-rumours-cta')).not.toBeInTheDocument()
+  })
+
+  it('links Browse rumours when the queue is empty', async () => {
+    reviewQueue.mockResolvedValue([])
+    render(<ReviewQueue />)
+    expect(await screen.findByTestId('review-count')).toHaveTextContent('Nothing waiting for review.')
+    expect(screen.getByTestId('review-empty-rumours-cta')).toHaveAttribute('href', '/rumours')
   })
 
   it('prefills the date from the earliest article and sends it as knownAt', async () => {
