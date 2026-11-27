@@ -30,6 +30,7 @@ describe('ClubLinkedPlayers', () => {
   it('shows empty state when no players', () => {
     render(<ClubLinkedPlayers players={[]} />)
     expect(screen.getByTestId('linked-players-empty')).toBeInTheDocument()
+    expect(screen.getByTestId('linked-players-squad-cta')).toHaveAttribute('href', '#squad-title')
   })
 
   it('links player names and shows value / contract', () => {
