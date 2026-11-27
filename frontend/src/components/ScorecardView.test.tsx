@@ -57,6 +57,7 @@ describe('ScorecardView', () => {
   it('says so when there is no ledger', () => {
     render(<ScorecardView health={null} />)
     expect(screen.getByTestId('scorecard-no-ledger')).toBeInTheDocument()
+    expect(screen.getByTestId('scorecard-no-ledger-rumours-cta')).toHaveAttribute('href', '/rumours')
   })
 })
 
