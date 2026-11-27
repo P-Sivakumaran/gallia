@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { api } from '@/lib/api'
 import DeskPage from '@/components/desk/DeskPage'
+import LeaguesHubEmpty from '@/components/desk/LeaguesHubEmpty'
 import { groupCompetitionsByCountry } from '@/lib/leaguesHub'
 
 export default async function LeaguesHubPage() {
@@ -20,9 +21,7 @@ export default async function LeaguesHubPage() {
           <span className="g-count-label">{comps.length} tracked · {data.source}</span>
         </div>
         {comps.length === 0 ? (
-          <p className="g-empty" style={{ padding: 24 }}>
-            No competitions synced yet. Run the football-data sync when TheStatsAPI is on a paid plan.
-          </p>
+          <LeaguesHubEmpty />
         ) : (
           <div className="g-leagues-hub" data-testid="leagues-hub-groups">
             {groups.map((g) => (
