@@ -402,6 +402,7 @@ function MatchDetail({
           homeTeamId={homeTeamId}
           homeName={homeName}
           awayName={awayName}
+          competitionId={competitionId}
         />
       </section>
 
