@@ -91,6 +91,24 @@ describe('LeagueStandings', () => {
     expect(screen.queryByTestId('leaders-empty')).not.toBeInTheDocument()
   })
 
+  it('falls back to Club #id when leader club is missing from standings', () => {
+    render(
+      <LeagueStandings
+        table={{
+          ...base,
+          leaders: {
+            goals: [{ playerId: 9, name: 'Guest', clubId: 99, value: 3 }],
+            assists: [],
+            xg: [],
+            rating: [],
+          },
+        }}
+      />,
+    )
+    expect(screen.getByTestId('leader-club-link')).toHaveAttribute('href', '/club/99')
+    expect(screen.getByTestId('leader-club-link')).toHaveTextContent('Club #99')
+  })
+
   it('renders group headings when groupLabel is set', () => {
     render(
       <LeagueStandings
