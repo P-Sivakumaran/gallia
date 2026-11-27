@@ -32,7 +32,7 @@ export function groupSquad(players: SquadPlayer[]): { key: string; label: string
 
 function SquadTable({ players }: { players: SquadPlayer[] }) {
   return (
-    <div className="g-table-scroll" tabIndex={0} role="region" aria-label="Squad">
+    <div className="g-table-scroll" tabIndex={0} role="region" aria-label="Season squad">
       <table className="g-table g-squad-table">
         <thead>
           <tr>
@@ -85,11 +85,11 @@ export default function ClubSquad({ squad }: { squad: ClubSquadData }) {
   return (
     <section className="g-panel" aria-labelledby="squad-title" data-testid="club-squad">
       <div className="g-panel-heading">
-        <h2 id="squad-title">Squad</h2>
+        <h2 id="squad-title">Season squad</h2>
         <span className="g-count-label">{squad.players.length} players · {squad.source}</span>
       </div>
       {groups.length === 0 ? (
-        <p className="g-empty" style={{ padding: 24 }}>No squad stats synced for this club yet.</p>
+        <p className="g-empty" style={{ padding: 24 }}>No season squad stats synced for this club yet.</p>
       ) : (
         groups.map((g) => (
           <div key={g.key} className="g-squad-group">

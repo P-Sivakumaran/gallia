@@ -35,7 +35,18 @@ export default async function RumourDetailPage({ params }: { params: Promise<{ i
     <DeskPage
       eyebrow={`RUMOUR · R-${rumour.id}`}
       title={rumour.player.name}
-      intro={`${origin.club.name} to ${rumour.toClub.name}, ${rumour.window.toLowerCase()} window. Reported by ${rumour.source.name}.`}
+      intro={
+        <>
+          <Link href={`/club/${origin.club.id}`} className="g-green-link" style={{ display: 'inline' }}>
+            {origin.club.name}
+          </Link>
+          {' to '}
+          <Link href={`/club/${rumour.toClub.id}`} className="g-green-link" style={{ display: 'inline' }}>
+            {rumour.toClub.name}
+          </Link>
+          {`, ${rumour.window.toLowerCase()} window. Reported by ${rumour.source.name}.`}
+        </>
+      }
       actions={<Link href="/rumours" className="g-button"><span style={{ display: 'flex', transform: 'scaleX(-1)' }}><Icon name="arrow" size={16} /></span>All rumours</Link>}
     >
       <div className="g-hero-grid">
