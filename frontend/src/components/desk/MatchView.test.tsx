@@ -32,6 +32,7 @@ describe('MatchView', () => {
     expect(screen.getByTestId('match-detail-pending')).toHaveTextContent(
       /Match detail arrives a few hours after full time/,
     )
+    expect(screen.getByTestId('pending-league-link')).toHaveAttribute('href', '/leagues/1')
     expect(screen.getByTestId('match-source')).toHaveTextContent('TheStatsAPI')
     expect(screen.queryByTestId('match-detail')).not.toBeInTheDocument()
   })
