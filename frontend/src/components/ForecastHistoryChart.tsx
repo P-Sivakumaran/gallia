@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import Link from 'next/link'
 import {
   ComposedChart, Line, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceDot,
 } from 'recharts'
@@ -68,6 +69,15 @@ export default function ForecastHistoryChart({
         <p className="mt-2 text-sm text-ink-muted">
           This claim doesn&apos;t have any historical forecasts yet — a calibrated probability hasn&apos;t been
           computed for it.
+        </p>
+        <p className="mt-3">
+          <Link
+            href="/rumours"
+            className="text-sm font-medium text-pitch-500 hover:underline"
+            data-testid="history-empty-rumours-cta"
+          >
+            Browse rumours →
+          </Link>
         </p>
       </div>
     )

@@ -34,11 +34,13 @@ describe('ForecastHistoryChart — states', () => {
     render(<ForecastHistoryChart history={emptyForecastHistory} />)
     expect(screen.getByTestId('history-empty')).toBeInTheDocument()
     expect(screen.getByText(/doesn't have any historical forecasts/i)).toBeInTheDocument()
+    expect(screen.getByTestId('history-empty-rumours-cta')).toHaveAttribute('href', '/rumours')
   })
 
   it('renders a clear empty state for a null history', () => {
     render(<ForecastHistoryChart history={null} />)
     expect(screen.getByTestId('history-empty')).toBeInTheDocument()
+    expect(screen.getByTestId('history-empty-rumours-cta')).toHaveAttribute('href', '/rumours')
   })
 })
 
