@@ -172,7 +172,14 @@ export default function ScorecardView({ health, error = null, ledger = null }: P
           </div>
         </section>
         {error ? (
-          <p className="g-connection-notice g-span-12" data-testid="scorecard-error">The model scorecard is unavailable right now ({error}). Forecasts are still shown on each rumour.</p>
+          <div className="g-connection-notice g-span-12" data-testid="scorecard-error">
+            <p>The model scorecard is unavailable right now ({error}). Forecasts are still shown on each rumour.</p>
+            <p style={{ marginTop: 12 }}>
+              <Link href="/rumours" className="g-green-link" data-testid="scorecard-error-rumours-cta">
+                Browse rumours →
+              </Link>
+            </p>
+          </div>
         ) : !health || health.definitions.length === 0 ? (
           <div className="g-connection-notice g-span-12" data-testid="scorecard-empty">
             <p>No forecasting model is active yet, so there is nothing to score.</p>
