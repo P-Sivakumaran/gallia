@@ -60,9 +60,18 @@ export default function MatchdayFixtures({
       </div>
 
       {data.fixtures.length === 0 ? (
-        <p className="g-empty" style={{ padding: 16 }} data-testid="matchday-empty">
-          No fixtures for this matchday.
-        </p>
+        <div className="g-empty" style={{ padding: 16 }} data-testid="matchday-empty">
+          <p>No fixtures for this matchday.</p>
+          <p style={{ marginTop: 12 }}>
+            <Link
+              href={`/leagues/${competitionId}`}
+              className="g-green-link"
+              data-testid="matchday-empty-league-cta"
+            >
+              See league table →
+            </Link>
+          </p>
+        </div>
       ) : (
         <ul className="g-fixture-list">
           {data.fixtures.map((f) => {
