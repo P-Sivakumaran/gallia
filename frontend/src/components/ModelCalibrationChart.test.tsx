@@ -12,6 +12,7 @@ describe('ModelCalibrationChart — states', () => {
   it('renders an error state', () => {
     render(<ModelCalibrationChart definition={null} error="boom" />)
     expect(screen.getByTestId('calibration-error')).toBeInTheDocument()
+    expect(screen.getByTestId('calibration-error-rumours-cta')).toHaveAttribute('href', '/rumours')
   })
 
   it('renders an empty state when there is no definition', () => {
