@@ -94,4 +94,13 @@ describe('TheStatsApiClient', () => {
     })
     expect(await c.getAll<number>('/football/teams?competition_id=c', 'teams')).toEqual([1, 2, 3])
   })
+
+  it('keeps paging without total_pages while pages are full', async () => {
+    const { c } = client(async (url) => {
+      const page = Number(new URL(url).searchParams.get('page'))
+      if (page === 1) return response(200, { data: [1, 2] })
+      return response(200, { data: [3] })
+    })
+    expect(await c.getAll<number>('/football/matches?competition_id=c', 'fixtures', null, 2)).toEqual([1, 2, 3])
+  })
 })

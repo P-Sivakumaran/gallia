@@ -143,7 +143,12 @@ export class TheStatsApiClient {
     for (let page = 1; page < 50; page++) {
       const body = await this.get<{ data: T[]; meta?: { total_pages?: number } }>(`${path}${sep}page=${page}&per_page=${perPage}`, kind, competitionId)
       out.push(...body.data)
-      if (!body.meta?.total_pages || page >= body.meta.total_pages) break
+      const totalPages = body.meta?.total_pages
+      if (totalPages != null && totalPages > 0) {
+        if (page >= totalPages) break
+      } else if (body.data.length < perPage) {
+        break
+      }
     }
     return out
   }

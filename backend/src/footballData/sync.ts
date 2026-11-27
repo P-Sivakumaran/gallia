@@ -34,7 +34,7 @@ interface TsaSeason { id: string; name: string; start_year: number | null; end_y
 interface TsaTeamRef { id: string; name: string }
 interface TsaStanding { team: TsaTeamRef; position: number; matches_played: number; wins: number; draws: number; losses: number; goals_for: number; goals_against: number; goal_difference: number; points: number; group_label: string | null }
 interface TsaTeamStats { form?: string | null; expected_goals_for?: number | null; expected_goals_against?: number | null }
-interface TsaMatch { id: string; matchday: number | null; status: string; utc_date: string; home_team: TsaTeamRef; away_team: TsaTeamRef; score?: { home: number | null; away: number | null } | null }
+export interface TsaMatch { id: string; matchday: number | null; status: string; utc_date: string; home_team: TsaTeamRef; away_team: TsaTeamRef; score?: { home: number | null; away: number | null } | null }
 export interface TsaSquadPlayer {
   id: string; name: string; position: string | null; date_of_birth: string | null; age: number | null
   nationality: string | null; height_cm: number | null; preferred_foot: string | null
@@ -106,6 +106,25 @@ export interface FootballSyncOptions {
   log?: (m: string) => void
 }
 
+export function fixtureUpsertData(m: TsaMatch, seasonId: number, homeClubId: number, awayClubId: number) {
+  const base = {
+    seasonId,
+    matchday: m.matchday,
+    kickoffAt: new Date(m.utc_date),
+    status: m.status,
+    homeClubId,
+    awayClubId,
+  }
+  return {
+    create: { tsaId: m.id, ...base, homeGoals: m.score?.home ?? null, awayGoals: m.score?.away ?? null },
+    update: {
+      ...base,
+      ...(m.score?.home != null ? { homeGoals: m.score.home } : {}),
+      ...(m.score?.away != null ? { awayGoals: m.score.away } : {}),
+    },
+  }
+}
+
 export async function runFootballDataSync(db: Db, api: TheStatsApiClient, opts: FootballSyncOptions = {}): Promise<FootballSyncSummary> {
   const log = opts.log ?? (() => {})
   const want = (s: NonNullable<FootballSyncOptions['only']>[number]) => !opts.only?.length || opts.only.includes(s)
@@ -134,11 +153,7 @@ export async function runFootballDataSync(db: Db, api: TheStatsApiClient, opts: 
         for (const m of matches) {
           const homeClubId = await resolveClub(clubDb, m.home_team)
           const awayClubId = await resolveClub(clubDb, m.away_team)
-          const data = {
-            seasonId: season.id, matchday: m.matchday, kickoffAt: new Date(m.utc_date), status: m.status,
-            homeClubId, awayClubId, homeGoals: m.score?.home ?? null, awayGoals: m.score?.away ?? null,
-          }
-          await db.fixture.upsert({ where: { tsaId: m.id }, create: { tsaId: m.id, ...data }, update: data })
+          await db.fixture.upsert({ where: { tsaId: m.id }, ...fixtureUpsertData(m, season.id, homeClubId, awayClubId) })
           summary.fixtures++
         }
       }

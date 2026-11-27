@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { foldName } from '../ingestion/statsApiClubSync.js'
-import { matchSquadPlayer, positionGroup, type GalliaPlayerLite, type TsaSquadPlayer } from './sync.js'
+import { fixtureUpsertData, matchSquadPlayer, positionGroup, type GalliaPlayerLite, type TsaMatch, type TsaSquadPlayer } from './sync.js'
 
 const sp = (over: Partial<TsaSquadPlayer> = {}): TsaSquadPlayer => ({
   id: 'pl_1', name: 'Ben White', position: 'D', date_of_birth: '1997-10-08', age: 29, nationality: 'England',
@@ -17,6 +17,31 @@ function index(players: GalliaPlayerLite[]) {
 describe('positionGroup', () => {
   it('maps G/D/M/F and leaves unknown codes empty', () => {
     expect(['G', 'D', 'M', 'F', 'X', null].map(positionGroup)).toEqual(['GK', 'DEF', 'MID', 'FWD', null, null])
+  })
+})
+
+describe('fixtureUpsertData', () => {
+  const match = (over: Partial<TsaMatch> = {}): TsaMatch => ({
+    id: 'fx_1',
+    matchday: 12,
+    status: 'finished',
+    utc_date: '2026-11-26T20:00:00Z',
+    home_team: { id: 'home', name: 'Home FC' },
+    away_team: { id: 'away', name: 'Away FC' },
+    score: { home: 2, away: 1 },
+    ...over,
+  })
+
+  it('preserves existing scores when a provider update omits score values', () => {
+    const { create, update } = fixtureUpsertData(match({ score: null }), 9, 10, 11)
+    expect(create).toMatchObject({ homeGoals: null, awayGoals: null })
+    expect(update).not.toHaveProperty('homeGoals')
+    expect(update).not.toHaveProperty('awayGoals')
+  })
+
+  it('updates concrete provider score values', () => {
+    const { update } = fixtureUpsertData(match({ score: { home: 3, away: 2 } }), 9, 10, 11)
+    expect(update).toMatchObject({ homeGoals: 3, awayGoals: 2 })
   })
 })
 
