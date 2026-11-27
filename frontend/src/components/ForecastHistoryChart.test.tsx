@@ -16,6 +16,7 @@ describe('ForecastHistoryChart — states', () => {
   it('renders an error state', () => {
     render(<ForecastHistoryChart history={null} error="boom" />)
     expect(screen.getByTestId('history-error')).toBeInTheDocument()
+    expect(screen.getByTestId('history-error-rumours-cta')).toHaveAttribute('href', '/rumours')
   })
 
   it('renders nothing, not an upsell or the generic error, when the backend switches history off', () => {
