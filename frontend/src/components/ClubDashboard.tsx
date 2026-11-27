@@ -36,7 +36,15 @@ export default function ClubDashboard({ club }: Props) {
       <div className="g-metrics">
         <Metric label="INCOMING RUMOURS" value={club.activeIn.length} />
         <Metric label="OUTGOING RUMOURS" value={club.activeOut.length} />
-        <Metric label="SQUAD SIZE" value={club.players.length} note="Players linked to this club" />
+        <Metric
+          label="SQUAD SIZE"
+          value={
+            <a href="#linked-players-title" className="g-green-link" data-testid="squad-size-jump">
+              {club.players.length}
+            </a>
+          }
+          note="Players linked to this club"
+        />
         <Metric label="EXPECTED SPEND" value={spend ? `€${formatMillions(spend)}` : '—'} tone={spend ? 'green' : undefined} note="Fees × current likelihood" />
       </div>
 
