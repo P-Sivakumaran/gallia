@@ -13,7 +13,8 @@ const LINKS = [
 ]
 
 export function isActive(pathname: string, href: string): boolean {
-  if (href === '/') return pathname === '/'
+  // Watchlist is an account surface off the home desk.
+  if (href === '/') return pathname === '/' || pathname.startsWith('/watchlist')
   // /rumour/[id] belongs to Rumours.
   if (href === '/rumours') return pathname.startsWith('/rumours') || pathname.startsWith('/rumour/')
   // Club, match, player and compare sit in the football desk with Leagues.
