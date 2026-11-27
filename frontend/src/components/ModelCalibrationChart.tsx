@@ -59,6 +59,15 @@ export default function ModelCalibrationChart({ definition, isLoading = false, e
     return (
       <div className="rounded-xl border border-line/60 bg-card shadow-card p-5" data-testid="calibration-error">
         <p className="text-sm text-ink-muted">Couldn&apos;t load model calibration: {error}</p>
+        <p className="mt-3">
+          <Link
+            href="/rumours"
+            className="text-sm font-medium text-pitch-500 hover:underline"
+            data-testid="calibration-error-rumours-cta"
+          >
+            Browse rumours →
+          </Link>
+        </p>
       </div>
     )
   }
