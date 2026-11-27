@@ -39,6 +39,7 @@ describe('ScorecardView', () => {
   it('shows an error state when the API fails', () => {
     render(<ScorecardView health={null} error="API 500: /forecast/model-health" />)
     expect(screen.getByTestId('scorecard-error')).toHaveTextContent('API 500')
+    expect(screen.getByTestId('scorecard-error-rumours-cta')).toHaveAttribute('href', '/rumours')
   })
 
   it('scores the desk ledger when one is supplied', () => {
