@@ -44,5 +44,6 @@ describe('ClubSquad', () => {
     render(<ClubSquad squad={squad} />)
     expect(screen.getByRole('heading', { name: 'Season squad' })).toBeInTheDocument()
     expect(screen.getByText(/No season squad stats synced/)).toBeInTheDocument()
+    expect(screen.getByTestId('season-squad-linked-cta')).toHaveAttribute('href', '#linked-players-title')
   })
 })
