@@ -164,7 +164,21 @@ export default function ReviewQueue() {
         Rumours that need a decision. Article wording is a lead, not proof: confirm against an official club source,
         then set the date the outcome became public. The scorecard only scores estimates made before that date.
       </p>
-      {error && <p className="g-error" style={{ padding: '16px 24px' }}>{error}</p>}
+      {error && (
+        <div style={{ padding: '16px 24px' }} data-testid="review-error">
+          <p className="g-error" role="alert">{error}</p>
+          <p style={{ marginTop: 12 }}>
+            <button
+              type="button"
+              className="g-green-link"
+              data-testid="review-error-retry"
+              onClick={() => void load()}
+            >
+              Retry →
+            </button>
+          </p>
+        </div>
+      )}
       {loading && <p className="g-note" style={{ padding: '16px 24px' }}>Loading…</p>}
       {!loading && !error && (
         <div style={{ padding: '12px 24px', borderBottom: '1px solid var(--g-line)' }} data-testid="review-count">
