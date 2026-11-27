@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import DeskPage from '@/components/desk/DeskPage'
 import { RumourRowsPanel } from '@/components/desk/RumourLedger'
+import { splitRumoursByOpenness } from '@/lib/rumourStatus'
 import type { PaginatedResponse, Rumour } from '@/types'
 
 const BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001'
@@ -19,6 +20,7 @@ export default async function WatchlistPage() {
   if (!res.ok) throw new Error(`API ${res.status}: /rumours?watchlist=true`)
 
   const { data: rumours, total } = (await res.json()) as PaginatedResponse<Rumour>
+  const { open, resolved } = splitRumoursByOpenness(rumours)
 
   return (
     <DeskPage eyebrow="ACCOUNT" title="Watchlist" intro={`Rumours about the players you follow. ${total} in total.`}>
@@ -26,11 +28,22 @@ export default async function WatchlistPage() {
         <section className="g-panel">
           <div className="g-panel-body">
             <p>No rumours for watched players yet.</p>
-            <p><Link href="/rumours" className="g-green-link" style={{ display: 'inline-flex' }}>Browse rumours →</Link></p>
+            <p>
+              <Link href="/rumours" className="g-green-link" style={{ display: 'inline-flex' }}>
+                Browse rumours →
+              </Link>
+            </p>
           </div>
         </section>
       ) : (
-        <RumourRowsPanel title="Watched players" rumours={rumours} empty="No rumours for watched players yet." />
+        <div className="g-stack">
+          <RumourRowsPanel title="Open rumours" rumours={open} empty="No open rumours for watched players." />
+          <RumourRowsPanel
+            title="Resolved rumours"
+            rumours={resolved}
+            empty="No resolved rumours for watched players."
+          />
+        </div>
       )}
     </DeskPage>
   )
