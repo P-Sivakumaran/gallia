@@ -155,14 +155,18 @@ export default function RumourLedger({ total, page, totalPages }: { total: numbe
       {rumours.map((r) => <LedgerRow key={r.id} rumour={r} change={live[r.id]} />)}
       {rumours.length === 0 && (
         <div className="g-empty" style={{ padding: 24 }} data-testid="ledger-empty">
-          <p>No rumours match these filters.</p>
-          {hasFilters && (
-            <p style={{ marginTop: 12 }}>
+          <p>{hasFilters ? 'No rumours match these filters.' : 'No rumours on the ledger yet.'}</p>
+          <p style={{ marginTop: 12 }}>
+            {hasFilters ? (
               <Link href="/rumours" className="g-green-link" data-testid="ledger-clear-filters-cta">
                 Clear filters →
               </Link>
-            </p>
-          )}
+            ) : (
+              <Link href="/network" className="g-green-link" data-testid="ledger-empty-network-cta">
+                Transfer network →
+              </Link>
+            )}
+          </p>
         </div>
       )}
       {totalPages > 1 && (
