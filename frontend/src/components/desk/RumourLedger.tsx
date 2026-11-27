@@ -159,11 +159,23 @@ export default function RumourLedger({ total, page, totalPages }: { total: numbe
 }
 
 /** A titled panel of rumour rows without filters or live updates (player and club pages). */
-export function RumourRowsPanel({ title, rumours, empty }: { title: string; rumours: Rumour[]; empty: string }) {
+export function RumourRowsPanel({
+  title,
+  rumours,
+  empty,
+  id,
+}: {
+  title: string
+  rumours: Rumour[]
+  empty: string
+  /** Optional section id for in-page jumps (e.g. metric → panel). */
+  id?: string
+}) {
+  const headingId = id ? `${id}-title` : undefined
   return (
-    <section className="g-panel" aria-label={title}>
+    <section className="g-panel" aria-label={title} id={id} aria-labelledby={headingId}>
       <div className="g-panel-heading">
-        <h2>{title}</h2>
+        <h2 id={headingId}>{title}</h2>
         <span className="g-count-label">{rumours.length} RUMOUR{rumours.length === 1 ? '' : 'S'}</span>
       </div>
       {rumours.length > 0 && (
