@@ -124,4 +124,9 @@ describe('LeagueStandings', () => {
     expect(screen.getByRole('heading', { name: 'Group A' })).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Group B' })).toBeInTheDocument()
   })
+
+  it('links empty standings to All leagues', () => {
+    render(<LeagueStandings table={{ ...base, standings: [] }} />)
+    expect(screen.getByTestId('standings-empty-all-leagues-cta')).toHaveAttribute('href', '/leagues')
+  })
 })

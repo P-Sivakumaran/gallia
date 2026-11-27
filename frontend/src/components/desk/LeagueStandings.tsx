@@ -157,7 +157,14 @@ export default function LeagueStandings({ table }: { table: CompetitionTable }) 
       </p>
 
       {table.standings.length === 0 ? (
-        <p className="g-empty" style={{ padding: 24 }}>No standings for this competition yet.</p>
+        <div className="g-empty" style={{ padding: 24 }} data-testid="standings-empty">
+          <p>No standings for this competition yet.</p>
+          <p style={{ marginTop: 12 }}>
+            <Link href="/leagues" className="g-green-link" data-testid="standings-empty-all-leagues-cta">
+              All leagues →
+            </Link>
+          </p>
+        </div>
       ) : (
         groups.map((g) => (
           <section key={g.label ?? 'main'} className="g-panel" style={{ marginBottom: 16 }}>
