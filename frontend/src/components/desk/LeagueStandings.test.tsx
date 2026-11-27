@@ -65,7 +65,7 @@ describe('LeagueStandings', () => {
     frozenAt: '2026-11-20T12:00:00.000Z',
     standings: [row({ position: 1, clubId: 10, club: 'Arsenal' })],
     leaders: {
-      goals: [{ playerId: 1, name: 'Haaland', clubId: 2, value: 14 }],
+      goals: [{ playerId: 1, name: 'Haaland', clubId: 10, value: 14 }],
       assists: [],
       xg: [],
       rating: [],
@@ -76,9 +76,12 @@ describe('LeagueStandings', () => {
     render(<LeagueStandings table={base} />)
     expect(screen.getByTestId('league-meta')).toHaveTextContent(/Matchday 12/)
     expect(screen.getByTestId('league-meta')).toHaveTextContent(/TheStatsAPI/)
-    expect(screen.getByText('Arsenal')).toHaveAttribute('href', '/club/10')
+    const standingsClub = screen.getAllByText('Arsenal')[0]
+    expect(standingsClub).toHaveAttribute('href', '/club/10')
     expect(screen.getByLabelText(/Form/)).toBeInTheDocument()
     expect(screen.getByText('Haaland')).toHaveAttribute('href', '/player/1')
+    expect(screen.getByTestId('leader-club-link')).toHaveAttribute('href', '/club/10')
+    expect(screen.getByTestId('leader-club-link')).toHaveTextContent('Arsenal')
     expect(screen.getAllByTestId('leaders-empty').length).toBeGreaterThanOrEqual(1)
   })
 

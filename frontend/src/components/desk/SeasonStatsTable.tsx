@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
+import Link from 'next/link'
 import type { PlayerSeasonLine } from '@/types'
 
 export interface SeasonStatsTableProps {
@@ -99,6 +100,7 @@ export default function SeasonStatsTable({ seasons }: SeasonStatsTableProps) {
             <tr>
               <th scope="col" className="g-sticky-col">Competition</th>
               <th scope="col">Season</th>
+              <th scope="col">Club</th>
               <th scope="col" className="num">Apps (Starts)</th>
               <th scope="col" className="num">Min</th>
               <th scope="col" className="num">G</th>
@@ -118,10 +120,25 @@ export default function SeasonStatsTable({ seasons }: SeasonStatsTableProps) {
                 <React.Fragment key={rowKey}>
                   <tr className={isExpanded ? 'g-row-expanded' : undefined}>
                     <td className="g-sticky-col">
-                      <span className="g-comp-title">{compName}</span>
+                      {s.competition?.id != null ? (
+                        <Link href={`/leagues/${s.competition.id}`} className="g-green-link g-comp-title">
+                          {compName}
+                        </Link>
+                      ) : (
+                        <span className="g-comp-title">{compName}</span>
+                      )}
                       {s.current && <span className="g-current-pill">Current</span>}
                     </td>
                     <td>{s.season}</td>
+                    <td>
+                      {s.clubId != null ? (
+                        <Link href={`/club/${s.clubId}`} className="g-green-link" data-testid="season-club-link">
+                          Club
+                        </Link>
+                      ) : (
+                        '—'
+                      )}
+                    </td>
                     <td className="num">
                       {s.appearances} {s.starts != null ? `(${s.starts})` : ''}
                     </td>
@@ -151,7 +168,7 @@ export default function SeasonStatsTable({ seasons }: SeasonStatsTableProps) {
                   </tr>
                   {isExpanded && (
                     <tr id={`detail-row-${idx}`} className="g-detail-row">
-                      <td colSpan={10}>
+                      <td colSpan={11}>
                         <DetailBreakdown detail={s.detail} />
                       </td>
                     </tr>

@@ -40,9 +40,10 @@ describe('SeasonStatsTable', () => {
   it('renders competition rows with minutes, goals, assists, xG, xA, and rating', () => {
     render(<SeasonStatsTable seasons={mockSeasons} />)
 
-    expect(screen.getByText('Premier League')).toBeInTheDocument()
+    expect(screen.getByText('Premier League')).toHaveAttribute('href', '/leagues/1')
     expect(screen.getByText('Current')).toBeInTheDocument()
     expect(screen.getByText('2024-25')).toBeInTheDocument()
+    expect(screen.getByTestId('season-club-link')).toHaveAttribute('href', '/club/10')
     expect(screen.getByText('22 (20)')).toBeInTheDocument()
     expect(screen.getByText('1,850')).toBeInTheDocument()
     expect(screen.getByText('15')).toBeInTheDocument()
