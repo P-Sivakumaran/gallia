@@ -19,10 +19,12 @@ const data: MatchdayFixturesResponse = {
 }
 
 describe('MatchdayFixtures', () => {
-  it('links fixtures to /match/[id] and supports prev/next', () => {
+  it('links clubs to /club and score/status to /match; supports prev/next', () => {
     render(<MatchdayFixtures competitionId={7} data={data} hasNext />)
     expect(screen.getByTestId('matchday-fixtures')).toHaveTextContent('Matchday 5')
-    expect(screen.getByRole('link', { name: /Home FC/i }).closest('a')).toHaveAttribute('href', '/match/101')
+    expect(screen.getByTestId('fixture-home-club')).toHaveAttribute('href', '/club/1')
+    expect(screen.getByTestId('fixture-away-club')).toHaveAttribute('href', '/club/2')
+    expect(screen.getByTestId('fixture-match-link')).toHaveAttribute('href', '/match/101')
     expect(screen.getByLabelText(/Previous matchday, 4/)).toHaveAttribute('href', '/leagues/7?matchday=4')
     expect(screen.getByLabelText(/Next matchday, 6/)).toHaveAttribute('href', '/leagues/7?matchday=6')
   })
