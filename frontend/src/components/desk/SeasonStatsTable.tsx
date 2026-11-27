@@ -25,8 +25,13 @@ function formatStatKey(key: string): string {
 function DetailBreakdown({ detail }: { detail: Record<string, Record<string, number | null>> | null }) {
   if (!detail || typeof detail !== 'object') {
     return (
-      <div className="g-season-detail-empty">
+      <div className="g-season-detail-empty" data-testid="season-detail-empty">
         <p className="g-muted">No detailed breakdown provided for this season.</p>
+        <p style={{ marginTop: 12 }}>
+          <Link href="/leagues" className="g-green-link" data-testid="season-detail-empty-leagues-cta">
+            All leagues →
+          </Link>
+        </p>
       </div>
     )
   }
@@ -38,8 +43,13 @@ function DetailBreakdown({ detail }: { detail: Record<string, Record<string, num
 
   if (activeGroups.length === 0) {
     return (
-      <div className="g-season-detail-empty">
+      <div className="g-season-detail-empty" data-testid="season-detail-empty">
         <p className="g-muted">No detailed stat categories recorded.</p>
+        <p style={{ marginTop: 12 }}>
+          <Link href="/leagues" className="g-green-link" data-testid="season-detail-empty-leagues-cta">
+            All leagues →
+          </Link>
+        </p>
       </div>
     )
   }
