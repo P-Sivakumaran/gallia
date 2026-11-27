@@ -29,6 +29,7 @@ describe('PlayerCard', () => {
     expect(screen.getByText('No rating available')).toBeInTheDocument()
     expect(screen.getByText(/Percentile card ratings are computed/)).toBeInTheDocument()
     expect(screen.queryByText('Finishing')).not.toBeInTheDocument()
+    expect(screen.getByTestId('player-card-empty-season-cta')).toHaveAttribute('href', '#season-statistics')
   })
 
   it('renders overall score, pool size, and all 7 attribute bars with 1-99 values', () => {

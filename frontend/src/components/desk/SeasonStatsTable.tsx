@@ -71,7 +71,7 @@ export default function SeasonStatsTable({ seasons }: SeasonStatsTableProps) {
 
   if (!seasons || seasons.length === 0) {
     return (
-      <section className="g-panel" aria-label="Season statistics">
+      <section className="g-panel" id="season-statistics" aria-label="Season statistics">
         <header className="g-panel-heading">
           <h2>Season statistics</h2>
           <span className="g-source-badge">Data: TheStatsAPI</span>
@@ -88,7 +88,7 @@ export default function SeasonStatsTable({ seasons }: SeasonStatsTableProps) {
   }
 
   return (
-    <section className="g-panel" aria-label="Season statistics">
+    <section className="g-panel" id="season-statistics" aria-label="Season statistics">
       <header className="g-panel-heading">
         <h2>Season statistics</h2>
         <span className="g-source-badge">Data: TheStatsAPI</span>
