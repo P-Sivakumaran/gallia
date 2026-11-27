@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { api } from '@/lib/api'
 import TimelineChart from '@/components/TimelineChart'
 import DeskPage, { PanelHeading } from '@/components/desk/DeskPage'
+import RumourEvidenceEmpty from '@/components/desk/RumourEvidenceEmpty'
 import { Icon, ProbabilityMeter } from '@/components/gallia/Primitives'
 import { feeLabel } from '@/lib/format'
 import { resolveDisplayOrigin } from '@/lib/rumourOrigin'
@@ -109,7 +110,7 @@ export default async function RumourDetailPage({ params }: { params: Promise<{ i
         <section className="g-panel g-span-4">
           <PanelHeading title="Evidence" right={<span className="g-count-label">{rumour.evidence.length} ARTICLE{rumour.evidence.length === 1 ? '' : 'S'}</span>} />
           {rumour.evidence.length === 0 ? (
-            <div className="g-panel-body"><p>No source articles are linked to this rumour yet.</p></div>
+            <RumourEvidenceEmpty />
           ) : (
             <ul className="g-evidence-list">
               {rumour.evidence.map((e, i) => (
