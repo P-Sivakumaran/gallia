@@ -182,12 +182,17 @@ export function RumourRowsPanel({
   rumours,
   empty,
   id,
+  emptyHref,
+  emptyCta,
 }: {
   title: string
   rumours: Rumour[]
   empty: string
   /** Optional section id for in-page jumps (e.g. metric → panel). */
   id?: string
+  /** Optional escape hatch when the panel is empty (e.g. /rumours). */
+  emptyHref?: string
+  emptyCta?: string
 }) {
   const headingId = id ? `${id}-title` : undefined
   return (
@@ -202,7 +207,18 @@ export function RumourRowsPanel({
         </div>
       )}
       {rumours.map((r) => <LedgerRow key={r.id} rumour={r} />)}
-      {rumours.length === 0 && <p className="g-empty" style={{ padding: 24 }}>{empty}</p>}
+      {rumours.length === 0 && (
+        <div className="g-empty" style={{ padding: 24 }} data-testid="rumour-rows-empty">
+          <p>{empty}</p>
+          {emptyHref && emptyCta && (
+            <p style={{ marginTop: 12 }}>
+              <Link href={emptyHref} className="g-green-link" data-testid="rumour-rows-empty-cta">
+                {emptyCta}
+              </Link>
+            </p>
+          )}
+        </div>
+      )}
     </section>
   )
 }

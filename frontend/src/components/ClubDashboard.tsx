@@ -84,12 +84,16 @@ export default function ClubDashboard({ club }: Props) {
           title="Incoming"
           rumours={club.activeIn}
           empty="No active incoming rumours."
+          emptyHref="/rumours"
+          emptyCta="Browse rumours →"
         />
         <RumourRowsPanel
           id="outgoing-rumours"
           title="Outgoing"
           rumours={club.activeOut}
           empty="No active outgoing rumours."
+          emptyHref="/rumours"
+          emptyCta="Browse rumours →"
         />
       </div>
     </>

@@ -9,4 +9,18 @@ describe('RumourRowsPanel', () => {
     expect(section).toHaveAttribute('id', 'open-rumours')
     expect(screen.getByRole('heading', { name: 'Open rumours' })).toHaveAttribute('id', 'open-rumours-title')
   })
+
+  it('links empty panels to Browse rumours when emptyHref is set', () => {
+    render(
+      <RumourRowsPanel
+        title="Open rumours"
+        rumours={[]}
+        empty="None here"
+        emptyHref="/rumours"
+        emptyCta="Browse rumours →"
+      />,
+    )
+    expect(screen.getByTestId('rumour-rows-empty-cta')).toHaveAttribute('href', '/rumours')
+    expect(screen.getByTestId('rumour-rows-empty-cta')).toHaveTextContent('Browse rumours →')
+  })
 })
