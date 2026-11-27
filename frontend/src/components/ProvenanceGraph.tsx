@@ -1,6 +1,7 @@
 'use client'
 
 import { useMemo, useRef, useState } from 'react'
+import Link from 'next/link'
 import type { ClaimDetail } from '@/types'
 import {
   buildProvenanceGraph, radialLayout, neighborsOf, accessibleNodeLabel,
@@ -212,6 +213,15 @@ export default function ProvenanceGraph({ claim, isLoading = false, error = null
     return (
       <div className="rounded-xl border border-line/60 bg-card shadow-card p-5" data-testid="provenance-empty">
         <p className="text-sm text-ink-muted">No claim data available.</p>
+        <p className="mt-3">
+          <Link
+            href="/rumours"
+            className="text-sm font-medium text-pitch-500 hover:underline"
+            data-testid="provenance-empty-rumours-cta"
+          >
+            Browse rumours →
+          </Link>
+        </p>
       </div>
     )
   }

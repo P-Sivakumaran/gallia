@@ -18,6 +18,7 @@ describe('ProvenanceGraph — states', () => {
   it('renders an empty state for a null claim', () => {
     render(<ProvenanceGraph claim={null} />)
     expect(screen.getByTestId('provenance-empty')).toBeInTheDocument()
+    expect(screen.getByTestId('provenance-empty-rumours-cta')).toHaveAttribute('href', '/rumours')
   })
 })
 
