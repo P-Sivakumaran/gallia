@@ -101,6 +101,15 @@ export default function WhyThisForecast({ claim, isLoading = false, error = null
           <HelpCircleIcon className="mt-0.5 h-5 w-5 flex-shrink-0 text-ink-muted" />
           <p className="text-sm text-ink-muted">Not enough evidence yet to explain this forecast.</p>
         </div>
+        <p className="mt-3">
+          <Link
+            href="/rumours"
+            className="text-sm font-medium text-pitch-500 hover:underline"
+            data-testid="why-no-factors-rumours-cta"
+          >
+            Browse rumours →
+          </Link>
+        </p>
       </div>
     )
   }

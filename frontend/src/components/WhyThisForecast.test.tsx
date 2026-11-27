@@ -19,6 +19,24 @@ describe('WhyThisForecast — states', () => {
     expect(screen.getByTestId('why-empty')).toBeInTheDocument()
     expect(screen.getByTestId('why-empty-rumours-cta')).toHaveAttribute('href', '/rumours')
   })
+
+  it('links Browse rumours when there are no explainable factors', () => {
+    // One independent source + one article skips the corroboration branches;
+    // no fee / official / stale evidence → empty factors list.
+    const thin = {
+      ...gyokeresClaimDetail,
+      evidenceCount: 1,
+      independentSourceCount: 1,
+      provenanceClusters: [{ root: gyokeresClaimDetail.provenanceClusters[0].root, syndicated: [] }],
+      officialConfirmation: null,
+      officialDenial: null,
+      statedFee: null,
+      lastEvidenceAt: new Date().toISOString(),
+    }
+    render(<WhyThisForecast claim={thin} />)
+    expect(screen.getByTestId('why-no-factors')).toBeInTheDocument()
+    expect(screen.getByTestId('why-no-factors-rumours-cta')).toHaveAttribute('href', '/rumours')
+  })
 })
 
 describe('WhyThisForecast — factors', () => {
