@@ -12,9 +12,13 @@ describe('SiteNav isActive', () => {
     expect(isActive('/rumour/12', '/rumours')).toBe(true)
     expect(isActive('/scorecard', '/rumours')).toBe(false)
   })
-  it('marks Leagues active on hub and table pages', () => {
+  it('marks Leagues active on hub, table, and football desk pages', () => {
     expect(isActive('/leagues', '/leagues')).toBe(true)
     expect(isActive('/leagues/3', '/leagues')).toBe(true)
-    expect(isActive('/club/1', '/leagues')).toBe(false)
+    expect(isActive('/club/1', '/leagues')).toBe(true)
+    expect(isActive('/match/9', '/leagues')).toBe(true)
+    expect(isActive('/player/4', '/leagues')).toBe(true)
+    expect(isActive('/compare?a=1', '/leagues')).toBe(true)
+    expect(isActive('/network', '/leagues')).toBe(false)
   })
 })
