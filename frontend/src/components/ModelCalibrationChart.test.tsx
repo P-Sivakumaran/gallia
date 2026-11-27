@@ -17,11 +17,13 @@ describe('ModelCalibrationChart — states', () => {
   it('renders an empty state when there is no definition', () => {
     render(<ModelCalibrationChart definition={null} />)
     expect(screen.getByTestId('calibration-empty')).toBeInTheDocument()
+    expect(screen.getByTestId('calibration-empty-rumours-cta')).toHaveAttribute('href', '/rumours')
   })
 
   it('renders an empty state when the calibration curve has no populated bins', () => {
     render(<ModelCalibrationChart definition={modelHealthInsufficient.definitions[0]} />)
     expect(screen.getByTestId('calibration-empty')).toBeInTheDocument()
+    expect(screen.getByTestId('calibration-empty-rumours-cta')).toHaveAttribute('href', '/rumours')
   })
 })
 

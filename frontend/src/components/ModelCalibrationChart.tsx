@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import Link from 'next/link'
 import {
   ComposedChart, Line, Scatter, XAxis, YAxis, Tooltip, ResponsiveContainer,
 } from 'recharts'
@@ -72,6 +73,15 @@ export default function ModelCalibrationChart({ definition, isLoading = false, e
         <p className="text-xs font-semibold uppercase tracking-widest text-ink-muted">Model calibration</p>
         <p className="mt-2 text-sm text-ink-muted">
           No calibration curve yet: not enough resolved real outcomes exist to evaluate the model against.
+        </p>
+        <p className="mt-3">
+          <Link
+            href="/rumours"
+            className="text-sm font-medium text-pitch-500 hover:underline"
+            data-testid="calibration-empty-rumours-cta"
+          >
+            Browse rumours →
+          </Link>
         </p>
       </div>
     )
