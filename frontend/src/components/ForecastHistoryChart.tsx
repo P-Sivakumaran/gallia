@@ -56,6 +56,15 @@ export default function ForecastHistoryChart({
     return (
       <div className="rounded-xl border border-line/60 bg-card shadow-card p-5" data-testid="history-error">
         <p className="text-sm text-ink-muted">Couldn&apos;t load forecast history: {error}</p>
+        <p className="mt-3">
+          <Link
+            href="/rumours"
+            className="text-sm font-medium text-pitch-500 hover:underline"
+            data-testid="history-error-rumours-cta"
+          >
+            Browse rumours →
+          </Link>
+        </p>
       </div>
     )
   }
