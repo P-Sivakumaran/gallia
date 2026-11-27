@@ -89,7 +89,14 @@ export default function ClubSquad({ squad }: { squad: ClubSquadData }) {
         <span className="g-count-label">{squad.players.length} players · {squad.source}</span>
       </div>
       {groups.length === 0 ? (
-        <p className="g-empty" style={{ padding: 24 }}>No season squad stats synced for this club yet.</p>
+        <div className="g-empty" style={{ padding: 24 }} data-testid="season-squad-empty">
+          <p>No season squad stats synced for this club yet.</p>
+          <p style={{ marginTop: 12 }}>
+            <a href="#linked-players-title" className="g-green-link" data-testid="season-squad-linked-cta">
+              See Linked players →
+            </a>
+          </p>
+        </div>
       ) : (
         groups.map((g) => (
           <div key={g.key} className="g-squad-group">
