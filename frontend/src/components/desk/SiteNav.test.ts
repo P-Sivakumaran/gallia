@@ -4,8 +4,9 @@ import { isActive } from './SiteNav'
 vi.mock('next/navigation', () => ({ usePathname: () => '/' }))
 
 describe('SiteNav isActive', () => {
-  it('marks only the desk on the home page', () => {
+  it('marks Desk on home and watchlist', () => {
     expect(isActive('/', '/')).toBe(true)
+    expect(isActive('/watchlist', '/')).toBe(true)
     expect(isActive('/rumours', '/')).toBe(false)
   })
   it('keeps Rumours active on a single rumour page', () => {
