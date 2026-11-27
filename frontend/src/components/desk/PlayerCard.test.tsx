@@ -37,6 +37,7 @@ describe('PlayerCard', () => {
         card={mockCard}
         position="ST"
         competitionName="Premier League"
+        competitionId={39}
         playerName="Kylian Mbappé"
       />
     )
@@ -45,6 +46,9 @@ describe('PlayerCard', () => {
     expect(screen.getByLabelText('Overall rating 88')).toHaveTextContent('88')
     expect(screen.getByText('Forward')).toBeInTheDocument()
     expect(screen.getByText('Pool size: 340 players')).toBeInTheDocument()
+    const leagueLinks = screen.getAllByTestId('player-card-league-link')
+    expect(leagueLinks[0]).toHaveAttribute('href', '/leagues/39')
+    expect(leagueLinks[0]).toHaveTextContent('Premier League')
 
     // 7 attributes
     const attributes = [
@@ -65,10 +69,10 @@ describe('PlayerCard', () => {
       expect(progressbar).toHaveAttribute('aria-valuemax', '99')
     }
 
-    // Footnote
-    expect(
-      screen.getByText(/Percentile vs Forward in Premier League, per 90; Gallia's own rating\. · Data: TheStatsAPI/)
-    ).toBeInTheDocument()
+    // Footnote (competition is a link, so match the surrounding copy)
+    expect(screen.getByText(/Percentile vs Forward in/)).toBeInTheDocument()
+    expect(screen.getByText(/per 90; Gallia's own rating/)).toBeInTheDocument()
+    expect(leagueLinks).toHaveLength(2)
 
     // No limited sample badge when false
     expect(screen.queryByText(/Limited sample/)).not.toBeInTheDocument()

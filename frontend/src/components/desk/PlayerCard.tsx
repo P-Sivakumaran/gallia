@@ -1,4 +1,5 @@
 import React from 'react'
+import Link from 'next/link'
 import type { PlayerCardData } from '@/types'
 
 const ATTRIBUTE_LABELS: { key: keyof PlayerCardData['attributes']; label: string }[] = [
@@ -11,10 +12,22 @@ const ATTRIBUTE_LABELS: { key: keyof PlayerCardData['attributes']; label: string
   { key: 'discipline', label: 'Discipline' },
 ]
 
+function CompetitionLabel({ name, id }: { name: string; id?: number | null }) {
+  if (id != null) {
+    return (
+      <Link href={`/leagues/${id}`} className="g-green-link" data-testid="player-card-league-link">
+        {name}
+      </Link>
+    )
+  }
+  return <>{name}</>
+}
+
 export interface PlayerCardProps {
   card: PlayerCardData | null | undefined
   position?: string | null
   competitionName?: string | null
+  competitionId?: number | null
   playerName?: string
 }
 
@@ -22,6 +35,7 @@ export default function PlayerCard({
   card,
   position,
   competitionName,
+  competitionId,
   playerName,
 }: PlayerCardProps) {
   if (!card) {
@@ -47,6 +61,7 @@ export default function PlayerCard({
   const overall = Math.round(card.overall)
   const posGroup = card.positionGroup || position || 'Player'
   const comp = competitionName || 'competition'
+  const compNode = <CompetitionLabel name={comp} id={competitionId} />
 
   return (
     <section className="g-panel g-player-card-panel" aria-label={`Gallia card for ${playerName ?? 'player'}`}>
@@ -73,7 +88,7 @@ export default function PlayerCard({
           <div className="g-card-summary">
             <p className="g-card-kicker">GALLIA RATING</p>
             <p className="g-card-desc">
-              Normalised percentile benchmark vs all {posGroup}s in {comp}.
+              Normalised percentile benchmark vs all {posGroup}s in {compNode}.
             </p>
             {card.poolSize ? (
               <span className="g-card-pool">Pool size: {card.poolSize} players</span>
@@ -113,7 +128,7 @@ export default function PlayerCard({
 
       <footer className="g-card-footnote-wrap">
         <p className="g-card-footnote">
-          Percentile vs {posGroup} in {comp}, per 90; Gallia&apos;s own rating. · Data: TheStatsAPI
+          Percentile vs {posGroup} in {compNode}, per 90; Gallia&apos;s own rating. · Data: TheStatsAPI
         </p>
       </footer>
     </section>
