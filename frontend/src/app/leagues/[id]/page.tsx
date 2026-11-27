@@ -1,4 +1,5 @@
 import { notFound } from 'next/navigation'
+import Link from 'next/link'
 import { api } from '@/lib/api'
 import DeskPage from '@/components/desk/DeskPage'
 import LeagueStandings from '@/components/desk/LeagueStandings'
@@ -36,6 +37,11 @@ export default async function LeagueTablePage({
       eyebrow="LEAGUE TABLE"
       title={table.competition}
       intro={<>{table.season} · standings, fixtures and leaders from gameweek snapshots.</>}
+      actions={
+        <Link href="/leagues" className="g-green-link" data-testid="all-leagues-link">
+          All leagues →
+        </Link>
+      }
     >
       <div className="g-stack" style={{ display: 'grid', gap: 16 }}>
         {fixtures && (
