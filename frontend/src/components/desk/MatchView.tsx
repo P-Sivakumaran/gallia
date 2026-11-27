@@ -117,14 +117,29 @@ function StatBars({
   stats,
   homeName,
   awayName,
+  competitionId,
 }: {
   stats: MatchDetailPayload['teamStats']
   homeName: string
   awayName: string
+  competitionId: number
 }) {
   const keys = orderedStatKeys(stats as Record<string, unknown>)
   if (keys.length === 0) {
-    return <p className="g-empty" style={{ padding: 16 }}>No team stats yet.</p>
+    return (
+      <div className="g-empty" style={{ padding: 16 }} data-testid="match-stats-empty">
+        <p>No team stats yet.</p>
+        <p style={{ marginTop: 12 }}>
+          <Link
+            href={`/leagues/${competitionId}`}
+            className="g-green-link"
+            data-testid="match-stats-empty-league-cta"
+          >
+            See league table →
+          </Link>
+        </p>
+      </div>
+    )
   }
   return (
     <ul className="g-stat-bars" data-testid="match-stat-bars">
@@ -287,11 +302,13 @@ function MatchDetail({
   homeName,
   awayName,
   galliaPlayerIds,
+  competitionId,
 }: {
   detail: MatchDetailPayload
   homeName: string
   awayName: string
   galliaPlayerIds: Record<string, number>
+  competitionId: number
 }) {
   const events = filterTimelineEvents(detail.events ?? [])
   const homeTeamId = detail.lineups?.home?.teamId ?? null
@@ -353,7 +370,12 @@ function MatchDetail({
             {homeName} · {awayName}
           </span>
         </div>
-        <StatBars stats={detail.teamStats ?? {}} homeName={homeName} awayName={awayName} />
+        <StatBars
+          stats={detail.teamStats ?? {}}
+          homeName={homeName}
+          awayName={awayName}
+          competitionId={competitionId}
+        />
       </section>
 
       <section className="g-panel" aria-label="Shot map">
@@ -461,6 +483,7 @@ export default function MatchView({ data }: { data: MatchResponse }) {
           homeName={match.home.name}
           awayName={match.away.name}
           galliaPlayerIds={galliaPlayerIds}
+          competitionId={match.competition.id}
         />
       )}
 
