@@ -33,6 +33,7 @@ describe('ScorecardView', () => {
   it('shows an empty state with no active definitions', () => {
     render(<ScorecardView health={{ definitions: [], mlService: { reachable: false } }} />)
     expect(screen.getByTestId('scorecard-empty')).toBeInTheDocument()
+    expect(screen.getByTestId('scorecard-empty-rumours-cta')).toHaveAttribute('href', '/rumours')
   })
 
   it('shows an error state when the API fails', () => {
