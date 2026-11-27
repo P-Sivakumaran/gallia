@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
+import Link from 'next/link'
 import { api } from '@/lib/api'
 import type { AdminReviewItem, ReviewReason } from '@/types'
 import DeskStatus from '@/components/desk/DeskStatus'
@@ -166,9 +167,22 @@ export default function ReviewQueue() {
       {error && <p className="g-error" style={{ padding: '16px 24px' }}>{error}</p>}
       {loading && <p className="g-note" style={{ padding: '16px 24px' }}>Loading…</p>}
       {!loading && !error && (
-        <p className="g-note" style={{ padding: '12px 24px', borderBottom: '1px solid var(--g-line)' }} data-testid="review-count">
-          {items.length === 0 ? 'Nothing waiting for review.' : `${items.length} waiting for review`}
-        </p>
+        <div style={{ padding: '12px 24px', borderBottom: '1px solid var(--g-line)' }} data-testid="review-count">
+          <p className="g-note">
+            {items.length === 0 ? 'Nothing waiting for review.' : `${items.length} waiting for review`}
+          </p>
+          {items.length === 0 && (
+            <p style={{ marginTop: 12 }}>
+              <Link
+                href="/rumours"
+                className="g-green-link"
+                data-testid="review-empty-rumours-cta"
+              >
+                Browse rumours →
+              </Link>
+            </p>
+          )}
+        </div>
       )}
       <ul className="g-list">
         {items.map((item) => (
