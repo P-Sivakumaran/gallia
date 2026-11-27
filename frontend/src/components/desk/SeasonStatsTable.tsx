@@ -133,7 +133,7 @@ export default function SeasonStatsTable({ seasons }: SeasonStatsTableProps) {
                     <td>
                       {s.clubId != null ? (
                         <Link href={`/club/${s.clubId}`} className="g-green-link" data-testid="season-club-link">
-                          Club
+                          Club #{s.clubId}
                         </Link>
                       ) : (
                         '—'

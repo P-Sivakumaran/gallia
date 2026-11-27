@@ -44,6 +44,7 @@ describe('SeasonStatsTable', () => {
     expect(screen.getByText('Current')).toBeInTheDocument()
     expect(screen.getByText('2024-25')).toBeInTheDocument()
     expect(screen.getByTestId('season-club-link')).toHaveAttribute('href', '/club/10')
+    expect(screen.getByTestId('season-club-link')).toHaveTextContent('Club #10')
     expect(screen.getByText('22 (20)')).toBeInTheDocument()
     expect(screen.getByText('1,850')).toBeInTheDocument()
     expect(screen.getByText('15')).toBeInTheDocument()
