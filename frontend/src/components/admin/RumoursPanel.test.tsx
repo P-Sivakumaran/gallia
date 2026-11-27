@@ -51,3 +51,25 @@ describe('RumoursPanel — filter empty', () => {
     })
   })
 })
+
+describe('RumoursPanel — load error', () => {
+  beforeEach(() => {
+    vi.mocked(api.admin.rumours).mockReset()
+  })
+
+  it('offers Retry when rumours fail to load', async () => {
+    vi.mocked(api.admin.rumours)
+      .mockRejectedValueOnce(new Error('down'))
+      .mockResolvedValueOnce([])
+
+    render(<RumoursPanel />)
+
+    expect(await screen.findByTestId('admin-rumours-error')).toHaveTextContent('Failed to load rumours')
+    fireEvent.click(screen.getByTestId('admin-rumours-error-retry'))
+
+    await waitFor(() => {
+      expect(screen.getByTestId('admin-rumours-empty')).toBeInTheDocument()
+    })
+    expect(api.admin.rumours).toHaveBeenCalledTimes(2)
+  })
+})
