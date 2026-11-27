@@ -83,6 +83,11 @@ describe('LeagueStandings', () => {
     expect(screen.getByTestId('leader-club-link')).toHaveAttribute('href', '/club/10')
     expect(screen.getByTestId('leader-club-link')).toHaveTextContent('Arsenal')
     expect(screen.getAllByTestId('leaders-empty').length).toBeGreaterThanOrEqual(1)
+    expect(document.getElementById('league-standings-table')).toBeTruthy()
+    expect(screen.getAllByTestId('leaders-empty-standings-cta')[0]).toHaveAttribute(
+      'href',
+      '#league-standings-table',
+    )
   })
 
   it('shows the null-leaders message when leaders is null', () => {
