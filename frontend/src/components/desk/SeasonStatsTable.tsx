@@ -76,8 +76,13 @@ export default function SeasonStatsTable({ seasons }: SeasonStatsTableProps) {
           <h2>Season statistics</h2>
           <span className="g-source-badge">Data: TheStatsAPI</span>
         </header>
-        <div className="g-table-empty">
+        <div className="g-table-empty" data-testid="season-stats-empty">
           <p className="g-muted">No season statistics recorded for this player.</p>
+          <p style={{ marginTop: 12 }}>
+            <Link href="/leagues" className="g-green-link" data-testid="season-stats-empty-leagues-cta">
+              All leagues →
+            </Link>
+          </p>
         </div>
       </section>
     )

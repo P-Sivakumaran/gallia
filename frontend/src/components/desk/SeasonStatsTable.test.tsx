@@ -35,6 +35,7 @@ describe('SeasonStatsTable', () => {
   it('renders empty message when no seasons provided', () => {
     render(<SeasonStatsTable seasons={[]} />)
     expect(screen.getByText('No season statistics recorded for this player.')).toBeInTheDocument()
+    expect(screen.getByTestId('season-stats-empty-leagues-cta')).toHaveAttribute('href', '/leagues')
   })
 
   it('renders competition rows with minutes, goals, assists, xG, xA, and rating', () => {
