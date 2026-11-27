@@ -53,6 +53,16 @@ describe('SourcesLicenceTable', () => {
     render(<SourcesLicenceTable sources={[]} filter="ALL" onFilter={() => {}} />)
     expect(screen.getByTestId('sources-licence-empty')).toHaveTextContent('No sources in the registry yet.')
     expect(screen.queryByTestId('sources-licence-row')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('sources-licence-empty-clear')).not.toBeInTheDocument()
+  })
+
+  it('offers Show all when a status filter matches nothing', () => {
+    const onFilter = vi.fn()
+    const withoutCleared = fixtures.filter((s) => s.licenceStatus !== 'CLEARED')
+    render(<SourcesLicenceTable sources={withoutCleared} filter="CLEARED" onFilter={onFilter} />)
+    expect(screen.getByTestId('sources-licence-empty')).toHaveTextContent('Cleared')
+    fireEvent.click(screen.getByTestId('sources-licence-empty-clear'))
+    expect(onFilter).toHaveBeenCalledWith('ALL')
   })
 
   it('filters to one status and keeps a row for each status when unfiltered', () => {
