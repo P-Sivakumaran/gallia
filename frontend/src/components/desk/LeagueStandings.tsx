@@ -95,10 +95,12 @@ function StandingsTable({ rows }: { rows: StandingRow[] }) {
 function LeadersPanel({
   title,
   entries,
+  clubNames,
   format = (v) => String(v),
 }: {
   title: string
   entries: LeaderEntry[]
+  clubNames: Map<number, string>
   format?: (v: number) => string
 }) {
   return (
@@ -111,13 +113,27 @@ function LeadersPanel({
         <p className="g-empty" style={{ padding: 16 }} data-testid="leaders-empty">No leaders yet.</p>
       ) : (
         <ol className="g-leaders-list">
-          {entries.slice(0, 10).map((e, i) => (
-            <li key={e.playerId}>
-              <span className="g-leaders-rank">{i + 1}</span>
-              <Link href={`/player/${e.playerId}`} className="g-green-link">{e.name}</Link>
-              <span className="g-leaders-val">{format(e.value)}</span>
-            </li>
-          ))}
+          {entries.slice(0, 10).map((e, i) => {
+            const clubLabel = e.clubId != null ? clubNames.get(e.clubId) : null
+            return (
+              <li key={e.playerId}>
+                <span className="g-leaders-rank">{i + 1}</span>
+                <span className="g-leaders-player">
+                  <Link href={`/player/${e.playerId}`} className="g-green-link">{e.name}</Link>
+                  {e.clubId != null && (
+                    <Link
+                      href={`/club/${e.clubId}`}
+                      className="g-leaders-club g-green-link"
+                      data-testid="leader-club-link"
+                    >
+                      {clubLabel ?? 'Club'}
+                    </Link>
+                  )}
+                </span>
+                <span className="g-leaders-val">{format(e.value)}</span>
+              </li>
+            )
+          })}
         </ol>
       )}
     </section>
@@ -126,6 +142,7 @@ function LeadersPanel({
 
 export default function LeagueStandings({ table }: { table: CompetitionTable }) {
   const groups = groupStandings(table.standings)
+  const clubNames = new Map(table.standings.map((r) => [r.clubId, r.club]))
   const updated = table.frozenAt
     ? new Date(table.frozenAt).toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
     : null
@@ -157,10 +174,10 @@ export default function LeagueStandings({ table }: { table: CompetitionTable }) 
       <div className="g-leaders-grid" data-testid="leaders-grid">
         {table.leaders ? (
           <>
-            <LeadersPanel title="Goals" entries={table.leaders.goals} />
-            <LeadersPanel title="Assists" entries={table.leaders.assists} />
-            <LeadersPanel title="xG" entries={table.leaders.xg} format={(v) => v.toFixed(1)} />
-            <LeadersPanel title="Rating" entries={table.leaders.rating} format={(v) => v.toFixed(2)} />
+            <LeadersPanel title="Goals" entries={table.leaders.goals} clubNames={clubNames} />
+            <LeadersPanel title="Assists" entries={table.leaders.assists} clubNames={clubNames} />
+            <LeadersPanel title="xG" entries={table.leaders.xg} clubNames={clubNames} format={(v) => v.toFixed(1)} />
+            <LeadersPanel title="Rating" entries={table.leaders.rating} clubNames={clubNames} format={(v) => v.toFixed(2)} />
           </>
         ) : (
           <p className="g-note" style={{ padding: '0 24px' }} data-testid="leaders-null">

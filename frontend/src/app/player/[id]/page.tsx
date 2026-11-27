@@ -23,7 +23,11 @@ export default async function PlayerPage({ params }: { params: Promise<{ id: str
     ? new Date(player.contractEnd).toLocaleDateString('en-GB', { month: 'short', year: 'numeric' })
     : 'Unknown'
   const facts = [player.position, player.nationality, player.age ? `age ${player.age}` : null].filter(Boolean).join(' · ')
-  const open = player.rumours.filter((r) => r.status === 'HOT' || r.status === 'PENDING').length
+  const openRumours = player.rumours.filter((r) => r.status === 'HOT' || r.status === 'PENDING')
+  const resolvedRumours = player.rumours.filter(
+    (r) => r.status === 'COMPLETED' || r.status === 'FAILED' || r.status === 'DENIED',
+  )
+  const open = openRumours.length
 
   const seasons = footballData?.seasons ?? []
   const currentSeason = seasons.find((s) => s.current) ?? seasons[0] ?? null
@@ -81,7 +85,12 @@ export default async function PlayerPage({ params }: { params: Promise<{ id: str
         />
         <SeasonStatsTable seasons={seasons} />
         <PlayerAgents playerId={id} initialLinks={agents} />
-        <RumourRowsPanel title="Transfer rumours" rumours={player.rumours} empty="No rumours for this player." />
+        <RumourRowsPanel title="Open rumours" rumours={openRumours} empty="No open rumours for this player." />
+        <RumourRowsPanel
+          title="Resolved rumours"
+          rumours={resolvedRumours}
+          empty="No resolved rumours for this player."
+        />
       </div>
     </DeskPage>
   )
