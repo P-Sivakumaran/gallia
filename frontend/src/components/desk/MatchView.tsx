@@ -440,9 +440,20 @@ export default function MatchView({ data }: { data: MatchResponse }) {
           <div className="g-panel-heading">
             <h2>Match detail</h2>
           </div>
-          <p className="g-note" style={{ padding: '16px 24px 24px' }}>
-            Match detail arrives a few hours after full time. Score and fixture are shown above meanwhile.
-          </p>
+          <div className="g-panel-body" style={{ padding: '0 24px 24px' }}>
+            <p className="g-note">
+              Match detail arrives a few hours after full time. Score and fixture are shown above meanwhile.
+            </p>
+            <p style={{ marginTop: 12 }}>
+              <Link
+                href={`/leagues/${match.competition.id}`}
+                className="g-green-link"
+                data-testid="pending-league-link"
+              >
+                Open league table →
+              </Link>
+            </p>
+          </div>
         </section>
       ) : (
         <MatchDetail
