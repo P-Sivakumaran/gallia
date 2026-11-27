@@ -37,11 +37,19 @@ export default async function WatchlistPage() {
         </section>
       ) : (
         <div className="g-stack">
-          <RumourRowsPanel title="Open rumours" rumours={open} empty="No open rumours for watched players." />
+          <RumourRowsPanel
+            title="Open rumours"
+            rumours={open}
+            empty="No open rumours for watched players."
+            emptyHref="/rumours"
+            emptyCta="Browse rumours →"
+          />
           <RumourRowsPanel
             title="Resolved rumours"
             rumours={resolved}
             empty="No resolved rumours for watched players."
+            emptyHref="/rumours"
+            emptyCta="Browse rumours →"
           />
         </div>
       )}
