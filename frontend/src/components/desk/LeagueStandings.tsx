@@ -126,7 +126,7 @@ function LeadersPanel({
                       className="g-leaders-club g-green-link"
                       data-testid="leader-club-link"
                     >
-                      {clubLabel ?? 'Club'}
+                      {clubLabel ?? `Club #${e.clubId}`}
                     </Link>
                   )}
                 </span>
