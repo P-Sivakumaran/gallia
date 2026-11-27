@@ -34,4 +34,15 @@ describe('MatchdayFixtures', () => {
     expect(screen.getByText('Previous')).toHaveAttribute('aria-disabled', 'true')
     expect(screen.getByText('Next')).toHaveAttribute('aria-disabled', 'true')
   })
+
+  it('links empty matchday to the league table', () => {
+    render(
+      <MatchdayFixtures
+        competitionId={7}
+        data={{ ...data, fixtures: [] }}
+        hasNext={false}
+      />,
+    )
+    expect(screen.getByTestId('matchday-empty-league-cta')).toHaveAttribute('href', '/leagues/7')
+  })
 })
