@@ -77,7 +77,11 @@ export default async function PlayerPage({ params }: { params: Promise<{ id: str
         <Metric label="CONTRACT UNTIL" value={<span style={{ fontSize: 20 }}>{contractEnd}</span>} />
         <Metric
           label="OPEN RUMOURS"
-          value={open}
+          value={
+            <a href="#open-rumours" className="g-green-link" data-testid="open-rumours-jump">
+              {open}
+            </a>
+          }
           tone={open ? 'amber' : undefined}
           note={`${player.rumours.length} in total`}
         />
@@ -93,7 +97,12 @@ export default async function PlayerPage({ params }: { params: Promise<{ id: str
         />
         <SeasonStatsTable seasons={seasons} />
         <PlayerAgents playerId={id} initialLinks={agents} />
-        <RumourRowsPanel title="Open rumours" rumours={openRumours} empty="No open rumours for this player." />
+        <RumourRowsPanel
+          id="open-rumours"
+          title="Open rumours"
+          rumours={openRumours}
+          empty="No open rumours for this player."
+        />
         <RumourRowsPanel
           title="Resolved rumours"
           rumours={resolvedRumours}
