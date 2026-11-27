@@ -16,7 +16,16 @@ export function isActive(pathname: string, href: string): boolean {
   if (href === '/') return pathname === '/'
   // /rumour/[id] belongs to Rumours.
   if (href === '/rumours') return pathname.startsWith('/rumours') || pathname.startsWith('/rumour/')
-  if (href === '/leagues') return pathname.startsWith('/leagues')
+  // Club, match, player and compare sit in the football desk with Leagues.
+  if (href === '/leagues') {
+    return (
+      pathname.startsWith('/leagues') ||
+      pathname.startsWith('/club/') ||
+      pathname.startsWith('/match/') ||
+      pathname.startsWith('/player/') ||
+      pathname.startsWith('/compare')
+    )
+  }
   return pathname.startsWith(href)
 }
 
