@@ -19,6 +19,7 @@ describe('EvidenceTimeline — states', () => {
     const emptyClaim = { ...gyokeresClaimDetail, provenanceClusters: [] }
     render(<EvidenceTimeline claim={emptyClaim} />)
     expect(screen.getByTestId('timeline-empty')).toBeInTheDocument()
+    expect(screen.getByTestId('timeline-empty-rumours-cta')).toHaveAttribute('href', '/rumours')
   })
 })
 

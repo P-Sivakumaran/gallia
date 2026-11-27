@@ -1,6 +1,7 @@
 'use client'
 
 import { useMemo, useState } from 'react'
+import Link from 'next/link'
 import type { ClaimDetail, EvidenceItemData } from '@/types'
 import {
   EVIDENCE_CATEGORIES,
@@ -141,6 +142,15 @@ export default function EvidenceTimeline({ claim, isLoading = false, error = nul
     return (
       <div className="rounded-xl border border-line/60 bg-card shadow-card p-5" data-testid="timeline-empty">
         <p className="text-sm text-ink-muted">No evidence captured for this claim yet.</p>
+        <p className="mt-3">
+          <Link
+            href="/rumours"
+            className="text-sm font-medium text-pitch-500 hover:underline"
+            data-testid="timeline-empty-rumours-cta"
+          >
+            Browse rumours →
+          </Link>
+        </p>
       </div>
     )
   }
