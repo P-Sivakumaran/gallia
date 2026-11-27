@@ -52,6 +52,11 @@ export default function PlayerCard({
             <p className="g-muted">
               Percentile card ratings are computed for players active in tracked competitions with sufficient match minutes.
             </p>
+            <p style={{ marginTop: 12 }}>
+              <a href="#season-statistics" className="g-green-link" data-testid="player-card-empty-season-cta">
+                See Season statistics →
+              </a>
+            </p>
           </div>
         </div>
       </section>
