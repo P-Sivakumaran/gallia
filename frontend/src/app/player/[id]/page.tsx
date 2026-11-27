@@ -7,6 +7,7 @@ import PlayerAgents from '@/components/desk/PlayerAgents'
 import PlayerCard from '@/components/desk/PlayerCard'
 import SeasonStatsTable from '@/components/desk/SeasonStatsTable'
 import { formatMillions, toMillions } from '@/lib/format'
+import { splitRumoursByOpenness } from '@/lib/rumourStatus'
 
 export default async function PlayerPage({ params }: { params: Promise<{ id: string }> }) {
   const { id: rawId } = await params
@@ -23,10 +24,7 @@ export default async function PlayerPage({ params }: { params: Promise<{ id: str
     ? new Date(player.contractEnd).toLocaleDateString('en-GB', { month: 'short', year: 'numeric' })
     : 'Unknown'
   const facts = [player.position, player.nationality, player.age ? `age ${player.age}` : null].filter(Boolean).join(' · ')
-  const openRumours = player.rumours.filter((r) => r.status === 'HOT' || r.status === 'PENDING')
-  const resolvedRumours = player.rumours.filter(
-    (r) => r.status === 'COMPLETED' || r.status === 'FAILED' || r.status === 'DENIED',
-  )
+  const { open: openRumours, resolved: resolvedRumours } = splitRumoursByOpenness(player.rumours)
   const open = openRumours.length
 
   const seasons = footballData?.seasons ?? []
