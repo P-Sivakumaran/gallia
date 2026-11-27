@@ -70,4 +70,12 @@ describe('SeasonStatsTable', () => {
     expect(screen.getByText('Shooting')).toBeInTheDocument()
     expect(screen.getByText('Shots On Target')).toBeInTheDocument()
   })
+
+  it('links empty detail breakdown to All leagues', () => {
+    const noDetail: PlayerSeasonLine[] = [{ ...mockSeasons[0], detail: null }]
+    render(<SeasonStatsTable seasons={noDetail} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Details' }))
+    expect(screen.getByTestId('season-detail-empty')).toBeInTheDocument()
+    expect(screen.getByTestId('season-detail-empty-leagues-cta')).toHaveAttribute('href', '/leagues')
+  })
 })
