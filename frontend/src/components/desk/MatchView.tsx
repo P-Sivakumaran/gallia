@@ -178,14 +178,29 @@ function Shotmap({
   homeTeamId,
   homeName,
   awayName,
+  competitionId,
 }: {
   shots: MatchShot[]
   homeTeamId: string | null
   homeName: string
   awayName: string
+  competitionId: number
 }) {
   if (shots.length === 0) {
-    return <p className="g-empty" style={{ padding: 16 }}>No shots recorded.</p>
+    return (
+      <div className="g-empty" style={{ padding: 16 }} data-testid="match-shotmap-empty">
+        <p>No shots recorded.</p>
+        <p style={{ marginTop: 12 }}>
+          <Link
+            href={`/leagues/${competitionId}`}
+            className="g-green-link"
+            data-testid="match-shotmap-empty-league-cta"
+          >
+            See league table →
+          </Link>
+        </p>
+      </div>
+    )
   }
   return (
     <div className="g-shotmap" data-testid="match-shotmap">
@@ -387,6 +402,7 @@ function MatchDetail({
           homeTeamId={homeTeamId}
           homeName={homeName}
           awayName={awayName}
+          competitionId={competitionId}
         />
       </section>
 
