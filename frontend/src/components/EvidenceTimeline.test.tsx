@@ -13,6 +13,7 @@ describe('EvidenceTimeline — states', () => {
   it('renders an error state', () => {
     render(<EvidenceTimeline claim={null} error="boom" />)
     expect(screen.getByTestId('timeline-error')).toBeInTheDocument()
+    expect(screen.getByTestId('timeline-error-rumours-cta')).toHaveAttribute('href', '/rumours')
   })
 
   it('renders an empty state when there is no evidence', () => {
