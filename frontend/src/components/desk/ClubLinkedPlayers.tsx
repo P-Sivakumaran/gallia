@@ -20,9 +20,14 @@ export default function ClubLinkedPlayers({ players }: { players: Player[] }) {
         <span className="g-count-label">{rows.length} PLAYER{rows.length === 1 ? '' : 'S'}</span>
       </div>
       {rows.length === 0 ? (
-        <p className="g-empty" style={{ padding: 24 }} data-testid="linked-players-empty">
-          No Gallia players linked to this club yet.
-        </p>
+        <div className="g-empty" style={{ padding: 24 }} data-testid="linked-players-empty">
+          <p>No Gallia players linked to this club yet.</p>
+          <p style={{ marginTop: 12 }}>
+            <a href="#squad-title" className="g-green-link" data-testid="linked-players-squad-cta">
+              See Season squad →
+            </a>
+          </p>
+        </div>
       ) : (
         <div className="g-table-scroll" tabIndex={0} role="region" aria-label="Linked players">
           <table className="g-table g-squad-table">
