@@ -158,7 +158,7 @@ describe('MatchView', () => {
     expect(screen.getByTestId('formation-arsenal')).toBeInTheDocument()
   })
 
-  it('links empty team stats and shotmap to the league table', () => {
+  it('links empty match panels to the league table', () => {
     render(
       <MatchView
         data={baseMatch({
@@ -172,7 +172,9 @@ describe('MatchView', () => {
         })}
       />,
     )
+    expect(screen.getByTestId('match-events-empty-league-cta')).toHaveAttribute('href', '/leagues/1')
     expect(screen.getByTestId('match-stats-empty-league-cta')).toHaveAttribute('href', '/leagues/1')
     expect(screen.getByTestId('match-shotmap-empty-league-cta')).toHaveAttribute('href', '/leagues/1')
+    expect(screen.getByTestId('match-ratings-empty-league-cta')).toHaveAttribute('href', '/leagues/1')
   })
 })

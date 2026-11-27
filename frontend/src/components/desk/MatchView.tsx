@@ -352,7 +352,18 @@ function MatchDetail({
           <h2>Key events</h2>
         </div>
         {events.length === 0 ? (
-          <p className="g-empty" style={{ padding: 16 }}>No key events yet.</p>
+          <div className="g-empty" style={{ padding: 16 }} data-testid="match-events-empty">
+            <p>No key events yet.</p>
+            <p style={{ marginTop: 12 }}>
+              <Link
+                href={`/leagues/${competitionId}`}
+                className="g-green-link"
+                data-testid="match-events-empty-league-cta"
+              >
+                See league table →
+              </Link>
+            </p>
+          </div>
         ) : (
           <ol className="g-match-timeline" data-testid="match-timeline">
             {events.map((e, i) => (
@@ -411,7 +422,18 @@ function MatchDetail({
           <h2>Player ratings</h2>
         </div>
         {(detail.playerStats ?? []).length === 0 ? (
-          <p className="g-empty" style={{ padding: 16 }}>No player lines yet.</p>
+          <div className="g-empty" style={{ padding: 16 }} data-testid="match-ratings-empty">
+            <p>No player lines yet.</p>
+            <p style={{ marginTop: 12 }}>
+              <Link
+                href={`/leagues/${competitionId}`}
+                className="g-green-link"
+                data-testid="match-ratings-empty-league-cta"
+              >
+                See league table →
+              </Link>
+            </p>
+          </div>
         ) : (
           <RatingsTable players={detail.playerStats} galliaPlayerIds={galliaPlayerIds} />
         )}
