@@ -182,7 +182,19 @@ export default function EvidenceTimeline({ claim, isLoading = false, error = nul
       </div>
 
       {visibleItems.length === 0 ? (
-        <p className="mt-4 text-sm text-ink-muted">No evidence matches the selected filters.</p>
+        <div className="mt-4" data-testid="timeline-filter-empty">
+          <p className="text-sm text-ink-muted">No evidence matches the selected filters.</p>
+          <p className="mt-3">
+            <button
+              type="button"
+              className="text-sm font-medium text-pitch-500 hover:underline"
+              data-testid="timeline-filter-empty-clear"
+              onClick={() => setActiveFilters(new Set())}
+            >
+              Clear filters
+            </button>
+          </p>
+        </div>
       ) : (
         <ul className="mt-4 space-y-2.5 border-l border-line-subtle pl-0">
           {visibleItems.map((item) => (
