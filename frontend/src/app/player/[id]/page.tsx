@@ -102,6 +102,8 @@ export default async function PlayerPage({ params }: { params: Promise<{ id: str
           title="Open rumours"
           rumours={openRumours}
           empty="No open rumours for this player."
+          emptyHref="/rumours"
+          emptyCta="Browse rumours →"
         />
         <RumourRowsPanel
           title="Resolved rumours"
