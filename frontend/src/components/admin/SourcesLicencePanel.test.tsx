@@ -1,12 +1,22 @@
-import { describe, it, expect, vi } from 'vitest'
-import { render, screen, fireEvent, within } from '@testing-library/react'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { render, screen, fireEvent, within, waitFor } from '@testing-library/react'
 import type { AdminSource, SourceLicenceStatus } from '@/types'
-import {
+import SourcesLicencePanel, {
   SourcesLicenceTable,
   filterByLicence,
   sortSourcesByLicence,
   LICENCE_STATUSES,
 } from './SourcesLicencePanel'
+
+vi.mock('@/lib/api', () => ({
+  api: {
+    admin: {
+      sources: vi.fn(),
+    },
+  },
+}))
+
+import { api } from '@/lib/api'
 
 function source(
   id: number,
@@ -95,5 +105,27 @@ describe('SourcesLicenceTable', () => {
 describe('filterByLicence', () => {
   it('returns only matching rows', () => {
     expect(filterByLicence(fixtures, 'CLEARED').map((s) => s.name)).toEqual(['ESPN Soccer'])
+  })
+})
+
+describe('SourcesLicencePanel — load error', () => {
+  beforeEach(() => {
+    vi.mocked(api.admin.sources).mockReset()
+  })
+
+  it('offers Retry when sources fail to load', async () => {
+    vi.mocked(api.admin.sources)
+      .mockRejectedValueOnce(new Error('down'))
+      .mockResolvedValueOnce(fixtures)
+
+    render(<SourcesLicencePanel />)
+
+    expect(await screen.findByTestId('sources-licence-error')).toHaveTextContent('Failed to load sources')
+    fireEvent.click(screen.getByTestId('sources-licence-error-retry'))
+
+    await waitFor(() => {
+      expect(screen.getAllByTestId('sources-licence-row')).toHaveLength(5)
+    })
+    expect(api.admin.sources).toHaveBeenCalledTimes(2)
   })
 })

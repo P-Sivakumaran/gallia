@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { api } from '@/lib/api'
 import type { AdminSource, SourceLicenceStatus } from '@/types'
 
@@ -216,13 +216,21 @@ export default function SourcesLicencePanel() {
   const [error, setError] = useState<string | null>(null)
   const [filter, setFilter] = useState<SourceLicenceStatus | 'ALL'>('ALL')
 
-  useEffect(() => {
-    api.admin
-      .sources()
-      .then(setSources)
-      .catch(() => setError('Failed to load sources — is the backend running?'))
-      .finally(() => setLoading(false))
+  const load = useCallback(async () => {
+    setLoading(true)
+    setError(null)
+    try {
+      setSources(await api.admin.sources())
+    } catch {
+      setError('Failed to load sources — is the backend running?')
+    } finally {
+      setLoading(false)
+    }
   }, [])
+
+  useEffect(() => {
+    void load()
+  }, [load])
 
   const stable = useMemo(() => sources, [sources])
 
@@ -234,7 +242,21 @@ export default function SourcesLicencePanel() {
     )
   }
   if (error) {
-    return <p className="g-error" style={{ padding: '16px 24px' }} role="alert">{error}</p>
+    return (
+      <div style={{ padding: '16px 24px' }} data-testid="sources-licence-error">
+        <p className="g-error" role="alert">{error}</p>
+        <p style={{ marginTop: 12 }}>
+          <button
+            type="button"
+            className="g-green-link"
+            data-testid="sources-licence-error-retry"
+            onClick={() => void load()}
+          >
+            Retry →
+          </button>
+        </p>
+      </div>
+    )
   }
 
   return <SourcesLicenceTable sources={stable} filter={filter} onFilter={setFilter} />
