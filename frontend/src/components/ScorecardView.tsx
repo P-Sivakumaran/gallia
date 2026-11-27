@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import ModelCalibrationChart from '@/components/ModelCalibrationChart'
 import DeskPage, { Metric, PanelHeading } from '@/components/desk/DeskPage'
 import type { GalliaWorkspace } from '@/lib/gallia-types'
@@ -152,7 +153,14 @@ export default function ScorecardView({ health, error = null, ledger = null }: P
       {ledger && ledger.rows.length > 0 ? (
         <LedgerSection ledger={ledger} />
       ) : (
-        <p className="g-connection-notice" data-testid="scorecard-no-ledger">No resolved calls are available from the desk right now, so there is nothing to score yet.</p>
+        <div className="g-connection-notice" data-testid="scorecard-no-ledger">
+          <p>No resolved calls are available from the desk right now, so there is nothing to score yet.</p>
+          <p style={{ marginTop: 12 }}>
+            <Link href="/rumours" className="g-green-link" data-testid="scorecard-no-ledger-rumours-cta">
+              Browse rumours →
+            </Link>
+          </p>
+        </div>
       )}
 
       <div className="g-score-grid">
