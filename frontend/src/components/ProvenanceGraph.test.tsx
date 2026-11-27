@@ -13,6 +13,7 @@ describe('ProvenanceGraph — states', () => {
   it('renders an error state', () => {
     render(<ProvenanceGraph claim={null} error="boom" />)
     expect(screen.getByTestId('provenance-error')).toBeInTheDocument()
+    expect(screen.getByTestId('provenance-error-rumours-cta')).toHaveAttribute('href', '/rumours')
   })
 
   it('renders an empty state for a null claim', () => {
