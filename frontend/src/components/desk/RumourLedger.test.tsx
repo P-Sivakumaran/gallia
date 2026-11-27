@@ -23,16 +23,18 @@ describe('ledgerFiltersActive', () => {
 })
 
 describe('RumourLedger empty', () => {
-  it('hides Clear filters when no filter params', () => {
+  it('links Transfer network when no filter params', () => {
     search.params = new URLSearchParams()
     render(<RumourLedger total={0} page={1} totalPages={1} />)
     expect(screen.getByTestId('ledger-empty')).toBeInTheDocument()
     expect(screen.queryByTestId('ledger-clear-filters-cta')).not.toBeInTheDocument()
+    expect(screen.getByTestId('ledger-empty-network-cta')).toHaveAttribute('href', '/network')
   })
 
   it('links Clear filters to /rumours when filters are set', () => {
     search.params = new URLSearchParams('status=HOT&league=Premier+League')
     render(<RumourLedger total={0} page={1} totalPages={1} />)
     expect(screen.getByTestId('ledger-clear-filters-cta')).toHaveAttribute('href', '/rumours')
+    expect(screen.queryByTestId('ledger-empty-network-cta')).not.toBeInTheDocument()
   })
 })
