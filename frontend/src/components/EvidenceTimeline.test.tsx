@@ -69,7 +69,21 @@ describe('EvidenceTimeline — filtering', () => {
 
     await user.click(screen.getByRole('button', { name: 'Syndication' })) // david claim has no syndicated copies
 
+    expect(screen.getByTestId('timeline-filter-empty')).toBeInTheDocument()
     expect(screen.getByText(/no evidence matches/i)).toBeInTheDocument()
+    expect(screen.getByTestId('timeline-filter-empty-clear')).toBeInTheDocument()
+  })
+
+  it('Clear filters restores the full timeline after a no-match filter', async () => {
+    const user = userEvent.setup()
+    render(<EvidenceTimeline claim={davidClaimDetail} />)
+
+    await user.click(screen.getByRole('button', { name: 'Syndication' }))
+    expect(screen.getByTestId('timeline-filter-empty')).toBeInTheDocument()
+
+    await user.click(screen.getByTestId('timeline-filter-empty-clear'))
+    expect(screen.queryByTestId('timeline-filter-empty')).not.toBeInTheDocument()
+    expect(screen.getByTestId('evidence-timeline')).toBeInTheDocument()
   })
 
   it('toggling a filter chip off restores the full timeline', async () => {
