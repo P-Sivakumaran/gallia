@@ -178,7 +178,19 @@ function PlayerPicker({ label, slot, onSelect, onCancel }: PlayerPickerProps) {
       )}
 
       {!loading && query.trim().length > 1 && results.length === 0 && (
-        <p className="g-compare-picker-hint">No players found matching &ldquo;{query}&rdquo;</p>
+        <div className="g-compare-picker-hint" data-testid="compare-picker-empty">
+          <p>No players found matching &ldquo;{query}&rdquo;</p>
+          <p style={{ marginTop: 8 }}>
+            <button
+              type="button"
+              className="g-green-link"
+              data-testid="compare-picker-clear-search"
+              onClick={() => handleChange('')}
+            >
+              Clear search
+            </button>
+          </p>
+        </div>
       )}
     </div>
   )

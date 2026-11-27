@@ -223,4 +223,19 @@ describe('PlayerCompareView', () => {
       expect(screen.getByText('Harry Kane')).toBeInTheDocument()
     })
   })
+
+  it('clears the compare picker search when no players match', async () => {
+    vi.spyOn(api.players, 'search').mockResolvedValueOnce([])
+
+    render(<PlayerCompareView initialPlayerA={playerA} initialPlayerB={null} />)
+    const input = screen.getByPlaceholderText('Search player by name…') as HTMLInputElement
+    fireEvent.change(input, { target: { value: 'zzzz' } })
+
+    await waitFor(() => {
+      expect(screen.getByTestId('compare-picker-clear-search')).toBeInTheDocument()
+    })
+    fireEvent.click(screen.getByTestId('compare-picker-clear-search'))
+    expect(input.value).toBe('')
+    expect(screen.queryByTestId('compare-picker-empty')).not.toBeInTheDocument()
+  })
 })
