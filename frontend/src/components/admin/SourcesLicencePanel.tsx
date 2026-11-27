@@ -108,11 +108,25 @@ export function SourcesLicenceTable({
       </div>
 
       {rows.length === 0 ? (
-        <p className="g-empty" style={{ padding: 24 }} data-testid="sources-licence-empty">
-          {sources.length === 0
-            ? 'No sources in the registry yet.'
-            : `No sources with status “${filter === 'ALL' ? 'any' : LICENCE_LABEL[filter]}”.`}
-        </p>
+        <div className="g-empty" style={{ padding: 24 }} data-testid="sources-licence-empty">
+          <p>
+            {sources.length === 0
+              ? 'No sources in the registry yet.'
+              : `No sources with status “${filter === 'ALL' ? 'any' : LICENCE_LABEL[filter]}”.`}
+          </p>
+          {sources.length > 0 && filter !== 'ALL' && (
+            <p style={{ marginTop: 12 }}>
+              <button
+                type="button"
+                className="g-green-link"
+                data-testid="sources-licence-empty-clear"
+                onClick={() => onFilter('ALL')}
+              >
+                Show all →
+              </button>
+            </p>
+          )}
+        </div>
       ) : (
         <>
           <div className="g-sources-table-wrap" role="region" aria-label="Sources by licence">
