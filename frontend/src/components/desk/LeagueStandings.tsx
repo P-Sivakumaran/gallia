@@ -110,7 +110,16 @@ function LeadersPanel({
         <span className="g-count-label">Top {Math.min(10, entries.length) || 0}</span>
       </div>
       {entries.length === 0 ? (
-        <p className="g-empty" style={{ padding: 16 }} data-testid="leaders-empty">No leaders yet.</p>
+        <div className="g-empty" style={{ padding: 16 }} data-testid="leaders-empty">
+          <p>No leaders yet.</p>
+          {clubNames.size > 0 && (
+            <p style={{ marginTop: 12 }}>
+              <a href="#league-standings-table" className="g-green-link" data-testid="leaders-empty-standings-cta">
+                See standings →
+              </a>
+            </p>
+          )}
+        </div>
       ) : (
         <ol className="g-leaders-list">
           {entries.slice(0, 10).map((e, i) => {
@@ -166,16 +175,18 @@ export default function LeagueStandings({ table }: { table: CompetitionTable }) 
           </p>
         </div>
       ) : (
-        groups.map((g) => (
-          <section key={g.label ?? 'main'} className="g-panel" style={{ marginBottom: 16 }}>
-            {g.label && (
-              <div className="g-panel-heading">
-                <h2>{g.label}</h2>
-              </div>
-            )}
-            <StandingsTable rows={g.rows} />
-          </section>
-        ))
+        <div id="league-standings-table">
+          {groups.map((g) => (
+            <section key={g.label ?? 'main'} className="g-panel" style={{ marginBottom: 16 }}>
+              {g.label && (
+                <div className="g-panel-heading">
+                  <h2>{g.label}</h2>
+                </div>
+              )}
+              <StandingsTable rows={g.rows} />
+            </section>
+          ))}
+        </div>
       )}
 
       <div className="g-leaders-grid" data-testid="leaders-grid">
