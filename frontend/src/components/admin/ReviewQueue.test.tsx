@@ -51,6 +51,15 @@ describe('ReviewQueue', () => {
     expect(screen.getByTestId('review-empty-rumours-cta')).toHaveAttribute('href', '/rumours')
   })
 
+  it('offers Retry when the queue fails to load', async () => {
+    reviewQueue.mockRejectedValueOnce(new Error('down')).mockResolvedValueOnce([item()])
+    render(<ReviewQueue />)
+    expect(await screen.findByTestId('review-error')).toHaveTextContent('Failed to load the review queue')
+    fireEvent.click(screen.getByTestId('review-error-retry'))
+    expect(await screen.findByText('Test Player')).toBeInTheDocument()
+    expect(reviewQueue).toHaveBeenCalledTimes(2)
+  })
+
   it('prefills the date from the earliest article and sends it as knownAt', async () => {
     reviewQueue.mockResolvedValue([item()])
     setOutcome.mockResolvedValue({ id: 7, status: 'COMPLETED' })
