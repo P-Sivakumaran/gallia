@@ -44,4 +44,12 @@ describe('ClubDashboard', () => {
     expect(jump).toHaveAttribute('href', '#linked-players-title')
     expect(jump).toHaveTextContent('1')
   })
+
+  it('jumps incoming and outgoing metrics to rumour panels', () => {
+    render(<ClubDashboard club={club} />)
+    expect(screen.getByTestId('incoming-rumours-jump')).toHaveAttribute('href', '#incoming-rumours')
+    expect(screen.getByTestId('outgoing-rumours-jump')).toHaveAttribute('href', '#outgoing-rumours')
+    expect(screen.getByLabelText('Incoming')).toHaveAttribute('id', 'incoming-rumours')
+    expect(screen.getByLabelText('Outgoing')).toHaveAttribute('id', 'outgoing-rumours')
+  })
 })

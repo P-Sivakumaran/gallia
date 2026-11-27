@@ -34,8 +34,22 @@ export default function ClubDashboard({ club }: Props) {
   return (
     <>
       <div className="g-metrics">
-        <Metric label="INCOMING RUMOURS" value={club.activeIn.length} />
-        <Metric label="OUTGOING RUMOURS" value={club.activeOut.length} />
+        <Metric
+          label="INCOMING RUMOURS"
+          value={
+            <a href="#incoming-rumours" className="g-green-link" data-testid="incoming-rumours-jump">
+              {club.activeIn.length}
+            </a>
+          }
+        />
+        <Metric
+          label="OUTGOING RUMOURS"
+          value={
+            <a href="#outgoing-rumours" className="g-green-link" data-testid="outgoing-rumours-jump">
+              {club.activeOut.length}
+            </a>
+          }
+        />
         <Metric
           label="SQUAD SIZE"
           value={
@@ -65,8 +79,18 @@ export default function ClubDashboard({ club }: Props) {
       )}
 
       <div className="g-stack">
-        <RumourRowsPanel title="Incoming" rumours={club.activeIn} empty="No active incoming rumours." />
-        <RumourRowsPanel title="Outgoing" rumours={club.activeOut} empty="No active outgoing rumours." />
+        <RumourRowsPanel
+          id="incoming-rumours"
+          title="Incoming"
+          rumours={club.activeIn}
+          empty="No active incoming rumours."
+        />
+        <RumourRowsPanel
+          id="outgoing-rumours"
+          title="Outgoing"
+          rumours={club.activeOut}
+          empty="No active outgoing rumours."
+        />
       </div>
     </>
   )
