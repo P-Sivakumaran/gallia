@@ -33,6 +33,7 @@ export default async function PlayerPage({ params }: { params: Promise<{ id: str
   const currentSeason = seasons.find((s) => s.current) ?? seasons[0] ?? null
   const card = currentSeason?.card ?? null
   const competitionName = currentSeason?.competition?.name ?? null
+  const competitionId = currentSeason?.competition?.id ?? null
 
   return (
     <DeskPage
@@ -89,6 +90,7 @@ export default async function PlayerPage({ params }: { params: Promise<{ id: str
           card={card}
           position={player.position}
           competitionName={competitionName}
+          competitionId={competitionId}
           playerName={player.name}
         />
         <SeasonStatsTable seasons={seasons} />
