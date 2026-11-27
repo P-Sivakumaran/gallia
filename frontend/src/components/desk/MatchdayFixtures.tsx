@@ -65,23 +65,41 @@ export default function MatchdayFixtures({
         </p>
       ) : (
         <ul className="g-fixture-list">
-          {data.fixtures.map((f) => (
-            <li key={f.id}>
-              <Link href={`/match/${f.id}`} className="g-fixture-row">
-                <span className="g-fixture-kickoff">{kickoffLabel(f.kickoffAt)}</span>
-                <span className="g-fixture-sides">
-                  <span className="g-fixture-home">{f.home.name}</span>
-                  <span className="g-fixture-score" aria-label={`${scoreLabel(f.home.goals, f.status)} to ${scoreLabel(f.away.goals, f.status)}`}>
-                    <span>{scoreLabel(f.home.goals, f.status)}</span>
-                    <span aria-hidden="true">–</span>
-                    <span>{scoreLabel(f.away.goals, f.status)}</span>
+          {data.fixtures.map((f) => {
+            const homeGoals = scoreLabel(f.home.goals, f.status)
+            const awayGoals = scoreLabel(f.away.goals, f.status)
+            const matchHref = `/match/${f.id}`
+            return (
+              <li key={f.id}>
+                <div className="g-fixture-row">
+                  <Link href={matchHref} className="g-fixture-kickoff g-green-link">
+                    {kickoffLabel(f.kickoffAt)}
+                  </Link>
+                  <span className="g-fixture-sides">
+                    <Link href={`/club/${f.home.id}`} className="g-fixture-home g-green-link" data-testid="fixture-home-club">
+                      {f.home.name}
+                    </Link>
+                    <Link
+                      href={matchHref}
+                      className="g-fixture-score g-green-link"
+                      aria-label={`${homeGoals} to ${awayGoals}, open match`}
+                      data-testid="fixture-match-link"
+                    >
+                      <span>{homeGoals}</span>
+                      <span aria-hidden="true">–</span>
+                      <span>{awayGoals}</span>
+                    </Link>
+                    <Link href={`/club/${f.away.id}`} className="g-fixture-away g-green-link" data-testid="fixture-away-club">
+                      {f.away.name}
+                    </Link>
                   </span>
-                  <span className="g-fixture-away">{f.away.name}</span>
-                </span>
-                <span className="g-fixture-status">{f.status}{f.hasDetail ? ' · detail' : ''}</span>
-              </Link>
-            </li>
-          ))}
+                  <Link href={matchHref} className="g-fixture-status g-green-link">
+                    {f.status}{f.hasDetail ? ' · detail' : ''}
+                  </Link>
+                </div>
+              </li>
+            )
+          })}
         </ul>
       )}
       <p className="g-panel-intro" style={{ padding: '8px 16px 16px' }}>Data: {data.source}</p>
