@@ -148,6 +148,15 @@ describe('PlayerCompareView', () => {
     expect(screen.getByText(/Manchester City/)).toBeInTheDocument()
     expect(screen.getByText(/Bayern München/)).toBeInTheDocument()
 
+    const clubLinks = screen.getAllByTestId('compare-club-link')
+    expect(clubLinks[0]).toHaveAttribute('href', '/club/10')
+    expect(clubLinks[0]).toHaveTextContent('Manchester City')
+    expect(clubLinks[1]).toHaveAttribute('href', '/club/20')
+
+    const leagueLinks = screen.getAllByTestId('compare-league-link')
+    expect(leagueLinks[0]).toHaveAttribute('href', '/leagues/1')
+    expect(leagueLinks[0]).toHaveTextContent('Premier League')
+
     // Overall ratings
     expect(screen.getByText('91')).toBeInTheDocument()
     expect(screen.getByText('89')).toBeInTheDocument()

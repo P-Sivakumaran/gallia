@@ -37,6 +37,56 @@ function per90(val: number | null | undefined, minutes: number | undefined): str
   return ((val / minutes) * 90).toFixed(2)
 }
 
+function ComparePlayerMeta({ player }: { player: Player }) {
+  const club = player.currentClub
+  const bits: React.ReactNode[] = []
+  if (player.position) bits.push(player.position)
+  bits.push(
+    club ? (
+      <Link key="club" href={`/club/${club.id}`} className="g-green-link" data-testid="compare-club-link">
+        {club.name}
+      </Link>
+    ) : (
+      <span key="club">No club</span>
+    ),
+  )
+  if (player.nationality) bits.push(player.nationality)
+  if (player.age) bits.push(`age ${player.age}`)
+  return (
+    <p className="g-compare-player-meta">
+      {bits.map((bit, i) => (
+        <React.Fragment key={i}>
+          {i > 0 ? ' · ' : null}
+          {bit}
+        </React.Fragment>
+      ))}
+    </p>
+  )
+}
+
+function CompareSeasonComp({ season }: { season: PlayerSeasonLine | null }) {
+  if (!season) {
+    return <span className="g-compare-season-comp">No season data</span>
+  }
+  const name = season.competition?.name ?? 'No season data'
+  return (
+    <span className="g-compare-season-comp">
+      {season.competition?.id != null ? (
+        <Link
+          href={`/leagues/${season.competition.id}`}
+          className="g-green-link"
+          data-testid="compare-league-link"
+        >
+          {name}
+        </Link>
+      ) : (
+        name
+      )}
+      {season.season ? ` (${season.season})` : ''}
+    </span>
+  )
+}
+
 interface PlayerPickerProps {
   label: string
   slot: 'A' | 'B'
@@ -270,16 +320,7 @@ export default function PlayerCompareView({
                     {playerAData.player.name}
                   </Link>
                 </h3>
-                <p className="g-compare-player-meta">
-                  {[
-                    playerAData.player.position,
-                    playerAData.player.currentClub?.name ?? 'No club',
-                    playerAData.player.nationality,
-                    playerAData.player.age ? `age ${playerAData.player.age}` : null,
-                  ]
-                    .filter(Boolean)
-                    .join(' · ')}
-                </p>
+                <ComparePlayerMeta player={playerAData.player} />
                 {playerAData.player.marketValue && (
                   <p className="g-compare-player-val">
                     €{formatMillions(toMillions(playerAData.player.marketValue))} reported value
@@ -295,9 +336,7 @@ export default function PlayerCompareView({
                   <span className="g-compare-score-label">GALLIA RATING</span>
                 </div>
                 <div className="g-compare-season-meta">
-                  <span className="g-compare-season-comp">
-                    {seasonA?.competition?.name ?? 'No season data'} {seasonA?.season ? `(${seasonA.season})` : ''}
-                  </span>
+                  <CompareSeasonComp season={seasonA} />
                   {cardA?.limitedSample && (
                     <span className="g-limited-sample-badge" role="status">
                       Limited sample (&lt; 450 min)
@@ -346,16 +385,7 @@ export default function PlayerCompareView({
                     {playerBData.player.name}
                   </Link>
                 </h3>
-                <p className="g-compare-player-meta">
-                  {[
-                    playerBData.player.position,
-                    playerBData.player.currentClub?.name ?? 'No club',
-                    playerBData.player.nationality,
-                    playerBData.player.age ? `age ${playerBData.player.age}` : null,
-                  ]
-                    .filter(Boolean)
-                    .join(' · ')}
-                </p>
+                <ComparePlayerMeta player={playerBData.player} />
                 {playerBData.player.marketValue && (
                   <p className="g-compare-player-val">
                     €{formatMillions(toMillions(playerBData.player.marketValue))} reported value
@@ -371,9 +401,7 @@ export default function PlayerCompareView({
                   <span className="g-compare-score-label">GALLIA RATING</span>
                 </div>
                 <div className="g-compare-season-meta">
-                  <span className="g-compare-season-comp">
-                    {seasonB?.competition?.name ?? 'No season data'} {seasonB?.season ? `(${seasonB.season})` : ''}
-                  </span>
+                  <CompareSeasonComp season={seasonB} />
                   {cardB?.limitedSample && (
                     <span className="g-limited-sample-badge" role="status">
                       Limited sample (&lt; 450 min)
