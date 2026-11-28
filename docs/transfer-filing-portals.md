@@ -15,6 +15,10 @@ sites and other hosts on the channel allow-list may be fetched for private model
 and warns when `access !== CLEARED`. User-Agent:
 `Gallia transfer research (+https://github.com/P-Sivakumaran/gallia)`.
 
+Ledger write path: `npm run filings:ingest` (or daily scheduler cron `FILINGS_INGEST_CRON`,
+default `15 3 * * *`) runs AMF + Juventus fetchers through `runListedClubFilingsIngest` →
+`ingestFilingFact`. Idempotent; unmatched players go to admin review.
+
 Statuses (factual only — not fetch bans):
 - **CLEARED**: terms or an open licence allow automated reuse of the facts.
 - **BLOCKED**: terms ban bots/scraping, or the site often blocks automated clients.

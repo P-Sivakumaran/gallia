@@ -1,6 +1,17 @@
 import { describe, expect, it, vi } from 'vitest'
-import { ingestFilingFact } from './runner.js'
+import { ingestFilingFact, runListedClubFilingsIngest } from './runner.js'
 import type { ExtractedTransferFact, FilingAnnouncement } from './types.js'
+
+vi.mock('./amfFrance.js', () => ({
+  fetchAmfFacts: vi.fn(),
+}))
+vi.mock('./juventus.js', () => ({
+  fetchJuventusAnnouncements: vi.fn(),
+  parseJuventusAnnouncementText: vi.fn(),
+}))
+
+import { fetchAmfFacts } from './amfFrance.js'
+import { fetchJuventusAnnouncements } from './juventus.js'
 
 function baseFact(over: Partial<ExtractedTransferFact> = {}): ExtractedTransferFact {
   return {
@@ -36,7 +47,25 @@ function mockDb(players: { id: number; name: string }[]) {
         return Promise.resolve(null)
       }),
     },
-    player: { findMany: vi.fn().mockResolvedValue(players) },
+    player: {
+      findMany: vi.fn().mockImplementation(({ where }: { where?: Record<string, unknown> }) => {
+        let list = players
+        const name = where?.name as { equals?: string; contains?: string } | undefined
+        if (name?.equals) {
+          const target = name.equals.toLowerCase()
+          list = players.filter((p) => p.name.toLowerCase() === target)
+        } else if (Array.isArray(where?.AND)) {
+          const tokens = (where.AND as { name?: { contains?: string } }[])
+            .map((c) => c.name?.contains)
+            .filter((t): t is string => Boolean(t))
+          list = players.filter((p) => tokens.every((t) => p.name.toLowerCase().includes(t.toLowerCase())))
+        } else if (name?.contains) {
+          const t = name.contains.toLowerCase()
+          list = players.filter((p) => p.name.toLowerCase().includes(t))
+        }
+        return Promise.resolve(list)
+      }),
+    },
     transfer: { findUnique: vi.fn().mockResolvedValue(null), create: vi.fn().mockResolvedValue({ id: 101 }) },
     contractFact: { findFirst: vi.fn().mockResolvedValue(null), create: vi.fn().mockResolvedValue({ id: 201 }) },
     sourcedFact: { findFirst: vi.fn().mockResolvedValue(null), create: vi.fn().mockResolvedValue({ id: 555 }) },
@@ -82,5 +111,47 @@ describe('ingestFilingFact', () => {
     const res = await ingestFilingFact(db as never, f, announcementOf(f))
     expect(res.status).toBe('unmatched_player')
     expect(db.transfer.create).not.toHaveBeenCalled()
+  })
+})
+
+describe('runListedClubFilingsIngest', () => {
+  it('fetches AMF + Juventus and writes applied + unmatched counts', async () => {
+    const f = baseFact()
+    const unmatched = baseFact({
+      portal: 'juventus',
+      playerName: 'Nobody Nowhere',
+      sourceUrl: 'https://www.juventus.com/x.pdf',
+      title: 'Acquisition of the player Nobody Nowhere',
+    })
+    vi.mocked(fetchAmfFacts).mockResolvedValue({
+      announcements: [announcementOf(f)],
+      facts: [f],
+      failures: [],
+    })
+    vi.mocked(fetchJuventusAnnouncements).mockResolvedValue({
+      announcements: [announcementOf(unmatched)],
+      facts: [unmatched],
+      failures: [],
+    })
+
+    const db = mockDb([{ id: 99, name: 'Jean Testard' }])
+    const summary = await runListedClubFilingsIngest(db as never)
+
+    expect(fetchAmfFacts).toHaveBeenCalledWith('lyon_eagle', expect.any(Date))
+    expect(fetchJuventusAnnouncements).toHaveBeenCalled()
+    expect(summary.facts).toBe(2)
+    expect(summary.applied).toBe(1)
+    expect(summary.unmatched).toBe(1)
+    expect(summary.byPortal.lyon_eagle.applied).toBe(1)
+    expect(summary.byPortal.juventus.unmatched).toBe(1)
+  })
+
+  it('can skip portals', async () => {
+    vi.mocked(fetchAmfFacts).mockClear()
+    vi.mocked(fetchJuventusAnnouncements).mockClear()
+    const db = mockDb([])
+    await runListedClubFilingsIngest(db as never, { skipAmf: true, skipJuventus: true })
+    expect(fetchAmfFacts).not.toHaveBeenCalled()
+    expect(fetchJuventusAnnouncements).not.toHaveBeenCalled()
   })
 })
