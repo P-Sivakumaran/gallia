@@ -32,7 +32,9 @@ describe('filing portals and channels', () => {
   it('keeps terms statuses on club sites but allows modeling fetches on listed hosts', () => {
     expect(FILING_CHANNELS['juventus-site'].access).toBe('BLOCKED')
     expect(FILING_CHANNELS['lazio-site'].access).toBe('BLOCKED')
-    expect(getPortal('juventus')?.rejectedChannels).toContain('juventus-site')
+    expect(getPortal('juventus')?.channelId).toBe('juventus-site')
+    expect(getPortal('juventus')?.rejectedChannels).not.toContain('juventus-site')
+    expect(portalAccess('juventus')).toBe('BLOCKED')
 
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     expect(() => assertFetchAllowed('juventus-site', 'https://www.juventus.com/en/club/investor-relations/')).not.toThrow()
