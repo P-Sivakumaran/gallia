@@ -1,10 +1,6 @@
-import https from 'https'
-import { extractTextFromPdfBuffer } from './pdfExtractor.js'
-import type { ExtractedTransferFact, FilingAnnouncement, LoanOptionOrObligation, TransferDirection, TransferType } from './types.js'
+import type { ExtractedTransferFact, LoanOptionOrObligation, TransferDirection, TransferType } from './types.js'
 
-const JUVENTUS_USER_AGENT = 'GalliaTransferBot/1.0 (+https://gallia.club; transfers@gallia.club)'
 const JUVENTUS_PORTAL_ID = 'juventus'
-const POLITE_DELAY_MS = 2000
 
 const NUMBER_WORDS: Record<string, number> = {
   one: 1,
@@ -45,7 +41,12 @@ export function parseDateString(str: string): Date | null {
 }
 
 /**
- * Core parser for Juventus price-sensitive press release texts.
+ * Parser for Juventus price-sensitive press release texts (English).
+ *
+ * There is no fetcher: juventus.com's terms forbid automated requests and crawlers, and the
+ * regulated-information channels (1Info, eMarket STORAGE, CONSOB) are not cleared. See portals.ts.
+ * The parser stays for when a cleared channel exists. Its loan/permanent classification has not been
+ * checked against real filings since the fetcher was removed.
  */
 export function parseJuventusAnnouncementText(
   text: string,
@@ -235,97 +236,4 @@ export function parseJuventusAnnouncementText(
       loanOptionOrObligation,
     },
   }
-}
-
-function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms))
-}
-
-function httpGetBuffer(url: string): Promise<Buffer> {
-  return new Promise((resolve, reject) => {
-    https
-      .get(url, { headers: { 'User-Agent': JUVENTUS_USER_AGENT } }, (res) => {
-        if (res.statusCode && res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
-          return httpGetBuffer(res.headers.location).then(resolve).catch(reject)
-        }
-        const chunks: Buffer[] = []
-        res.on('data', (c) => chunks.push(c))
-        res.on('end', () => resolve(Buffer.concat(chunks)))
-      })
-      .on('error', reject)
-  })
-}
-
-function httpGetString(url: string): Promise<string> {
-  return httpGetBuffer(url).then((b) => b.toString('utf8'))
-}
-
-/**
- * Fetch and extract all price-sensitive announcements for Juventus across specified seasons.
- * Respects polite delay (>= 2s per request) and identifying User-Agent.
- */
-export async function fetchJuventusAnnouncements(
-  seasons = ['season-2026-27', 'season-2025-26'],
-  maxPagesPerSeason = 5
-): Promise<{ announcements: FilingAnnouncement[]; facts: ExtractedTransferFact[] }> {
-  const announcements: FilingAnnouncement[] = []
-  const facts: ExtractedTransferFact[] = []
-
-  for (const season of seasons) {
-    let page = 1
-    while (page <= maxPagesPerSeason) {
-      const libraryUrl = `https://www.juventus.com/en/club/investor-relations/_libraries/${season}/${page}/_price-sensitive-press-releases`
-      await sleep(POLITE_DELAY_MS)
-      const html = await httpGetString(libraryUrl)
-      if (!html || !html.includes('document-list-container-item')) break
-
-      const itemRegex = /<a class=document-list-container-item href=([^\s>]+) text="([^"]+)"[^>]*>[\s\S]*?data-dateutc=([^\s>]+)/g
-      let match: RegExpExecArray | null
-
-      while ((match = itemRegex.exec(html)) !== null) {
-        const pdfUrl = match[1]
-        const rawTitle = match[2]
-        const dateStr = match[3]
-        const publishedAt = new Date(dateStr)
-
-        // Only download PDF for transfer announcements
-        const isTransferLikely =
-          /acquisition|disposal|transfer|termination|player|david|çelik/i.test(rawTitle) &&
-          !/shareholders|financial report|bond|slates|hotel/i.test(rawTitle)
-
-        let rawText = ''
-        if (isTransferLikely) {
-          try {
-            await sleep(POLITE_DELAY_MS)
-            const pdfBuf = await httpGetBuffer(pdfUrl)
-            rawText = extractTextFromPdfBuffer(pdfBuf)
-          } catch (err) {
-            console.error(`Failed to download/extract PDF for ${rawTitle}:`, err)
-          }
-        }
-
-        const announcement: FilingAnnouncement = {
-          portal: JUVENTUS_PORTAL_ID,
-          sourceUrl: pdfUrl,
-          publishedAt,
-          title: rawTitle,
-          rawText,
-          pdfUrl,
-        }
-        announcements.push(announcement)
-
-        if (rawText) {
-          const fact = parseJuventusAnnouncementText(rawText, rawTitle, publishedAt, pdfUrl)
-          if (fact && fact.playerName) {
-            facts.push(fact)
-          }
-        }
-      }
-
-      if (!html.includes('d3-pager__cta--next')) break
-      page++
-    }
-  }
-
-  return { announcements, facts }
 }
