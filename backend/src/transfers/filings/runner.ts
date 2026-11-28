@@ -1,5 +1,7 @@
 import type { PrismaClient } from '@prisma/client'
 import { recordContract, recordTransfer, recordUnmatchedFiling } from '../ledger.js'
+import { fetchAmfFacts } from './amfFrance.js'
+import { fetchJuventusAnnouncements } from './juventus.js'
 import { FILING_CHANNELS, LISTED_CLUB_PORTALS } from './portals.js'
 import type { ExtractedTransferFact, FilingAnnouncement, IngestionMatchResult } from './types.js'
 
@@ -147,4 +149,94 @@ export async function ingestFilingFact(
     result.error = err instanceof Error ? err.message : String(err)
     return result
   }
+}
+
+export interface FilingsIngestOptions {
+  /** AMF issuer portal ids (default: lyon_eagle). */
+  amfPortals?: string[]
+  /** Earliest AMF filing date (default: 365 days ago). */
+  amfSince?: Date
+  juventusSeasons?: string[]
+  juventusMaxPages?: number
+  skipAmf?: boolean
+  skipJuventus?: boolean
+}
+
+export interface FilingsIngestSummary {
+  facts: number
+  applied: number
+  unmatched: number
+  errors: number
+  byPortal: Record<string, { facts: number; applied: number; unmatched: number; errors: number }>
+}
+
+function emptyBucket() {
+  return { facts: 0, applied: 0, unmatched: 0, errors: 0 }
+}
+
+function announcementFor(
+  fact: ExtractedTransferFact,
+  announcements: FilingAnnouncement[]
+): FilingAnnouncement {
+  return (
+    announcements.find((a) => a.sourceUrl === fact.sourceUrl) ?? {
+      portal: fact.portal,
+      sourceUrl: fact.sourceUrl,
+      publishedAt: fact.publishedAt,
+      title: fact.title,
+    }
+  )
+}
+
+async function ingestFactBatch(
+  db: PrismaClient,
+  facts: ExtractedTransferFact[],
+  announcements: FilingAnnouncement[],
+  summary: FilingsIngestSummary
+): Promise<void> {
+  for (const fact of facts) {
+    const portal = fact.portal
+    if (!summary.byPortal[portal]) summary.byPortal[portal] = emptyBucket()
+    summary.facts++
+    summary.byPortal[portal].facts++
+    const result = await ingestFilingFact(db, fact, announcementFor(fact, announcements))
+    if (result.status === 'applied') {
+      summary.applied++
+      summary.byPortal[portal].applied++
+    } else if (result.status === 'unmatched_player' || result.status === 'unmatched_club' || result.status === 'unmatched_both') {
+      summary.unmatched++
+      summary.byPortal[portal].unmatched++
+    } else {
+      summary.errors++
+      summary.byPortal[portal].errors++
+    }
+  }
+}
+
+/**
+ * Fetch listed-club filings (AMF + Juventus IR) and write them through the ledger.
+ * Idempotent via transfer dedupeKey / SourcedFact uniqueness. Rate-limited by filings HTTP.
+ */
+export async function runListedClubFilingsIngest(
+  db: PrismaClient,
+  opts: FilingsIngestOptions = {}
+): Promise<FilingsIngestSummary> {
+  const summary: FilingsIngestSummary = { facts: 0, applied: 0, unmatched: 0, errors: 0, byPortal: {} }
+
+  if (!opts.skipAmf) {
+    const portals = opts.amfPortals ?? ['lyon_eagle']
+    const since = opts.amfSince ?? new Date(Date.now() - 365 * 24 * 60 * 60 * 1000)
+    for (const portalId of portals) {
+      const { announcements, facts } = await fetchAmfFacts(portalId, since)
+      await ingestFactBatch(db, facts, announcements, summary)
+    }
+  }
+
+  if (!opts.skipJuventus) {
+    const seasons = opts.juventusSeasons ?? ['season-2026-27', 'season-2025-26']
+    const { announcements, facts } = await fetchJuventusAnnouncements(seasons, opts.juventusMaxPages ?? 5)
+    await ingestFactBatch(db, facts, announcements, summary)
+  }
+
+  return summary
 }

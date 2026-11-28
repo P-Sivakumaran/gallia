@@ -16,7 +16,8 @@
     "sync:football-data": "tsx src/scripts/syncFootballData.ts",
     "sync:wikidata-careers": "tsx src/scripts/syncWikidataCareers.ts",
     "filings:dry-run-amf": "tsx src/scripts/dryRunAmfFilings.ts",
-    "filings:dry-run-juventus": "tsx src/scripts/dryRunJuventusFilings.ts"
+    "filings:dry-run-juventus": "tsx src/scripts/dryRunJuventusFilings.ts",
+    "filings:ingest": "tsx src/scripts/ingestFilings.ts"
   },
   "dependencies": {
     "@prisma/client": "^5.10.2",
