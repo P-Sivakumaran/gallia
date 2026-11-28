@@ -16,9 +16,9 @@ export const FILING_CHANNELS: Record<string, FilingChannel> = {
     name: 'info-financiere.gouv.fr (DILA, French official storage of regulated information)',
     kind: 'regulator',
     access: 'CLEARED',
-    termsUrl: 'https://www.info-financiere.gouv.fr/pages/mentions-legales/',
+    termsUrl: 'https://www.info-financiere.gouv.fr/pages/api0/',
     termsQuotation:
-      'Site footer: "Sauf mention contraire, tous les contenus de ce site sont sous licence etalab-2.0" (unless stated otherwise, all content is under Licence Ouverte / Etalab 2.0). Official public API (Opendatasoft explore v2.1, dataset flux-amf-new-prod), no key; filings served from the DILA open-data FTP mirror.',
+      'Open Data page: "financial information is open for reuse". "Conditions for re-use: Reusers are obliged to mention: The paternity of the data (DILA); The URL of download; the name of the downloaded file and the date of the file." Footer: "tous les contenus de ce site sont sous licence etalab-2.0". Legal notice: any site may link without prior authorisation, but pages must not be embedded. Official public API, no key. Gallia shows facts with DILA credit and the file link, never the document itself.',
     reviewedOn: REVIEWED,
     licence: 'etalab-2.0',
     hosts: ['www.info-financiere.gouv.fr', 'fr.ftp.opendatasoft.com'],

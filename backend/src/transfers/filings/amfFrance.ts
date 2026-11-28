@@ -296,6 +296,13 @@ export function parseLyonAnnouncementText(
     effectiveDate: publishedAt,
     details: {
       rawTitle: title,
+      // Etalab 2.0 / info-financiere reuse conditions: credit DILA, the download URL, the file name and date.
+      attribution: {
+        producer: 'DILA (info-financiere.gouv.fr)',
+        url: sourceUrl,
+        file: sourceUrl.split('/').pop() ?? null,
+        date: publishedAt.toISOString().slice(0, 10),
+      },
       textExtracted: hasText,
       addOnsAmount,
       maxTotal,

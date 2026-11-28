@@ -25,7 +25,7 @@ Statuses:
 
 | Club | Channel | Status | Built |
 |---|---|---|---|
-| Olympique Lyonnais (Eagle Football Group) | info-financiere.gouv.fr (DILA) | **CLEARED**: site under Licence Ouverte / Etalab 2.0, public API | Parser + fetcher |
+| Olympique Lyonnais (Eagle Football Group) | info-financiere.gouv.fr (DILA) | **CLEARED**: "financial information is open for reuse" (Open Data page), Etalab 2.0, public API. Reusers must credit DILA and give the download URL, file name and date | Parser + fetcher. Each fact stores `details.attribution`; public pages showing these facts must show it |
 | Manchester United | SEC EDGAR | **CLEARED**: Fair Access policy, 10 requests/s, declared User-Agent | Not yet. Needs the contact in the Keychain (`gallia-sec-contact`) and a check that its 6-K/20-F filings name individual transfers |
 | Juventus | 1Info SDIR | UNKNOWN (JavaScript shell) | Text parser only, no fetcher |
 | Lazio | 1Info SDIR | UNKNOWN | No |
