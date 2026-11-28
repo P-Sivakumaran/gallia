@@ -57,6 +57,7 @@ describe('parseLyonAnnouncementText', () => {
     expect(f.details.maxTotal).toBe(35_000_000)
     expect(f.sellOnPercent).toBe(12.5)
     expect(f.feeStatus).toBe('disclosed')
+    expect(f.details.attribution).toEqual({ producer: 'DILA (info-financiere.gouv.fr)', url, file: 'SYNTHETIC.pdf', date: '2026-09-02' })
   })
 
   it('reads a signing with fixed fee, add-on ceiling, sell-on and contract end', () => {
