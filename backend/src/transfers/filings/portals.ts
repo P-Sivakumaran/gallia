@@ -3,10 +3,10 @@ import type { ChannelAccess, FilingChannel, PortalInfo } from './types.js'
 /**
  * Listed-club filing portals and the channels their filings can be read through.
  *
- * Every channel's `access` comes from reading its terms of use (2026-11-28), not robots.txt alone.
- * Only CLEARED channels are fetched (see http.ts `assertFetchAllowed`). Club websites mostly ban
- * bots or limit reuse to personal use, so the route is the official regulator storage (OAM) for
- * each country, where its terms allow it. docs/transfer-filing-portals.md has the full survey.
+ * Every channel's `access` is a factual note from reading its terms (2026-11-28), not robots.txt alone.
+ * Owner 2026-11-28: model-first ingest — `access` no longer blocks HTTP (see http.ts). Prefer
+ * regulator OAMs when they work; club sites and other channels may be fetched for private modeling.
+ * docs/transfer-filing-portals.md has the survey.
  */
 const REVIEWED = '2026-11-28'
 

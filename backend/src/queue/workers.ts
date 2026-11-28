@@ -82,7 +82,7 @@ async function processIngest(job: { data: IngestJobData }) {
     const defaultReliability = feedMeta?.defaultReliability ?? 0.50
 
     const signals = await fetchRSSSignals(feedUrl, sourceName)
-    // Licence registry: record now, enforce later (docs/news-scanner-plan.md Phase A).
+    // Source registry: warn only for missing/blocked entries (model-first ingest).
     const licenceNote = licenceWarning(sourceName)
     if (licenceNote) console.warn(licenceNote)
     let matched = 0

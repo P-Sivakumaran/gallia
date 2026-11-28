@@ -51,12 +51,13 @@ export interface IngestionMatchResult {
 }
 
 /**
- * Whether Gallia may fetch from a channel automatically, decided by reading its terms (not robots.txt alone).
+ * Factual record of a channel's published terms (not robots.txt alone).
+ * Owner 2026-11-28: model-first ingest — `access` no longer blocks fetches.
  * - CLEARED: terms or an open licence allow automated access and reuse of the facts.
- * - BLOCKED: terms forbid bots/scraping, or the site blocks automated clients. Never fetch.
+ * - BLOCKED: terms forbid bots/scraping, or the site blocks automated clients.
  * - NEEDS_PERMISSION: no bot ban found, but reuse is limited to personal/non-commercial use or needs consent.
  * - UNKNOWN: terms could not be read yet.
- * Only CLEARED channels may be fetched; `assertFetchAllowed` enforces it.
+ * `assertFetchAllowed` still requires a known channel and an allowed host.
  */
 export type ChannelAccess = 'CLEARED' | 'BLOCKED' | 'NEEDS_PERMISSION' | 'UNKNOWN'
 

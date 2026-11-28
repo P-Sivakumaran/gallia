@@ -2,7 +2,7 @@
 
 ## Goal
 
-A transfer, market-value and contract database that reaches Transfermarkt's coverage and then surpasses it, built only from licensed, open or primary sources.
+A transfer, market-value and contract database that reaches Transfermarkt's coverage and then surpasses it. **Owner 2026-11-28: model-first** — maximize private training data before diminishing returns; public licence theatre is deferred. Prefer cited primary sources for quality; denser feeds are allowed when they move the model.
 
 ## What "surpass" means
 
@@ -15,10 +15,10 @@ A transfer, market-value and contract database that reaches Transfermarkt's cove
 | Contracts | Expiry date | Expiry plus extensions detected over time, with option and release-clause facts when cited |
 | Freshness | Edited by hand | Squad changes detected weekly from TheStatsAPI, fees from cited news as they land |
 
-**Out of bounds:**
-- Transfermarkt and its resellers: its terms (clause 11.1) ban bots and copying.
-- SofaScore, FotMob, FBref: their terms forbid scraping.
-- EA FC ratings: EA's own work.
+**Deferred for public launch (not ingest bans during modeling):**
+- Republishing substantial Transfermarkt-derived tables without a licence.
+- EA FC ratings as a public feature (EA's own work) — optional private feature only if useful.
+- SofaScore / FotMob / FBref as public mirrors — OK to evaluate privately for coverage experiments.
 
 ## Sources (checked 2026-11-26)
 
@@ -56,7 +56,7 @@ The options:
 
 ## Gallia Value model
 
-**Features** (all from licensed data):
+**Features** (model-first; cite sources on public pages later):
 - age and position;
 - contract months remaining;
 - minutes and starts share;
@@ -84,8 +84,7 @@ The options:
 | 5 | Grow coverage: more leagues, earlier windows (two seasons back, per TheStatsAPI terms), women's football | everyone |
 
 **Tools:**
-- **Scrapling:** only for filing portals and pages whose terms allow automated access. KAP is free to access; check each portal's terms first.
-- **Crawl4AI:** the same rule.
+- **Scrapling / Crawl4AI:** use for modeling coverage; prefer regulator OAMs; club sites allowed under model-first policy (see transfer-filing-portals.md).
 - **Hallmark and Galaxy:** the pages.
 - **Hugging Face models:** optional, for fee and contract extraction alongside the LLM claim extraction.
 - **crosswalk:** tasks, review hand-offs and digests.

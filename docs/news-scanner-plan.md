@@ -2,9 +2,9 @@
 
 ## Goal
 
-One scanner that finds every credible transfer report and confirmation Gallia may legally use. It attributes each claim to the journalist who first reported it, and keeps a citation for every fact. It replaces today's mix of Google News RSS, publisher RSS and Reddit.
+One scanner that finds every credible transfer report and confirmation. It attributes each claim to the journalist who first reported it, and keeps a citation for every fact.
 
-Licensing limits the scanner more than technology does. Gallia's biggest discovery source today, Google News RSS, is licensed for personal, non-commercial use only (see [data-sources.md](data-sources.md)). Every source therefore needs a licence entry before anything is collected from it.
+**Owner 2026-11-28: model-first.** Maximize private discovery before diminishing returns. Public commercial licence limits are deferred (see [data-sources.md](data-sources.md)). Every source still gets a registry entry so we know what we ingest; collectors are **not** refused for PERSONAL_ONLY / NEEDS_LICENCE labels during modeling.
 
 ## Research summary (2026-11-26)
 
@@ -24,11 +24,10 @@ The sources are Perplexity Pro research with links and a live API test by Claude
 | Possible | Bluesky Jetstream | Free, no key | Live public feed. Commercial reuse terms are unclear: link out, don't republish. |
 | Possible | Mastodon | Free | Rules are per instance. |
 | Not a source | GDELT DOC 2.0 | Free; commercial use allowed with credit | Clean terms, but in a live test on 2026-11-26 it returned 0 articles from marca.com or gazzetta.it in 24 h. A multilingual transfer query returned 3 unrelated articles. Limit: 1 request per 5 s. |
-| Avoid | Google News RSS (**used today**) | Free | Personal, non-commercial use only. |
-| Avoid | Transfermarkt and API resellers | — | Scraped data, not licensed. |
-| Avoid | Premier League website | — | Terms ban building databases from its content. |
-| Avoid | Reddit | Commercial use needs written approval | Ads next to Reddit content may be banned. Costs are reported at about $12k/mo minimum (unconfirmed). |
-| Avoid | Telegram channels in bulk | — | Its terms ban scraping public channels into datasets and AI training. |
+| Modeling OK | Google News RSS (**used today**) | Free | Personal/non-commercial in Google's terms; fine for private modeling. Switch or licence before public ads. |
+| Modeling OK | Transfermarkt-derived APIs / denser feeds | varies | Use for coverage experiments; do not republish substantial tables publicly without a licence. |
+| Modeling OK | Reddit | API costs / approval for commercial | Fine for private modeling; revisit for public ads. |
+| Later | Telegram bulk scrape | — | High friction; only if coverage still needs it after RSS/APIs plateau. |
 | Gone | Bing News Search; Aylien/Quantexa | — | Bing Search APIs retired 2025-08-11. Aylien's API no longer resolves. |
 
 ### Confirmations
@@ -50,12 +49,8 @@ So "confirmed" comes from two places, in this order:
                                        cluster)
 ```
 
-1. **Source registry.** Every source has a row before anything is collected from it:
-   - licence and terms URL;
-   - what may be shown: headline, snippet length, link, embed;
-   - request budget, and whether full text may be stored or only processed.
-   Extend the existing `Source` model rather than adding a table. Collectors refuse sources that have no registry entry.
-2. **Collectors.** One adapter per source with budget accounting, like the TheStatsAPI budget in ADR 0008. Scrapling or API Anything may be used only where the source's terms allow automated access, never to get around a ban or a login.
+1. **Source registry.** Every source has a row (licence note, terms URL, display rights, budget, storeFullText). Extend `Source` rather than a new table. Missing entries log a warning so new feeds get recorded; they do not hard-stop modeling ingest.
+2. **Collectors.** One adapter per source with budget accounting (ADR 0008). Scrapling / APIs are allowed for model-first coverage; respect rate limits and log when terms status is not CLEARED.
 3. **Normalise:**
    - resolve redirects to the publisher's URL (Google News links are `news.google.com` redirects today);
    - detect the language;
@@ -73,10 +68,10 @@ So "confirmed" comes from two places, in this order:
 
 ## Phases
 
-**A. Licensed discovery (now).**
-1. Source registry fields on `Source` (licence, terms URL, display rights, budget). This is a migration, so Siva merges it.
-2. A coverage harness. For one week of real transfer news, compare what today's feeds find with what the NewsAPI.ai free tokens and Mediastack's free tier return. Report results by language and by outlet: Marca, AS, Gazzetta, Corriere dello Sport, L'Équipe, Kicker, Bild, A Bola, Record, BBC, Sky, Guardian.
-3. Decide on a vendor from the numbers. Then switch off Google News RSS and the personal-use publisher feeds for anything public.
+**A. Discovery coverage (now, model-first).**
+1. Source registry fields on `Source` — shipped. Modeling statuses are CLEARED so ingest is not warned off.
+2. A coverage harness. For one week of real transfer news, compare today's feeds with NewsAPI.ai and Mediastack free tiers. Report by language and outlet.
+3. Keep Google News + publisher RSS while they still add unique finds. Vendor choice and public-feed cutover wait until a launch decision.
 
 Owner first: create free accounts at NewsAPI.ai and Mediastack and store the keys in the Keychain. Keys are never kept in files.
 - Service names: `gallia-newsapi-ai` and `gallia-mediastack`.

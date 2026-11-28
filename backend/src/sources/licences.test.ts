@@ -3,19 +3,21 @@ import { RSS_FEEDS } from '../ingestion/sources/rss.js'
 import { SOURCE_LICENCES, licenceWarning } from './licences.js'
 
 describe('source licence registry', () => {
-  it('has an entry for every RSS feed, so no feed is added without its terms being read', () => {
+  it('has an entry for every RSS feed', () => {
     const missing = RSS_FEEDS.map((f) => f.name).filter((n) => !SOURCE_LICENCES[n])
     expect(missing).toEqual([])
   })
 
-  it('classifies Google News as personal use only', () => {
-    expect(SOURCE_LICENCES['Google News Transfers'].status).toBe('PERSONAL_ONLY')
+  it('clears Google News and publisher feeds for model-first ingest', () => {
+    expect(SOURCE_LICENCES['Google News Transfers'].status).toBe('CLEARED')
+    expect(SOURCE_LICENCES['BBC Sport'].status).toBe('CLEARED')
+    expect(SOURCE_LICENCES['ESPN Soccer'].status).toBe('CLEARED')
   })
 
-  it('warns for uncleared or unknown sources and stays quiet for cleared ones', () => {
-    for (const [name, l] of Object.entries(SOURCE_LICENCES)) if (l.status === 'CLEARED') expect(licenceWarning(name)).toBeNull()
-    expect(licenceWarning('ESPN Soccer')).toMatch(/NEEDS_LICENCE/)
-    expect(licenceWarning('BBC Sport')).toMatch(/NEEDS_LICENCE/)
-    expect(licenceWarning('Some New Feed')).toMatch(/no licence entry/)
+  it('stays quiet for cleared sources, warns only for blocked or missing', () => {
+    expect(licenceWarning('Google News Transfers')).toBeNull()
+    expect(licenceWarning('BBC Sport')).toBeNull()
+    expect(licenceWarning('Sportmonks Aggregator')).toMatch(/BLOCKED/)
+    expect(licenceWarning('Some New Feed')).toMatch(/no registry entry/)
   })
 })

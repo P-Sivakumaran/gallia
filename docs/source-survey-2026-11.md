@@ -1,5 +1,9 @@
 # European & UK/US Football News Outlets: Source Survey (November 2026)
 
+> **Superseded for ingest policy (2026-11-28):** model-first — statuses below are a
+> historical survey. Collectors are not blocked by NEEDS_LICENCE / PERSONAL_ONLY /
+> BLOCKED labels during private modeling. See [data-sources.md](data-sources.md).
+
 ## Executive Summary
 
 As part of Phase A of the Gallia News Scanner ([news-scanner-plan.md](news-scanner-plan.md)), this survey audits 20 tier-1 football and transfer news outlets across Spain, Italy, France, Germany, Portugal, the UK, and the US. 
@@ -20,7 +24,7 @@ The audit was conducted using Scrapling's plain fetcher (polite 3s interval, pla
    - L'Équipe enforces Cloudflare/WAF bot-protection on `robots.txt` (HTTP 403), though its CDN RSS feed (`dwh.lequipe.fr`) remains responsive.
 4. **Licensing & Legal Status**:
    - **0 Outlets are CLEARED for uncredited commercial scraping.** Every surveyed outlet's Terms of Service explicitly forbids automated scraping, commercial syndication, or database compilation without a commercial licence.
-   - **Recommendation:** Gallia should proceed with Phase A licensed API vendors (NewsAPI.ai and Mediastack) for automated commercial scanning, reserving direct publisher feeds strictly for headline/link citations where permitted by personal/fair-use terms.
+   - **Recommendation (updated 2026-11-28):** For private modeling, keep publisher RSS / Google News while they add unique finds; add NewsAPI.ai / Mediastack for coverage comparison. Licensed-only commercial scanning waits until public launch.
 
 ---
 
