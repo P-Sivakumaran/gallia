@@ -27,12 +27,12 @@ Statuses:
 |---|---|---|---|
 | Olympique Lyonnais (Eagle Football Group) | info-financiere.gouv.fr (DILA) | **CLEARED**: "financial information is open for reuse" (Open Data page), Etalab 2.0, public API. Reusers must credit DILA and give the download URL, file name and date | Parser + fetcher. Each fact stores `details.attribution`; public pages showing these facts must show it |
 | Manchester United | SEC EDGAR | **CLEARED**: Fair Access policy, 10 requests/s, declared User-Agent | Not yet. Needs the contact in the Keychain (`gallia-sec-contact`) and a check that its 6-K/20-F filings name individual transfers |
-| Juventus | 1Info SDIR | UNKNOWN (JavaScript shell) | Text parser only, no fetcher |
-| Lazio | 1Info SDIR | UNKNOWN | No |
-| Benfica, FC Porto, Sporting CP | CMVM | UNKNOWN (pages empty without a browser) | No |
+| FC Copenhagen (Parken) | Finanstilsynet OAM public API | **CLEARED**: official public API for the OAM data; terms are a disclaimer only, with no bot ban | Parser + fetcher. Sale notices give the buyer and the effect on profit before tax (DKK), not the fee |
+| Juventus | 1Info (Computershare) | NEEDS_PERMISSION: no terms, licence or API published; "Tutti i diritti riservati" | Text parser only, no fetcher |
+| Lazio | 1Info (Computershare) | NEEDS_PERMISSION (as Juventus) | No |
+| Benfica, FC Porto, Sporting CP | CMVM | UNKNOWN: the legal pages render empty even in a browser; no terms found | No |
 | Ajax | AFM | UNKNOWN (no AFM store of issuer releases found) | No |
-| Borussia Dortmund | Unternehmensregister | UNKNOWN (terms PDF not read; some downloads need a security check) | No |
-| FC Copenhagen (Parken) | Finanstilsynet OAM | UNKNOWN (renders empty) | No |
+| Borussia Dortmund | Unternehmensregister | **BLOCKED**: no bot ban in the terms, but retrieval sits behind a security check (CAPTCHA) and there is no API | No |
 | Celtic | FCA National Storage Mechanism | **BLOCKED**: FCA legal terms 4.8(iii) ban scrapers, robots and data mining without written consent | No |
 | Galatasaray, Fenerbahçe, Beşiktaş, Trabzonspor | KAP | **BLOCKED**: edge protection rejects automated requests | No. Needs the licensed MKK feed |
 
@@ -62,8 +62,8 @@ loan/permanent classification hasn't been checked against real filings since.
 
 1. **Manchester United**: store the SEC contact, then read a few 6-K exhibits to see whether
    transfers are named with fees before writing a parser.
-2. **UNKNOWN channels**: read the terms in a browser (CMVM, 1Info, Unternehmensregister PDF,
-   Finanstilsynet OAM). Clear each one or record why not.
+2. **CMVM** (Portugal): ask CMVM about reuse terms, since none are published on a readable page.
+   **1Info** (Italy): ask Computershare (info@computershare.it) for permission to reuse facts.
 3. **NEEDS_PERMISSION / BLOCKED**: ask for permission (clubs' IR teams, Teleborsa, FCA), or let an
    admin enter facts by hand from a filing they read.
 4. **ESAP**: the EU's European Single Access Point will give one machine-readable route to all EU

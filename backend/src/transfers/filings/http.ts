@@ -36,13 +36,23 @@ export interface FilingFetchOptions {
   userAgent?: string
   minGapMs?: number
   accept?: string
+  headers?: Record<string, string>
+  /** POST this JSON body (for search APIs); GET otherwise. */
+  jsonBody?: unknown
 }
 
 export async function fetchFiling(channelId: string, url: string, opts: FilingFetchOptions = {}): Promise<Response> {
   assertFetchAllowed(channelId, url)
   await waitTurn(new URL(url).host, opts.minGapMs ?? DEFAULT_GAP_MS)
   const res = await fetch(url, {
-    headers: { 'User-Agent': opts.userAgent ?? FILINGS_USER_AGENT, ...(opts.accept ? { Accept: opts.accept } : {}) },
+    method: opts.jsonBody !== undefined ? 'POST' : 'GET',
+    headers: {
+      'User-Agent': opts.userAgent ?? FILINGS_USER_AGENT,
+      ...(opts.accept ? { Accept: opts.accept } : {}),
+      ...(opts.jsonBody !== undefined ? { 'Content-Type': 'application/json' } : {}),
+      ...(opts.headers ?? {}),
+    },
+    body: opts.jsonBody !== undefined ? JSON.stringify(opts.jsonBody) : undefined,
     redirect: 'manual',
   })
   if (res.status >= 300 && res.status < 400) {
@@ -58,6 +68,11 @@ export async function fetchFiling(channelId: string, url: string, opts: FilingFe
 export async function fetchFilingJson<T>(channelId: string, url: string, opts: FilingFetchOptions = {}): Promise<T> {
   const res = await fetchFiling(channelId, url, { ...opts, accept: 'application/json' })
   return (await res.json()) as T
+}
+
+export async function fetchFilingText(channelId: string, url: string, opts: FilingFetchOptions = {}): Promise<string> {
+  const res = await fetchFiling(channelId, url, opts)
+  return res.text()
 }
 
 export async function fetchFilingBuffer(channelId: string, url: string, opts: FilingFetchOptions = {}): Promise<Buffer> {
