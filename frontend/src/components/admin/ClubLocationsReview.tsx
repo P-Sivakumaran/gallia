@@ -283,7 +283,7 @@ export default function ClubLocationsReview() {
 
       {error && (
         <div style={{ padding: '16px 24px' }} data-testid="location-review-error">
-          <p className="g-error">{error}</p>
+          <p className="g-error" role="alert">{error}</p>
           <p style={{ marginTop: 12 }}>
             <button
               type="button"

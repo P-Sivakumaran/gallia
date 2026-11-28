@@ -4,7 +4,16 @@ import type { AdminReviewItem } from '@/types'
 
 const reviewQueue = vi.fn()
 const setOutcome = vi.fn()
-vi.mock('@/lib/api', () => ({ api: { admin: { reviewQueue: () => reviewQueue(), setOutcome: (...a: unknown[]) => setOutcome(...a) } } }))
+const clubLocationsReview = vi.fn()
+vi.mock('@/lib/api', () => ({
+  api: {
+    admin: {
+      reviewQueue: () => reviewQueue(),
+      setOutcome: (...a: unknown[]) => setOutcome(...a),
+      clubLocationsReview: () => clubLocationsReview(),
+    },
+  },
+}))
 
 import ReviewQueue from './ReviewQueue'
 
@@ -31,6 +40,8 @@ describe('ReviewQueue', () => {
   beforeEach(() => {
     reviewQueue.mockReset()
     setOutcome.mockReset()
+    clubLocationsReview.mockReset()
+    clubLocationsReview.mockResolvedValue({ candidates: [], unplaced: [] })
   })
 
   it('lists items with their reasons and article leads', async () => {
