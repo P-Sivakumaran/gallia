@@ -281,7 +281,21 @@ export default function ClubLocationsReview() {
         location and applies the facts; rejecting marks the facts superseded.
       </p>
 
-      {error && <p className="g-error" style={{ padding: '16px 24px' }}>{error}</p>}
+      {error && (
+        <div style={{ padding: '16px 24px' }} data-testid="location-review-error">
+          <p className="g-error" role="alert">{error}</p>
+          <p style={{ marginTop: 12 }}>
+            <button
+              type="button"
+              className="g-green-link"
+              data-testid="location-review-error-retry"
+              onClick={() => void load()}
+            >
+              Retry →
+            </button>
+          </p>
+        </div>
+      )}
       {loading && <p className="g-note" style={{ padding: '16px 24px' }}>Loading club locations…</p>}
 
       {!loading && !error && (
