@@ -109,6 +109,8 @@ export default async function PlayerPage({ params }: { params: Promise<{ id: str
           title="Resolved rumours"
           rumours={resolvedRumours}
           empty="No resolved rumours for this player."
+          emptyHref="/rumours"
+          emptyCta="Browse rumours →"
         />
       </div>
     </DeskPage>
