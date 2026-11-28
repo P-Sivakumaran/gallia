@@ -61,6 +61,19 @@ describe('ClubLocationsReview Component', () => {
     manualClubLocation.mockReset()
   })
 
+  it('offers Retry when locations fail to load', async () => {
+    clubLocationsReview.mockRejectedValueOnce(new Error('down')).mockResolvedValueOnce(mockReviewData)
+    render(<ClubLocationsReview />)
+
+    expect(await screen.findByTestId('location-review-error')).toHaveTextContent(
+      'Failed to load club locations review',
+    )
+    fireEvent.click(screen.getByTestId('location-review-error-retry'))
+
+    expect(await screen.findByText('Arsenal FC')).toBeInTheDocument()
+    expect(clubLocationsReview).toHaveBeenCalledTimes(2)
+  })
+
   it('renders candidate locations with details and OSM links', async () => {
     clubLocationsReview.mockResolvedValue(mockReviewData)
     render(<ClubLocationsReview />)
