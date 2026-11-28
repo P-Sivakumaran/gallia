@@ -63,13 +63,15 @@ export const FILING_CHANNELS: Record<string, FilingChannel> = {
     id: '1info',
     name: '1Info SDIR/Storage (Computershare, Italy)',
     kind: 'regulator',
-    access: 'UNKNOWN',
-    termsUrl: null,
-    termsQuotation: 'Site renders only a JavaScript shell ("Loading..."); terms not readable without a browser. Check by hand before any use.',
+    access: 'NEEDS_PERMISSION',
+    termsUrl: 'https://www.1info.it/PORTALE1INFO',
+    termsQuotation:
+      'Rendered in a browser 2026-11-28: Juventus and S.S. Lazio are listed issuers. The portal publishes no terms of use, licence or API; its only legal link is a privacy policy, and Computershare states "Tutti i diritti riservati" (all rights reserved). No reuse grant, so ask Computershare (info@computershare.it) before automated use.',
     reviewedOn: REVIEWED,
     licence: 'none',
     hosts: ['www.1info.it'],
   },
+
   'emarket-storage': {
     id: 'emarket-storage',
     name: 'eMarket STORAGE (Teleborsa, Italy)',
@@ -235,24 +237,28 @@ export const FILING_CHANNELS: Record<string, FilingChannel> = {
     id: 'unternehmensregister',
     name: 'Unternehmensregister (Germany)',
     kind: 'regulator',
-    access: 'UNKNOWN',
-    termsUrl: 'https://www.unternehmensregister.de/de/rechtliches',
-    termsQuotation: 'Terms are a PDF not yet read; some downloads require solving a security check ("Sicherheitsabfrage").',
+    access: 'BLOCKED',
+    termsUrl: 'https://www.unternehmensregister.de/i18n-doc/D061_UReg_nutz_0118_de.pdf',
+    termsQuotation:
+      'Nutzungsbedingungen \u00a73: search is free without registration ("Eine vorherige Registrierung ist ... grunds\u00e4tzlich nicht erforderlich") and no bot ban is stated, but retrieval sits behind a security check ("Sicherheitsabfrage") and there is no API. Automating past a CAPTCHA would be anti-bot bypass, so no automated access.',
     reviewedOn: REVIEWED,
     licence: 'none',
     hosts: ['www.unternehmensregister.de'],
   },
+
   'dfsa-oam': {
     id: 'dfsa-oam',
-    name: 'Finanstilsynet OAM (Denmark)',
+    name: 'Finanstilsynet OAM public API (Denmark)',
     kind: 'regulator',
-    access: 'UNKNOWN',
-    termsUrl: null,
-    termsQuotation: 'oam.finanstilsynet.dk renders empty without a browser; no terms or API found.',
+    access: 'CLEARED',
+    termsUrl: 'https://www.techinfo.dfsa.dk/web-service-specifications/public-api',
+    termsQuotation:
+      'Public API page: "The OAM obligation requires Finanstilsynet to offer a public available site exhibiting most of the data submitted under the OAM umbrella. The data for this site is also available through this webservice." Terms of agreement (dfsa.dk ToAOAMENDK.pdf) are a disclaimer only: "The user\u2019s download or other appropriation or use of information etc. made public in the Portal ... is the sole responsibility of the user"; the FSA does not vouch for "the right of the contents suppliers to pass on material under copyright law". No bot ban. Gallia stores facts only, with a link.',
     reviewedOn: REVIEWED,
-    licence: 'none',
-    hosts: ['oam.finanstilsynet.dk'],
+    licence: 'dfsa-oam-public',
+    hosts: ['api.finanstilsynet.dk', 'saesappublicprd.blob.core.windows.net'],
   },
+
   'parken-site': {
     id: 'parken-site',
     name: 'parken.dk selskabsmeddelelser',
@@ -443,10 +449,10 @@ export const LISTED_CLUB_PORTALS: Record<string, PortalInfo> = {
     regulatoryFramework: 'Nasdaq Nordic rules / MAR',
     channelId: 'dfsa-oam',
     rejectedChannels: ['parken-site'],
-    feesStated: true,
+    feesStated: false,
     contractLengthStated: false,
     format: 'HTML',
-    notes: 'Announcements adjust profit guidance and sometimes quote the transfer sum.',
+    notes: '"Salg af kontraktrettighed" notices name the buyer and the sale\'s effect on profit before tax (DKK), not the fee.',
   },
 }
 

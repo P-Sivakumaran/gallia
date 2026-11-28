@@ -16,7 +16,7 @@ and warns when `access !== CLEARED`. User-Agent:
 `Gallia transfer research (+https://github.com/P-Sivakumaran/gallia)`.
 
 Ledger write path: `npm run filings:ingest` (or daily scheduler cron `FILINGS_INGEST_CRON`,
-default `15 3 * * *`) runs AMF + Juventus fetchers through `runListedClubFilingsIngest` →
+default `15 3 * * *`) runs AMF + Juventus + Copenhagen OAM through `runListedClubFilingsIngest` →
 `ingestFilingFact`. Idempotent; unmatched players go to admin review.
 
 Statuses (factual only — not fetch bans):
@@ -32,17 +32,19 @@ Statuses (factual only — not fetch bans):
 | Olympique Lyonnais (Eagle Football Group) | info-financiere.gouv.fr (DILA) | CLEARED | Parser + fetcher |
 | Manchester United | SEC EDGAR | CLEARED | Needs Keychain contact; check 6-K/20-F naming |
 | Juventus | juventus.com IR (1Info preferred later) | BLOCKED (terms) | Parser + fetcher (model-first); `npm run filings:dry-run-juventus` |
+| FC Copenhagen (Parken) | Finanstilsynet OAM public API | CLEARED | Parser + fetcher; buyer + profit impact (DKK), fee usually undisclosed |
 | Lazio | 1Info / club site | UNKNOWN / BLOCKED (terms) | No |
 | Benfica, FC Porto, Sporting CP | CMVM / club sites | UNKNOWN / NEEDS_PERMISSION | No |
 | Ajax | AFM / club site | UNKNOWN / NEEDS_PERMISSION | No |
-| Borussia Dortmund | Unternehmensregister | UNKNOWN | No |
-| FC Copenhagen (Parken) | Finanstilsynet OAM | UNKNOWN | See PR #113 if merged |
+| Borussia Dortmund | Unternehmensregister | BLOCKED (CAPTCHA) | No |
 | Celtic | FCA NSM / club | BLOCKED (terms) | Modeling fetch allowed; expect friction |
 | Galatasaray, Fenerbahçe, Beşiktaş, Trabzonspor | KAP | BLOCKED (edge) | Modeling fetch allowed; may need MKK feed |
 
+Dry runs: `npm run filings:dry-run -- [portalId] [since]` (AMF or DK); `filings:dry-run-juventus`.
+
 ## Next (coverage)
 
-1. Reattach remaining club/regulator fetchers where parsers already exist (Lazio, CMVM, KAP…).
+1. Lazio IR / CMVM / KAP fetchers (plan M1).
 2. Clear UNKNOWN channels by reading terms in a browser — for the record, not as a stop.
 3. SEC / Manchester United once the contact is in the Keychain.
 4. ESAP when live for one EU machine-readable route.

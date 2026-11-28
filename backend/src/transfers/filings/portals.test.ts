@@ -24,9 +24,12 @@ describe('filing portals and channels', () => {
 
   it('records terms CLEARED on the open regulator channels', () => {
     const cleared = Object.values(FILING_CHANNELS).filter((c) => c.access === 'CLEARED').map((c) => c.id).sort()
-    expect(cleared).toEqual(['amf-info-financiere', 'sec-edgar'])
+    expect(cleared).toEqual(['amf-info-financiere', 'dfsa-oam', 'sec-edgar'])
     expect(portalAccess('lyon_eagle')).toBe('CLEARED')
     expect(portalAccess('manchester_united')).toBe('CLEARED')
+    expect(portalAccess('copenhagen_parken')).toBe('CLEARED')
+    expect(portalAccess('juventus')).toBe('BLOCKED')
+    expect(portalAccess('borussia_dortmund')).toBe('BLOCKED')
   })
 
   it('keeps terms statuses on club sites but allows modeling fetches on listed hosts', () => {
