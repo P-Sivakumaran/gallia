@@ -53,7 +53,21 @@ export default function RumoursPanel() {
         ))}
       </div>
 
-      {error && <p className="g-error" style={{ padding: '16px 24px' }}>{error}</p>}
+      {error && (
+        <div style={{ padding: '16px 24px' }} data-testid="admin-rumours-error">
+          <p className="g-error" role="alert">{error}</p>
+          <p style={{ marginTop: 12 }}>
+            <button
+              type="button"
+              className="g-green-link"
+              data-testid="admin-rumours-error-retry"
+              onClick={() => void load(filter)}
+            >
+              Retry →
+            </button>
+          </p>
+        </div>
+      )}
       {loading && <p className="g-note" style={{ padding: '16px 24px' }}>Loading…</p>}
       {!loading && rumours.length === 0 && !error && (
         <div className="g-note" style={{ padding: '16px 24px' }} data-testid="admin-rumours-empty">
