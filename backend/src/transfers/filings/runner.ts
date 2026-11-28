@@ -1,6 +1,7 @@
 import type { PrismaClient } from '@prisma/client'
 import { recordContract, recordTransfer, recordUnmatchedFiling } from '../ledger.js'
 import { fetchAmfFacts } from './amfFrance.js'
+import { fetchDkFacts } from './dkOam.js'
 import { fetchJuventusAnnouncements } from './juventus.js'
 import { FILING_CHANNELS, LISTED_CLUB_PORTALS } from './portals.js'
 import type { ExtractedTransferFact, FilingAnnouncement, IngestionMatchResult } from './types.js'
@@ -158,8 +159,12 @@ export interface FilingsIngestOptions {
   amfSince?: Date
   juventusSeasons?: string[]
   juventusMaxPages?: number
+  /** Danish OAM portals (default: copenhagen_parken). */
+  dkPortals?: string[]
+  dkSince?: Date
   skipAmf?: boolean
   skipJuventus?: boolean
+  skipDk?: boolean
 }
 
 export interface FilingsIngestSummary {
@@ -214,7 +219,7 @@ async function ingestFactBatch(
 }
 
 /**
- * Fetch listed-club filings (AMF + Juventus IR) and write them through the ledger.
+ * Fetch listed-club filings (AMF + Juventus IR + Copenhagen OAM) and write them through the ledger.
  * Idempotent via transfer dedupeKey / SourcedFact uniqueness. Rate-limited by filings HTTP.
  */
 export async function runListedClubFilingsIngest(
@@ -222,12 +227,12 @@ export async function runListedClubFilingsIngest(
   opts: FilingsIngestOptions = {}
 ): Promise<FilingsIngestSummary> {
   const summary: FilingsIngestSummary = { facts: 0, applied: 0, unmatched: 0, errors: 0, byPortal: {} }
+  const yearAgo = opts.amfSince ?? opts.dkSince ?? new Date(Date.now() - 365 * 24 * 60 * 60 * 1000)
 
   if (!opts.skipAmf) {
     const portals = opts.amfPortals ?? ['lyon_eagle']
-    const since = opts.amfSince ?? new Date(Date.now() - 365 * 24 * 60 * 60 * 1000)
     for (const portalId of portals) {
-      const { announcements, facts } = await fetchAmfFacts(portalId, since)
+      const { announcements, facts } = await fetchAmfFacts(portalId, opts.amfSince ?? yearAgo)
       await ingestFactBatch(db, facts, announcements, summary)
     }
   }
@@ -236,6 +241,14 @@ export async function runListedClubFilingsIngest(
     const seasons = opts.juventusSeasons ?? ['season-2026-27', 'season-2025-26']
     const { announcements, facts } = await fetchJuventusAnnouncements(seasons, opts.juventusMaxPages ?? 5)
     await ingestFactBatch(db, facts, announcements, summary)
+  }
+
+  if (!opts.skipDk) {
+    const portals = opts.dkPortals ?? ['copenhagen_parken']
+    for (const portalId of portals) {
+      const { announcements, facts } = await fetchDkFacts(portalId, opts.dkSince ?? yearAgo)
+      await ingestFactBatch(db, facts, announcements, summary)
+    }
   }
 
   return summary

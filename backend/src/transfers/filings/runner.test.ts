@@ -9,8 +9,12 @@ vi.mock('./juventus.js', () => ({
   fetchJuventusAnnouncements: vi.fn(),
   parseJuventusAnnouncementText: vi.fn(),
 }))
+vi.mock('./dkOam.js', () => ({
+  fetchDkFacts: vi.fn(),
+}))
 
 import { fetchAmfFacts } from './amfFrance.js'
+import { fetchDkFacts } from './dkOam.js'
 import { fetchJuventusAnnouncements } from './juventus.js'
 
 function baseFact(over: Partial<ExtractedTransferFact> = {}): ExtractedTransferFact {
@@ -133,12 +137,14 @@ describe('runListedClubFilingsIngest', () => {
       facts: [unmatched],
       failures: [],
     })
+    vi.mocked(fetchDkFacts).mockResolvedValue({ announcements: [], facts: [], failures: [] })
 
     const db = mockDb([{ id: 99, name: 'Jean Testard' }])
     const summary = await runListedClubFilingsIngest(db as never)
 
     expect(fetchAmfFacts).toHaveBeenCalledWith('lyon_eagle', expect.any(Date))
     expect(fetchJuventusAnnouncements).toHaveBeenCalled()
+    expect(fetchDkFacts).toHaveBeenCalledWith('copenhagen_parken', expect.any(Date))
     expect(summary.facts).toBe(2)
     expect(summary.applied).toBe(1)
     expect(summary.unmatched).toBe(1)
@@ -149,9 +155,11 @@ describe('runListedClubFilingsIngest', () => {
   it('can skip portals', async () => {
     vi.mocked(fetchAmfFacts).mockClear()
     vi.mocked(fetchJuventusAnnouncements).mockClear()
+    vi.mocked(fetchDkFacts).mockClear()
     const db = mockDb([])
-    await runListedClubFilingsIngest(db as never, { skipAmf: true, skipJuventus: true })
+    await runListedClubFilingsIngest(db as never, { skipAmf: true, skipJuventus: true, skipDk: true })
     expect(fetchAmfFacts).not.toHaveBeenCalled()
     expect(fetchJuventusAnnouncements).not.toHaveBeenCalled()
+    expect(fetchDkFacts).not.toHaveBeenCalled()
   })
 })
