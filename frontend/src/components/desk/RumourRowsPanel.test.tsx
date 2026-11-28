@@ -23,4 +23,17 @@ describe('RumourRowsPanel', () => {
     expect(screen.getByTestId('rumour-rows-empty-cta')).toHaveAttribute('href', '/rumours')
     expect(screen.getByTestId('rumour-rows-empty-cta')).toHaveTextContent('Browse rumours →')
   })
+
+  it('links empty resolved rumours panels the same way', () => {
+    render(
+      <RumourRowsPanel
+        title="Resolved rumours"
+        rumours={[]}
+        empty="No resolved rumours for this player."
+        emptyHref="/rumours"
+        emptyCta="Browse rumours →"
+      />,
+    )
+    expect(screen.getByTestId('rumour-rows-empty-cta')).toHaveAttribute('href', '/rumours')
+  })
 })
