@@ -1,25 +1,43 @@
 import type { PrismaClient } from '@prisma/client'
 import { recordContract, recordTransfer, recordUnmatchedFiling } from '../ledger.js'
+import { FILING_CHANNELS, LISTED_CLUB_PORTALS } from './portals.js'
 import type { ExtractedTransferFact, FilingAnnouncement, IngestionMatchResult } from './types.js'
 
 /**
- * Normalizes club/player names for fuzzy matching.
+ * Matches extracted filing facts against Gallia's players and clubs. Confirmed moves go to the
+ * ledger; anything that doesn't match exactly one player goes to admin review as an unapplied
+ * SourcedFact. Never creates players or clubs.
  */
-function normalizeName(name: string): string {
-  return name
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '') // remove diacritics
-    .replace(/[^a-z0-9\s]/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim()
+async function findIssuerClub(db: PrismaClient, names: string[]) {
+  for (const name of names) {
+    const club = await db.club.findFirst({
+      where: { OR: [{ name: { contains: name, mode: 'insensitive' } }, { shortName: { contains: name, mode: 'insensitive' } }] },
+    })
+    if (club) return club
+  }
+  return null
 }
 
-/**
- * Matches extracted filing facts against Gallia's player and club database,
- * applying transfers and contracts to the ledger or routing unmatched entries
- * to the unapplied SourcedFact admin review queue.
- */
+/** One player whose name contains every token, or null when none or several do. */
+async function findUniquePlayer(db: PrismaClient, playerName: string): Promise<number | null> {
+  const exact = await db.player.findMany({ where: { name: { equals: playerName, mode: 'insensitive' } }, take: 2 })
+  if (exact.length === 1) return exact[0].id
+  if (exact.length > 1) return null
+  const tokens = playerName.trim().split(/\s+/).filter((t) => t.length > 1)
+  if (tokens.length === 0) return null
+  const all = await db.player.findMany({
+    where: { AND: tokens.map((t) => ({ name: { contains: t, mode: 'insensitive' as const } })) },
+    take: 2,
+  })
+  if (all.length === 1) return all[0].id
+  if (all.length > 1 || tokens.length === 1) return null
+  // Fall back to the surname alone, only when exactly one player carries it.
+  const surname = tokens[tokens.length - 1]
+  if (surname.length <= 3) return null
+  const bySurname = await db.player.findMany({ where: { name: { contains: surname, mode: 'insensitive' } }, take: 2 })
+  return bySurname.length === 1 ? bySurname[0].id : null
+}
+
 export async function ingestFilingFact(
   db: PrismaClient,
   fact: ExtractedTransferFact,
@@ -34,75 +52,31 @@ export async function ingestFilingFact(
   }
 
   try {
-    // 1. Resolve Juventus Club ID
-    const juventus = await db.club.findFirst({
-      where: {
-        OR: [
-          { name: { contains: 'Juventus', mode: 'insensitive' } },
-          { shortName: { contains: 'Juventus', mode: 'insensitive' } },
-        ],
-      },
-    })
-    const juventusClubId = juventus?.id ?? null
+    const portal = LISTED_CLUB_PORTALS[fact.portal]
+    if (!portal) throw new Error(`Unknown portal "${fact.portal}"`)
+    const licence = FILING_CHANNELS[portal.channelId]?.licence ?? 'primary-disclosure'
 
-    // 2. Resolve Counterparty Club
+    const issuer = await findIssuerClub(db, portal.clubMatchNames)
+    const issuerClubId = issuer?.id ?? null
+    const issuerName = issuer?.name ?? portal.clubMatchNames[0]
+
     let counterpartyClubId: number | null = null
     let counterpartyClubName = fact.counterpartyName
     if (fact.counterpartyName) {
-      const normCounterparty = normalizeName(fact.counterpartyName)
-      const foundClub = await db.club.findFirst({
-        where: {
-          OR: [
-            { name: { contains: fact.counterpartyName, mode: 'insensitive' } },
-            { shortName: { contains: fact.counterpartyName, mode: 'insensitive' } },
-          ],
-        },
-      })
-      if (foundClub) {
-        counterpartyClubId = foundClub.id
-        counterpartyClubName = foundClub.name
+      const found = await findIssuerClub(db, [fact.counterpartyName])
+      if (found) {
+        counterpartyClubId = found.id
+        counterpartyClubName = found.name
       }
     }
 
-    // 3. Resolve Player
-    let playerId: number | null = null
-    const normPlayer = normalizeName(fact.playerName)
-
-    // Direct match
-    const directMatch = await db.player.findFirst({
-      where: {
-        OR: [
-          { name: { equals: fact.playerName, mode: 'insensitive' } },
-          { name: { contains: fact.playerName, mode: 'insensitive' } },
-        ],
-      },
-    })
-
-    if (directMatch) {
-      playerId = directMatch.id
-    } else {
-      // Last name match fallback (many Italian filings say e.g. "player Boga" or "player Holm")
-      const nameParts = fact.playerName.trim().split(/\s+/)
-      const lastName = nameParts[nameParts.length - 1]
-      if (lastName.length > 3) {
-        const lastNameMatch = await db.player.findFirst({
-          where: {
-            name: { contains: lastName, mode: 'insensitive' },
-          },
-        })
-        if (lastNameMatch) {
-          playerId = lastNameMatch.id
-        }
-      }
-    }
-
+    const playerId = await findUniquePlayer(db, fact.playerName)
     result.matchedPlayerId = playerId
     result.matchedClubId = counterpartyClubId
 
-    // 4. Handle Unmatched Entities: Admin Review via unapplied SourcedFact
     if (!playerId) {
       result.status = 'unmatched_player'
-      const factId = await recordUnmatchedFiling(db, {
+      result.unmatchedFactId = await recordUnmatchedFiling(db, {
         playerName: fact.playerName,
         counterpartyName: fact.counterpartyName,
         portal: fact.portal,
@@ -111,78 +85,66 @@ export async function ingestFilingFact(
         raw: {
           ...fact.details,
           title: fact.title,
+          direction: fact.direction,
+          transferType: fact.transferType,
           feeAmount: fact.feeAmount,
           contractExpiresOn: fact.contractExpiresOn?.toISOString(),
-          reason: 'Unmatched player in Gallia database',
+          reason: 'No single matching player in Gallia database',
         },
       })
-      result.unmatchedFactId = factId
       return result
     }
 
-    // 5. Determine From and To clubs
     let fromClubId: number | null = null
     let toClubId: number | null = null
     let fromTeamName: string | null = null
     let toTeamName: string | null = null
-
     if (fact.direction === 'acquisition') {
       fromClubId = counterpartyClubId
       fromTeamName = counterpartyClubName
-      toClubId = juventusClubId
-      toTeamName = juventus?.name ?? 'Juventus'
+      toClubId = issuerClubId
+      toTeamName = issuerName
     } else if (fact.direction === 'disposal') {
-      fromClubId = juventusClubId
-      fromTeamName = juventus?.name ?? 'Juventus'
+      fromClubId = issuerClubId
+      fromTeamName = issuerName
       toClubId = counterpartyClubId
       toTeamName = counterpartyClubName
     } else {
-      // Contract extension or termination
-      toClubId = juventusClubId
-      toTeamName = juventus?.name ?? 'Juventus'
+      toClubId = issuerClubId
+      toTeamName = issuerName
     }
 
-    // 6. Record Transfer in Ledger
-    const transferStatus = await recordTransfer(db, {
-      playerId,
-      fromClubId,
-      toClubId,
-      fromTeamName,
-      toTeamName,
-      date: fact.effectiveDate ?? fact.publishedAt,
-      datePrecision: 'day',
-      type: fact.transferType,
-      feeAmount: fact.feeAmount,
-      feeCurrency: fact.feeCurrency,
-      feeStatus: fact.feeStatus,
-      details: fact.details,
-      source: 'filing',
-      sourceUrl: fact.sourceUrl,
-      licence: 'primary-disclosure',
-      confidence: 0.95,
-    })
-    result.transferRecordStatus = transferStatus
-
-    // 7. Record Contract Extension/Expiry if disclosed
-    if (fact.contractExpiresOn && (fact.direction === 'acquisition' || fact.direction === 'extension')) {
-      const contractStatus = await recordContract(
-        db,
+    // Extensions and terminations are contract events, not moves.
+    if (fact.direction === 'acquisition' || fact.direction === 'disposal') {
+      result.transferRecordStatus = await recordTransfer(db, {
         playerId,
+        fromClubId,
         toClubId,
-        fact.contractExpiresOn,
-        'filing',
-        fact.sourceUrl,
-        'primary-disclosure',
-        0.95
-      )
-      result.contractRecordStatus = contractStatus
+        fromTeamName,
+        toTeamName,
+        date: fact.effectiveDate ?? fact.publishedAt,
+        datePrecision: 'day',
+        type: fact.transferType,
+        feeAmount: fact.feeAmount,
+        feeCurrency: fact.feeCurrency,
+        feeStatus: fact.feeStatus,
+        details: { ...fact.details, sellOnPercent: fact.sellOnPercent ?? null },
+        source: 'filing',
+        sourceUrl: fact.sourceUrl,
+        licence,
+        confidence: 0.95,
+      })
+    }
+
+    if (fact.contractExpiresOn && (fact.direction === 'acquisition' || fact.direction === 'extension')) {
+      result.contractRecordStatus = await recordContract(db, playerId, toClubId, fact.contractExpiresOn, 'filing', fact.sourceUrl, licence, 0.95)
     }
 
     result.status = 'applied'
     return result
-  } catch (err: any) {
+  } catch (err: unknown) {
     result.status = 'error'
-    result.error = err?.message ?? String(err)
+    result.error = err instanceof Error ? err.message : String(err)
     return result
   }
 }
