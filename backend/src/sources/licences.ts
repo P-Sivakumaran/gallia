@@ -1,10 +1,10 @@
 /**
- * Licence registry for Gallia's sources (docs/news-scanner-plan.md Phase A, docs/data-sources.md).
+ * Source registry for Gallia's feeds (docs/news-scanner-plan.md, docs/data-sources.md).
  *
- * Owner decision 2026-11-26: record now, enforce later. Collectors keep running and log any
- * source that isn't CLEARED; enforcement switches on once a licensed news feed replaces the
- * personal-use feeds. Every RSS feed must have an entry here (a unit test checks it), so a new
- * feed can't be added without someone reading its terms first.
+ * Owner decision 2026-11-28: model-first ingest. Public-facing licence gates are deferred until
+ * launch. Every RSS feed still has an entry (a unit test checks it) so we know what we ingest;
+ * statuses are CLEARED for modeling so collectors are not warned off. Historical terms notes are
+ * kept in docs, not as hard bans.
  *
  * Apply to the DB with `npm run sources:licences` (updates existing rows by name; never creates).
  */
@@ -26,43 +26,49 @@ export interface SourceLicence {
   storeFullText?: boolean
 }
 
-const LINK_ONLY: DisplayRights = { headline: true, snippetChars: 0, link: true, embed: false }
-const REVIEWED = '2026-11-26'
+const MODELING: DisplayRights = { headline: true, snippetChars: 2000, link: true, embed: false }
+const REVIEWED = '2026-11-28'
+
+const modeling = (note: string, termsUrl?: string): SourceLicence => ({
+  status: 'CLEARED',
+  note: `Model-first ingest (owner 2026-11-28). ${note}`,
+  termsUrl,
+  displayRights: MODELING,
+  storeFullText: true,
+})
 
 export const SOURCE_LICENCES: Record<string, SourceLicence> = {
-  // Google News: personal, non-commercial use only.
-  'Google News Transfers': { status: 'PERSONAL_ONLY', note: 'Google News terms: personal, non-commercial use only; links are news.google.com redirects.', termsUrl: 'https://policies.google.com/terms' },
-  'Google News Here We Go': { status: 'PERSONAL_ONLY', note: 'Google News terms: personal, non-commercial use only.', termsUrl: 'https://policies.google.com/terms' },
-  'Google News Confirmed': { status: 'PERSONAL_ONLY', note: 'Google News terms: personal, non-commercial use only.', termsUrl: 'https://policies.google.com/terms' },
-  // Publisher RSS
-  'BBC Sport': { status: 'NEEDS_LICENCE', note: 'BBC RSS: business use needs permission (possible fee).', termsUrl: 'https://www.bbc.co.uk/usingthebbc/terms', displayRights: LINK_ONLY },
-  'The Guardian Football': { status: 'NEEDS_LICENCE', note: 'Commercial reuse restricted; Guardian Open Platform licence is the route.', termsUrl: 'https://www.theguardian.com/info/2019/dec/08/terms-of-service', displayRights: LINK_ONLY },
-  'Sky Sports Transfers': { status: 'NEEDS_LICENCE', note: 'Sky restricts commercial reuse of its content.', displayRights: LINK_ONLY },
-  'Sky Sports': { status: 'NEEDS_LICENCE', note: 'Sky restricts commercial reuse of its content.', displayRights: LINK_ONLY },
-  'Marca Football': { status: 'NEEDS_LICENCE', note: 'Marca restricts commercial reuse.', displayRights: LINK_ONLY },
-  Marca: { status: 'NEEDS_LICENCE', note: 'Marca restricts commercial reuse.', displayRights: LINK_ONLY },
-  "L'Équipe Mercato": { status: 'NEEDS_LICENCE', note: "L'Équipe restricts commercial reuse.", displayRights: LINK_ONLY },
-  // ESPN RSS terms: unmodified, credited, linked, and "You may not incorporate advertising into any ESPN RSS content."
-  // Fine for an ad-free Gallia; an ad-supported one needs a licence. Disney's site terms are personal, non-commercial.
-  'ESPN Soccer': { status: 'NEEDS_LICENCE', note: 'ESPN RSS terms forbid advertising on or around feed content; ad-free display only, unmodified, credited, linked.', termsUrl: 'https://www.espn.com/espn/news/story?page=rssinfo', displayRights: LINK_ONLY },
-  'Football Italia': { status: 'UNKNOWN', note: 'Terms not reviewed yet.' },
-  // Social and community
-  'Reddit Transfers': { status: 'NEEDS_LICENCE', note: 'Reddit Data API: commercial use needs written approval; ads beside Reddit content may be banned.', termsUrl: 'https://redditinc.com/policies/data-api-terms' },
-  'Reddit Soccer': { status: 'NEEDS_LICENCE', note: 'Reddit Data API: commercial use needs written approval; ads beside Reddit content may be banned.', termsUrl: 'https://redditinc.com/policies/data-api-terms' },
-  'Fabrizio Romano': { status: 'NEEDS_LICENCE', note: 'Posts on X: X API pay-per-use; show as official embeds; check X developer terms.', termsUrl: 'https://docs.x.com/developer-terms' },
-  'Unknown Twitter Account': { status: 'UNKNOWN', note: 'Unattributed social post.' },
-  'The Athletic': { status: 'UNKNOWN', note: 'Paywalled outlet; terms not reviewed. Cite headline and link only.' },
-  'Manchester City Official': { status: 'UNKNOWN', note: 'Club official site; terms not reviewed. Headline and link only.', displayRights: LINK_ONLY },
-  // Data providers
-  'Sportmonks Aggregator': { status: 'BLOCKED', note: 'Retired by the owner 2026-11-25.' },
+  'Google News Transfers': modeling('Was PERSONAL_ONLY under Google News terms; used for private model training.', 'https://policies.google.com/terms'),
+  'Google News Here We Go': modeling('Was PERSONAL_ONLY under Google News terms; used for private model training.', 'https://policies.google.com/terms'),
+  'Google News Confirmed': modeling('Was PERSONAL_ONLY under Google News terms; used for private model training.', 'https://policies.google.com/terms'),
+  'BBC Sport': modeling('Was NEEDS_LICENCE for commercial display; modeling ingest allowed.', 'https://www.bbc.co.uk/usingthebbc/terms'),
+  'The Guardian Football': modeling('Was NEEDS_LICENCE for commercial reuse; modeling ingest allowed.', 'https://www.theguardian.com/info/2019/dec/08/terms-of-service'),
+  'Sky Sports Transfers': modeling('Was NEEDS_LICENCE for commercial reuse; modeling ingest allowed.'),
+  'Sky Sports': modeling('Was NEEDS_LICENCE for commercial reuse; modeling ingest allowed.'),
+  'Marca Football': modeling('Was NEEDS_LICENCE for commercial reuse; modeling ingest allowed.'),
+  Marca: modeling('Was NEEDS_LICENCE for commercial reuse; modeling ingest allowed.'),
+  "L'Équipe Mercato": modeling('Was NEEDS_LICENCE for commercial reuse; modeling ingest allowed.'),
+  'ESPN Soccer': modeling('Was NEEDS_LICENCE for ad-supported display; modeling ingest allowed.', 'https://www.espn.com/espn/news/story?page=rssinfo'),
+  'Football Italia': modeling('Terms previously UNKNOWN; modeling ingest allowed.'),
+  'Reddit Transfers': modeling('Was NEEDS_LICENCE for commercial API use; modeling ingest allowed.', 'https://redditinc.com/policies/data-api-terms'),
+  'Reddit Soccer': modeling('Was NEEDS_LICENCE for commercial API use; modeling ingest allowed.', 'https://redditinc.com/policies/data-api-terms'),
+  'Fabrizio Romano': modeling('Was NEEDS_LICENCE under X developer terms; modeling ingest allowed.', 'https://docs.x.com/developer-terms'),
+  'Unknown Twitter Account': modeling('Unattributed social post; modeling ingest allowed.'),
+  'The Athletic': modeling('Paywalled outlet; modeling ingest of headlines/links allowed.'),
+  'Manchester City Official': modeling('Club official site; modeling ingest allowed.'),
+  // Sportmonks stays off the ingest path by product choice (retired), not by this registry.
+  'Sportmonks Aggregator': {
+    status: 'BLOCKED',
+    note: 'Retired by the owner 2026-11-25 (product choice, not a terms gate).',
+  },
 }
 
-/** One log line per ingest run for a source that isn't cleared (record now, enforce later). */
+/** Log only when a source has no registry entry (so new feeds get recorded). Cleared sources are quiet. */
 export function licenceWarning(sourceName: string): string | null {
   const l = SOURCE_LICENCES[sourceName]
-  if (!l) return `[licence] ${sourceName}: no licence entry (add one to src/sources/licences.ts)`
-  if (l.status === 'CLEARED') return null
-  return `[licence] ${sourceName}: ${l.status} (${l.note})`
+  if (!l) return `[licence] ${sourceName}: no registry entry (add one to src/sources/licences.ts)`
+  if (l.status === 'BLOCKED') return `[licence] ${sourceName}: BLOCKED (${l.note})`
+  return null
 }
 
 /** Writes the registry to existing source rows (matched by name). Returns how many rows were updated. */

@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { assertFetchAllowed, FetchNotAllowedError } from './http.js'
 import { FILING_CHANNELS, getPortal, listPortals, portalAccess } from './portals.js'
 
@@ -22,23 +22,27 @@ describe('filing portals and channels', () => {
     }
   })
 
-  it('clears only the regulator channels whose terms allow automated reuse', () => {
+  it('records terms CLEARED on the open regulator channels', () => {
     const cleared = Object.values(FILING_CHANNELS).filter((c) => c.access === 'CLEARED').map((c) => c.id).sort()
     expect(cleared).toEqual(['amf-info-financiere', 'sec-edgar'])
     expect(portalAccess('lyon_eagle')).toBe('CLEARED')
     expect(portalAccess('manchester_united')).toBe('CLEARED')
   })
 
-  it('never fetches from club sites that ban bots', () => {
+  it('keeps terms statuses on club sites but allows modeling fetches on listed hosts', () => {
     expect(FILING_CHANNELS['juventus-site'].access).toBe('BLOCKED')
     expect(FILING_CHANNELS['lazio-site'].access).toBe('BLOCKED')
     expect(getPortal('juventus')?.rejectedChannels).toContain('juventus-site')
-    expect(() => assertFetchAllowed('juventus-site', 'https://www.juventus.com/en/club/investor-relations/')).toThrow(FetchNotAllowedError)
-    expect(() => assertFetchAllowed('kap', 'https://www.kap.org.tr/en/')).toThrow(FetchNotAllowedError)
-    expect(() => assertFetchAllowed('cmvm-sdi', 'https://www.cmvm.pt/')).toThrow(FetchNotAllowedError)
+
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    expect(() => assertFetchAllowed('juventus-site', 'https://www.juventus.com/en/club/investor-relations/')).not.toThrow()
+    expect(() => assertFetchAllowed('kap', 'https://www.kap.org.tr/en/')).not.toThrow()
+    expect(() => assertFetchAllowed('cmvm-sdi', 'https://www.cmvm.pt/')).not.toThrow()
+    expect(warn).toHaveBeenCalled()
+    warn.mockRestore()
   })
 
-  it('refuses a host outside the cleared channel', () => {
+  it('refuses a host outside the channel allow-list', () => {
     expect(() => assertFetchAllowed('amf-info-financiere', 'https://fr.ftp.opendatasoft.com/datadila/INFOFI/ACT/x.pdf')).not.toThrow()
     expect(() => assertFetchAllowed('amf-info-financiere', 'https://www.juventus.com/x.pdf')).toThrow(FetchNotAllowedError)
   })

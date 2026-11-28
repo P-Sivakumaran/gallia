@@ -1,7 +1,11 @@
 # Gallia product direction
 
-Gallia is a public football transfer intelligence website, published and managed
-by its owner. It is not a multi-tenant SaaS product.
+Gallia is the owner's football transfer intelligence product. It is not a
+multi-tenant SaaS product.
+
+**Owner 2026-11-28:** private **model-first** phase — maximize training and ledger
+data before diminishing returns. Treat public commercial display and licence
+gates as a later launch checklist, not a daily ingest stop (see data-sources.md).
 
 ## Public experience
 

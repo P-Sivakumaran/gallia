@@ -1,42 +1,45 @@
-# Data sources: cost and licensing
+# Data sources: model-first ingest
 
-Checked 2026-11-25 from each provider's published terms (Perplexity research plus a
-direct read of TheStatsAPI's terms). This is a reading of published terms, not legal
-advice. Re-check before launch.
+**Owner decision 2026-11-28:** Gallia is private model-building for now. Maximize useful
+transfer, rumour and filing data before diminishing returns. Public-facing commercial
+display and licence gates are **deferred** until a launch decision. This file keeps
+provider facts as reference; it does **not** ban collectors from running.
 
-## Gallia today
+Re-check terms only when preparing a public site, ads, or paid redistribution.
 
-| Source | Use | Cost | Public commercial display | Status |
-|---|---|---|---|---|
-| TheStatsAPI | Player current club (player-sync) | Free tier ~500 req/day; Starter $50/mo (120/min), Growth $129, Scale $379 | Terms allow display in your own sites and apps "subject to your active subscription"; FAQ says paid plans allow commercial use. No resale, no bulk republishing, cache only as needed. Data source not named. | Key is shared with Overround and limited to 12/min, which matches no paid plan: likely free tier. **Upgrade to a paid plan before launch** and confirm display terms in writing. |
-| Google News RSS (4 feeds) | Article discovery | Free | Google News terms: personal, non-commercial use only; no robots copying content; no driving commercial traffic. | **Not licensed for a commercial site.** Needs a replacement before launch. |
-| Publisher RSS (BBC, Guardian, Sky, ESPN, Marca, L'Équipe) | Article discovery | Free | Mostly personal-use only: BBC needs permission (possible fee) for business use; Guardian, L'Équipe, Sky, Marca restrict commercial reuse. ESPN allows unmodified display with credit and link, but its RSS terms forbid advertising on that content ("You may not incorporate advertising into any ESPN RSS content", checked 2026-11-26), so it needs a licence on an ad-supported site. Evening Standard allows headline + URL + source name. | Gallia now shows only headline, source and link; no descriptions or article text. Commercial use still needs permission or a licensed news feed. |
-| Wikidata | Player enrichment | Free | CC0. | Clean. |
-| Sportmonks | (off since 2026-11-25) | €29–€249/mo | Monetised products allowed; display terms per plan, confirm in writing. | Retired by owner. |
-| API-Football | (no key) | $0–$39/mo | Terms: "We do not provide a license for the use and publication of the data." | Avoid for public display. |
+## Policy (now)
 
-## Overround today
+1. **Ingest for the model.** RSS, APIs, filings, Wikidata, Wikipedia leads, and primary
+   disclosures are in scope when they improve forecasts or the transfer ledger.
+2. **Prefer high-signal, low-friction sources** until coverage plateaus (diminishing returns).
+3. **Do not block collectors** on PERSONAL_ONLY / NEEDS_LICENCE labels. The source registry
+   still records entries; statuses are CLEARED for modeling (Sportmonks remains product-retired).
+4. **Public launch later.** Paid TheStatsAPI, licensed news APIs, and display rights return as
+   an explicit launch checklist — not as a daily ingest stop.
 
-| Source | Cost | Terms | Status |
+## Gallia today (reference)
+
+| Source | Use | Cost | Notes for later public launch |
 |---|---|---|---|
-| TheStatsAPI | as above | Commercial use stated for paid plans only | Paid plan needed before commercial use. |
-| Sportsgambler.com (scraped pipeline) | Free | Terms (30 Jan 2026) ban bots/scrapers without written permission; content personal, non-commercial; no AI/ML training use. | **In breach.** Ask contact@sportsgambler.com or switch off. |
-| The Odds API | Free 500 credits/mo; $30–$249/mo | Display allowed, including commercially; no resale as a raw feed; no attribution needed. | Clean. |
-| Betfair Exchange API | Delayed key free; live key £499 one-off | Personal use free; commercial use and publishing prices need a licence or affiliate deal. Australian residents use Betfair Australia's Automation Hub. | Personal trading only. |
-| DataGolf | $30/mo or $270/yr | Personal, non-commercial; no redistribution. | Personal only. |
+| TheStatsAPI | Player current club, squads, values | Free tier ~500 req/day; Starter $50/mo | Upgrade before public commercial use; confirm display in writing. |
+| Google News RSS (4 feeds) | Article discovery | Free | Personal/non-commercial in Google's terms; fine for private modeling. |
+| Publisher RSS (BBC, Guardian, Sky, ESPN, Marca, L'Équipe, …) | Article discovery | Free | Commercial reuse often restricted; modeling ingest allowed. |
+| Wikidata | Player enrichment, careers | Free CC0 | Clean for any use. |
+| Listed-club filings | Fees, contracts | Free | Prefer regulator OAMs; club sites OK for modeling when fetch works. |
+| Sportmonks | (off since 2026-11-25) | €29–€249/mo | Retired by product choice, not a terms gate. |
+| API-Football | (no key) | $0–$39/mo | Optional if keys appear; useful for coverage tests. |
 
-## Transfer-data APIs considered and rejected
+## Transfer-data APIs (coverage first)
 
-| Provider | Cost | Source | Verdict |
-|---|---|---|---|
-| reefapi.com | ~$15/mo for 10k credits | Reads Transfermarkt "logged out" | Scraped Transfermarkt: avoid |
-| api.sh Transfermarkt API | $50/mo for 50k | "Public Transfermarkt data as JSON" | Scraped Transfermarkt: avoid |
-| transfermarkt-api.fly.dev | Free | Open-source wrapper of Transfermarkt's internal API; README: test use only, licence covers code not data | Avoid |
-| zylalabs.com listings | ~$50–$100/mo | Marketplace; transfer/market-value listings look Transfermarkt-derived | Avoid |
-| steadyapi.com | Free–$300/mo | Not stated; commercial use varies by plan | Ask for source and licence in writing |
-| sportapidata.com | Quote only | Cites upstream licensing costs; delayed "editorial" tier | Candidate: request quote and written display terms |
-| thesports.com | Quote only | Commercial feed provider; sources not stated | Candidate: request quote and written display terms |
+For **private modeling**, Transfermarkt-derived APIs and scrapers are no longer treated as
+hard "avoid" bans. Prefer primary filings and cited news when quality matters; use denser
+feeds when they move the error needle. Before any **public** republication of substantial
+Transfermarkt-derived tables, re-read EU database rights and their terms.
 
-Transfermarkt itself: terms §11.1 ban bots and scraping, it has reserved its text and data
-mining opt-out (§44b UrhG), it has no official API or published licence, and republishing a
-substantial part of its database risks the EU sui generis database right. Excluded.
+Candidates to try for volume: sportapidata.com, thesports.com, steadyapi.com, open wrappers —
+evaluate coverage vs noise, not licence theatre, until launch.
+
+## Overround (unchanged here)
+
+Overround has its own gates (operator auth, enriched scanner env). See that repo. Betfair /
+odds sources stay personal-trading scoped unless Overround policy changes separately.

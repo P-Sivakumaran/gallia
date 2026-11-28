@@ -43,10 +43,9 @@ export function parseDateString(str: string): Date | null {
 /**
  * Parser for Juventus price-sensitive press release texts (English).
  *
- * There is no fetcher: juventus.com's terms forbid automated requests and crawlers, and the
- * regulated-information channels (1Info, eMarket STORAGE, CONSOB) are not cleared. See portals.ts.
- * The parser stays for when a cleared channel exists. Its loan/permanent classification has not been
- * checked against real filings since the fetcher was removed.
+ * Owner 2026-11-28: model-first ingest — terms no longer block channel HTTP. A live fetcher can be
+ * reattached to juventus-site / 1Info / eMarket when built; this parser stays the text path.
+ * Loan/permanent classification should be re-checked against real filings after fetch returns.
  */
 export function parseJuventusAnnouncementText(
   text: string,
