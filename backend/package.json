@@ -15,7 +15,7 @@
     "sources:licences": "tsx src/scripts/applySourceLicences.ts",
     "sync:football-data": "tsx src/scripts/syncFootballData.ts",
     "sync:wikidata-careers": "tsx src/scripts/syncWikidataCareers.ts",
-    "filings:dry-run-amf": "tsx src/scripts/dryRunAmfFilings.ts"
+    "filings:dry-run": "tsx src/scripts/dryRunFilings.ts"
   },
   "dependencies": {
     "@prisma/client": "^5.10.2",
