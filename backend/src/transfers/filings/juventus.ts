@@ -1,6 +1,10 @@
-import type { ExtractedTransferFact, LoanOptionOrObligation, TransferDirection, TransferType } from './types.js'
+import { extractTextFromPdfBuffer } from './pdfExtractor.js'
+import { fetchFiling, fetchFilingBuffer } from './http.js'
+import type { ExtractedTransferFact, FilingAnnouncement, LoanOptionOrObligation, TransferDirection, TransferType } from './types.js'
 
 const JUVENTUS_PORTAL_ID = 'juventus'
+/** Channel used for IR library + PDF hosts (terms remain BLOCKED; model-first still fetches). */
+const JUVENTUS_CHANNEL = 'juventus-site'
 
 const NUMBER_WORDS: Record<string, number> = {
   one: 1,
@@ -43,9 +47,8 @@ export function parseDateString(str: string): Date | null {
 /**
  * Parser for Juventus price-sensitive press release texts (English).
  *
- * Owner 2026-11-28: model-first ingest — terms no longer block channel HTTP. A live fetcher can be
- * reattached to juventus-site / 1Info / eMarket when built; this parser stays the text path.
- * Loan/permanent classification should be re-checked against real filings after fetch returns.
+ * Live fetch: `fetchJuventusAnnouncements` via juventus-site (model-first; terms still BLOCKED).
+ * Prefer 1Info when that channel is wired. Re-check loan/permanent labels against real PDFs.
  */
 export function parseJuventusAnnouncementText(
   text: string,
@@ -235,4 +238,78 @@ export function parseJuventusAnnouncementText(
       loanOptionOrObligation,
     },
   }
+}
+
+/**
+ * Fetch and parse Juventus IR price-sensitive announcements for the given seasons.
+ * Rate-limited by the shared filings HTTP client (≥2 s per host). Read-only.
+ */
+export async function fetchJuventusAnnouncements(
+  seasons = ['season-2026-27', 'season-2025-26'],
+  maxPagesPerSeason = 5
+): Promise<{ announcements: FilingAnnouncement[]; facts: ExtractedTransferFact[]; failures: { title: string; error: string }[] }> {
+  const announcements: FilingAnnouncement[] = []
+  const facts: ExtractedTransferFact[] = []
+  const failures: { title: string; error: string }[] = []
+
+  for (const season of seasons) {
+    let page = 1
+    while (page <= maxPagesPerSeason) {
+      const libraryUrl = `https://www.juventus.com/en/club/investor-relations/_libraries/${season}/${page}/_price-sensitive-press-releases`
+      let html: string
+      try {
+        const res = await fetchFiling(JUVENTUS_CHANNEL, libraryUrl)
+        html = await res.text()
+      } catch (err) {
+        failures.push({ title: libraryUrl, error: err instanceof Error ? err.message : String(err) })
+        break
+      }
+      if (!html || !html.includes('document-list-container-item')) break
+
+      const itemRegex =
+        /<a class=document-list-container-item href=([^\s>]+) text="([^"]+)"[^>]*>[\s\S]*?data-dateutc=([^\s>]+)/g
+      let match: RegExpExecArray | null
+
+      while ((match = itemRegex.exec(html)) !== null) {
+        const pdfUrl = match[1]
+        const rawTitle = match[2]
+        const publishedAt = new Date(match[3])
+
+        const isTransferLikely =
+          /acquisition|disposal|transfer|termination|player|david|çelik/i.test(rawTitle) &&
+          !/shareholders|financial report|bond|slates|hotel/i.test(rawTitle)
+
+        let rawText = ''
+        if (isTransferLikely) {
+          try {
+            const pdfBuf = await fetchFilingBuffer(JUVENTUS_CHANNEL, pdfUrl)
+            rawText = extractTextFromPdfBuffer(pdfBuf)
+          } catch (err) {
+            failures.push({ title: rawTitle, error: err instanceof Error ? err.message : String(err) })
+          }
+        }
+
+        const announcement: FilingAnnouncement = {
+          portal: JUVENTUS_PORTAL_ID,
+          sourceUrl: pdfUrl,
+          publishedAt,
+          title: rawTitle,
+          rawText,
+          pdfUrl,
+        }
+        announcements.push(announcement)
+
+        if (rawText) {
+          const fact = parseJuventusAnnouncementText(rawText, rawTitle, publishedAt, pdfUrl)
+          if (fact && fact.playerName) facts.push(fact)
+          else if (isTransferLikely) failures.push({ title: rawTitle, error: 'not a single-player move' })
+        }
+      }
+
+      if (!html.includes('d3-pager__cta--next')) break
+      page++
+    }
+  }
+
+  return { announcements, facts, failures }
 }

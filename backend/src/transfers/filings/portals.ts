@@ -305,12 +305,13 @@ export const LISTED_CLUB_PORTALS: Record<string, PortalInfo> = {
     exchange: 'Euronext Milan',
     ticker: 'JUVE',
     regulatoryFramework: 'Article 17 MAR / CONSOB',
-    channelId: '1info',
-    rejectedChannels: ['juventus-site', 'emarket-storage', 'consob'],
+    channelId: 'juventus-site',
+    rejectedChannels: ['emarket-storage', 'consob'],
     feesStated: true,
     contractLengthStated: true,
     format: 'PDF',
-    notes: 'Regulated information goes out through 1Info-Sdir. The text parser stays; no fetcher until a channel is cleared.',
+    notes:
+      'Model-first: IR site fetcher reattached (juventus-site; terms still BLOCKED, HTTP warns). Prefer 1Info when that channel is wired. npm run filings:dry-run-juventus.',
   },
   lazio: {
     id: 'lazio',
