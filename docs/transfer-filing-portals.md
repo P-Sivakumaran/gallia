@@ -15,6 +15,10 @@ sites and other hosts on the channel allow-list may be fetched for private model
 and warns when `access !== CLEARED`. User-Agent:
 `Gallia transfer research (+https://github.com/P-Sivakumaran/gallia)`.
 
+Ledger write path: `npm run filings:ingest` (or daily scheduler cron `FILINGS_INGEST_CRON`,
+default `15 3 * * *`) runs AMF + Juventus fetchers through `runListedClubFilingsIngest` →
+`ingestFilingFact`. Idempotent; unmatched players go to admin review.
+
 Statuses (factual only — not fetch bans):
 - **CLEARED**: terms or an open licence allow automated reuse of the facts.
 - **BLOCKED**: terms ban bots/scraping, or the site often blocks automated clients.
@@ -27,7 +31,7 @@ Statuses (factual only — not fetch bans):
 |---|---|---|---|
 | Olympique Lyonnais (Eagle Football Group) | info-financiere.gouv.fr (DILA) | CLEARED | Parser + fetcher |
 | Manchester United | SEC EDGAR | CLEARED | Needs Keychain contact; check 6-K/20-F naming |
-| Juventus | 1Info / club site | UNKNOWN / BLOCKED (terms) | Text parser; fetcher may be reattached for modeling |
+| Juventus | juventus.com IR (1Info preferred later) | BLOCKED (terms) | Parser + fetcher (model-first); `npm run filings:dry-run-juventus` |
 | Lazio | 1Info / club site | UNKNOWN / BLOCKED (terms) | No |
 | Benfica, FC Porto, Sporting CP | CMVM / club sites | UNKNOWN / NEEDS_PERMISSION | No |
 | Ajax | AFM / club site | UNKNOWN / NEEDS_PERMISSION | No |
@@ -38,7 +42,7 @@ Statuses (factual only — not fetch bans):
 
 ## Next (coverage)
 
-1. Reattach Juventus (and other) fetchers where parsers already exist.
+1. Reattach remaining club/regulator fetchers where parsers already exist (Lazio, CMVM, KAP…).
 2. Clear UNKNOWN channels by reading terms in a browser — for the record, not as a stop.
 3. SEC / Manchester United once the contact is in the Keychain.
 4. ESAP when live for one EU machine-readable route.

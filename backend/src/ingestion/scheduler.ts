@@ -4,8 +4,17 @@ import { fetchLatestRumours } from './sportmonks.js'
 import { computeScore } from '../scoring/likelihoodEngine.js'
 import { broadcast } from '../sse/broadcaster.js'
 import { isPastWindowGrace } from '../forecasting/windowCutoff.js'
+import { runListedClubFilingsIngest } from '../transfers/filings/runner.js'
 
 const prisma = new PrismaClient()
+
+/** Daily model-first pull of listed-club filings into the transfer ledger. */
+async function ingestListedClubFilings(): Promise<void> {
+  const summary = await runListedClubFilingsIngest(prisma)
+  console.log(
+    `[scheduler] Filings ingest: facts=${summary.facts} applied=${summary.applied} unmatched=${summary.unmatched} errors=${summary.errors}`
+  )
+}
 
 async function recomputeAllLikelihoods(): Promise<void> {
   const rumours = await prisma.rumour.findMany({
@@ -102,6 +111,8 @@ async function ingestNewRumours(): Promise<void> {
 export function startScheduler(): void {
   const intervalMinutes = parseInt(process.env.RUMOUR_INGEST_INTERVAL_MINUTES ?? '30', 10)
   const cronExpr = `*/${intervalMinutes} * * * *`
+  // Quiet hour Sydney; override with FILINGS_INGEST_CRON.
+  const filingsCron = process.env.FILINGS_INGEST_CRON ?? '15 3 * * *'
 
   cron.schedule(cronExpr, async () => {
     try {
@@ -109,6 +120,14 @@ export function startScheduler(): void {
       await recomputeAllLikelihoods()
     } catch (err) {
       console.error('[scheduler] Error:', err)
+    }
+  })
+
+  cron.schedule(filingsCron, async () => {
+    try {
+      await ingestListedClubFilings()
+    } catch (err) {
+      console.error('[scheduler] Filings ingest error:', err)
     }
   })
 
@@ -121,5 +140,5 @@ export function startScheduler(): void {
     }
   })
 
-  console.log(`[scheduler] Started — running every ${intervalMinutes} minutes.`)
+  console.log(`[scheduler] Started — rumours every ${intervalMinutes}m; filings cron "${filingsCron}".`)
 }
